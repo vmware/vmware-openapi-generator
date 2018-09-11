@@ -20,22 +20,19 @@ python vmsgen.py -vc <vCenter IP> -o <output directory path>
 
     
 ```
-	 Trying to connect https://vcip/api 
-	 Connected to https://vcip/api 			  
-	 processing package vcenter  
-	 processing package cis  
-	 processing package appliance  
-	 processing package vapi  
-	 processing package content  
-	 Generated swagger files at /Users/sreeshas/PycharmProjects/vmsgen/output for https://vcip/api in 6.460405666999577 seconds    
+Trying to connect https://vcip/api 
+Connected to https://vcip/api 			  
+processing package vcenter  
+processing package cis  
+processing package appliance  
+processing package vapi  
+processing package content  
+Generated swagger files at /Users/sreeshas/PycharmProjects/vmsgen/output for https://vcip/api in 6.460405666999577 seconds    
 ```
 
 ## Contributing
 
-The vmware-openapi-generator project team welcomes contributions from the community. If you wish to contribute code and you have not
-signed our contributor license agreement (CLA), our bot will update the issue when you open a Pull Request. For any
-questions about the CLA process, please refer to our [FAQ](https://cla.vmware.com/faq). For more detailed information,
-refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+The vmware-openapi-generator project team welcomes contributions from the community. Before you start working with vmware-openapi-generator, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 MIT License
