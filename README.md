@@ -18,10 +18,6 @@ vmware-openapi-generator generates openapi/swagger documents from vapi metamodel
 python vmsgen.py -vc <vCenter IP> -o <output directory path>  
 ```
 
-## Documentation
-
-## Releases & Major Branches
-
 ## Contributing
 
 The vmware-openapi-generator project team welcomes contributions from the community. If you wish to contribute code and you have not
