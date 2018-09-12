@@ -3,7 +3,9 @@
 # vmware-openapi-generator
 
 ## Overview
-vmware-openapi-generator generates openapi/swagger documents from vapi metamodel format.  
+vmware-openapi-generator generates openapi/swagger documents from vapi metamodel format.
+
+This generator can be used to work with an existing vCenter server (6.5+) to generate a openapi/swagger document based on the REST APIs which exist as part of that server.
 
 ## Try it out
 
