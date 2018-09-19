@@ -418,6 +418,11 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
+def tags_from_service_name(service_name):
+    if isinstance(service_name, str):
+        return ['_'.join(service_name.split('.')[3:])]
+    else:
+        return []
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
                produces):
@@ -434,16 +439,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
     :return: swagger path object.
     """
     path_obj = {}
-    if service_name is not None:
-
-        splits = service_name.split('.')
-        splits = splits[3:]
-        tag = ''
-        for split in splits:
-            # todo:
-            # Need to add space here, otherwise swagger-ui breaks. figure out why.
-            tag += split + '/'
-        path_obj['tags'] = [tag[0:len(tag) - 1] + ' ']
+    path_obj['tags'] = tags_from_service_name(service_name)
     if method is not None:
         path_obj['method'] = method
     if path is not None:
