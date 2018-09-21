@@ -418,6 +418,11 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
+def tags_from_service_name(service_name):
+    if isinstance(service_name, str):
+        return ['_'.join(service_name.split('.')[3:])]
+    else:
+        return []
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
                produces):
@@ -434,16 +439,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
     :return: swagger path object.
     """
     path_obj = {}
-    if service_name is not None:
-
-        splits = service_name.split('.')
-        splits = splits[3:]
-        tag = ''
-        for split in splits:
-            # todo:
-            # Need to add space here, otherwise swagger-ui breaks. figure out why.
-            tag += split + '/'
-        path_obj['tags'] = [tag[0:len(tag) - 1] + ' ']
+    path_obj['tags'] = tags_from_service_name(service_name)
     if method is not None:
         path_obj['method'] = method
     if path is not None:
@@ -498,8 +494,36 @@ def cleanup(path_dict, type_dict):
                 del method_value['method']
 
 
+def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
+    if isinstance(swagger_obj, dict):
+        for key, item in swagger_obj.items():
+            if isinstance(item, str):
+                if key in ('$ref', 'summary', 'description'):
+                    swagger_obj[key] = item.replace('com.vmware.', '')
+            elif isinstance(item, list):
+                for itm in item:
+                    remove_com_vmware_from_dict(itm, depth+1, keys_list)
+            elif isinstance(item, dict):
+                if depth == 0 and isinstance(key, str) and key.startswith('com.vmware.'):
+                    keys_list.append(key)
+                remove_com_vmware_from_dict(item, depth+1, keys_list)
+    elif isinstance(swagger_obj, list):
+        for itm in swagger_obj:
+            remove_com_vmware_from_dict(itm, depth+1)
+    if depth == 0 and len(keys_list) > 0:
+        while keys_list:
+            old_key = keys_list.pop()
+            new_key = old_key.replace('com.vmware.', '')
+            try:
+                swagger_obj[new_key] = swagger_obj.pop(old_key)
+            except KeyError:
+                print('Could not find the Swagger Element :  {}'.format(old_key))
+
+
 def process_output(path_dict, type_dict, output_dir, output_filename):
     description_map = load_description()
+    remove_com_vmware_from_dict(path_dict)
+    remove_com_vmware_from_dict(type_dict)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
                                  'title': output_filename,
