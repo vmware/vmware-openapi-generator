@@ -13,15 +13,16 @@ import timeit
 import json
 import threading
 import re
-import warnings
-warnings.filterwarnings("ignore")
-import requests
+import copy
 import six
+import requests
+import warnings
 from six.moves import http_client
-
 from vmware.vapi.lib.connect import get_requests_connector
 from vmware.vapi.stdlib.client.factories import StubConfigurationFactory
 from com.vmware.vapi.metadata import metamodel_client
+
+warnings.filterwarnings("ignore")
 
 
 def eprint(*args, **kwargs):
@@ -31,9 +32,8 @@ def eprint(*args, **kwargs):
 # Specify the SSL Trust path to certificates or False to ignore SSL
 VERIFY = False
 
-
 '''
-This script uses metamodel apis and rest navigation to generate openapi json files
+This script uses metamodel apis and rest navigation to generate swagger compliant json files
 for apis available on vcenter.
 '''
 
@@ -42,30 +42,30 @@ def build_error_map():
     """
     Builds error_map which maps vapi errors to http status codes.
     """
-    error_map = {'com.vmware.vapi.std.errors.already_exists': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.internal_server_error':http_client.INTERNAL_SERVER_ERROR,
-                 'com.vmware.vapi.std.errors.invalid_argument':http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.invalid_element_configuration':http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
-                 'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
-                 'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
-                 'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
-                 'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
-                 'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
-                 'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
+    error_map = {'vapi.std.errors.already_exists': http_client.BAD_REQUEST,
+                 'vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
+                 'vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
+                 'vapi.std.errors.internal_server_error': http_client.INTERNAL_SERVER_ERROR,
+                 'vapi.std.errors.invalid_argument': http_client.BAD_REQUEST,
+                 'vapi.std.errors.invalid_element_configuration': http_client.BAD_REQUEST,
+                 'vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
+                 'vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
+                 'vapi.std.errors.not_found': http_client.NOT_FOUND,
+                 'vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
+                 'vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
+                 'vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
+                 'vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
+                 'vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
+                 'vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
+                 'vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
+                 'vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
+                 'vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
+                 'vapi.std.errors.unauthorized': http_client.FORBIDDEN,
+                 'vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
+                 'vapi.std.errors.unsupported': http_client.BAD_REQUEST,
+                 'vapi.std.errors.error': http_client.BAD_REQUEST,
+                 'vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
+                 'vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
     return error_map
 
 
@@ -125,10 +125,11 @@ def get_structure_info(struct_type, structure_svc):
     Given a type, return its structure info, if the type is a structure.
     """
     try:
-        structure_info = structure_svc.get(struct_type)
+        struct_type_temp = remove_com_vmware(struct_type)
+        structure_info = structure_svc.get(struct_type_temp)
         return structure_info
     except Exception as ex:
-        eprint("Could not fetch structure info for " + struct_type)
+        eprint("Could not fetch structure info for " + struct_type_temp)
         eprint(ex)
         return None
 
@@ -229,14 +230,15 @@ def visit_generic(generic_instantiation, new_prop, type_dict, structure_svc, enu
         if generic_instantiation.map_key_type.category == 'USER_DEFINED':
             res_id = generic_instantiation.map_key_type.user_defined_type.resource_id
             res_type = generic_instantiation.map_key_type.user_defined_type.resource_type
-            new_type['properties']['key'] = {'$ref': '#/definitions/' + res_id}
+            new_type['properties']['key'] = {'$ref': '#/definitions/' + remove_com_vmware(res_id)}
             check_type(res_type, res_id, type_dict, structure_svc, enum_svc)
         else:
             new_type['properties']['key'] = {'type': metamodel_to_swagger_type_converter(
                 generic_instantiation.map_key_type.builtin_type)[0]}
         if generic_instantiation.map_value_type.category == 'USER_DEFINED':
             new_type['properties']['value'] = {
-                '$ref': '#/definitions/' + generic_instantiation.map_value_type.user_defined_type.resource_id}
+                '$ref': '#/definitions/' + remove_com_vmware(
+                    generic_instantiation.map_value_type.user_defined_type.resource_id)}
             res_type = generic_instantiation.map_value_type.user_defined_type.resource_type
             res_id = generic_instantiation.map_value_type.user_defined_type.resource_id
             check_type(res_type, res_id, type_dict, structure_svc, enum_svc)
@@ -245,7 +247,9 @@ def visit_generic(generic_instantiation, new_prop, type_dict, structure_svc, enu
                 generic_instantiation.map_value_type.builtin_type)[0]}
         elif generic_instantiation.map_value_type.category == 'GENERIC':
             new_type['properties']['value'] = {}
-            visit_generic(generic_instantiation.map_value_type.generic_instantiation, new_type['properties']['value'], type_dict, structure_svc, enum_svc)
+            visit_generic(generic_instantiation.map_value_type.generic_instantiation,
+                          new_type['properties']['value'], type_dict, structure_svc,
+                          enum_svc)
         new_prop['type'] = 'array'
         new_prop['items'] = new_type
         if '$ref' in new_prop:
@@ -314,10 +318,11 @@ def get_enum_info(type_name, enum_svc):
     Given a type, return its enum info, if the type is enum.
     """
     try:
-        enum_info = enum_svc.get(type_name)
+        type_name_temp = remove_com_vmware(type_name)
+        enum_info = enum_svc.get(type_name_temp)
         return enum_info
     except Exception as exception:
-        eprint("Could not fetch enum info for " + type_name)
+        eprint("Could not fetch enum info for " + type_name_temp)
         eprint(exception)
         return None
 
@@ -326,11 +331,11 @@ def visit_user_defined(user_defined_type, newprop, type_dict, structure_svc, enu
     if user_defined_type.resource_id is None:
         return
     if 'type' in newprop and newprop['type'] == 'array':
-        item_obj = {'$ref': '#/definitions/' + user_defined_type.resource_id}
+        item_obj = {'$ref': '#/definitions/' + remove_com_vmware(user_defined_type.resource_id)}
         newprop['items'] = item_obj
     # if not array, fill in type or ref
     else:
-        newprop['$ref'] = '#/definitions/' + user_defined_type.resource_id
+        newprop['$ref'] = '#/definitions/' + remove_com_vmware(user_defined_type.resource_id)
 
     check_type(user_defined_type.resource_type, user_defined_type.resource_id, type_dict, structure_svc, enum_svc)
 
@@ -385,7 +390,7 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
     success_response = {'description': output.documentation}
     schema = find_output_schema(output, type_dict, structure_svc, enum_svc)
     # if type of schema is void, don't include it.
-    # this prevents showing response as void in swagger-ui
+    # this prevents showing response as void.
     if schema is not None:
         if not ('type' in schema and schema['type'] == 'void'):
             value_wrapper = {'type': 'object',
@@ -393,30 +398,56 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
                              'required': ['value']}
             type_name = get_response_object_name(service_id, operation_id) + '_result'
             if type_name not in type_dict:
-                type_dict[type_name] = value_wrapper
-            success_response['schema'] = {"$ref": "#/definitions/" + type_name}
+                type_dict[remove_com_vmware(type_name)] = value_wrapper
+            success_response['schema'] = {"$ref": "#/definitions/" + remove_com_vmware(type_name)}
     # success response is not mapped through metamodel.
     # hardcode it for now.
     response_map[requests.codes.ok] = success_response
     for error in errors:
-        status_code = error_map[error.structure_id]
-        check_type('com.vmware.vapi.structure', error.structure_id, type_dict, structure_svc, enum_svc)
+        structure_id = remove_com_vmware(error.structure_id)
+        status_code = error_map[structure_id]
+        check_type('com.vmware.vapi.structure', structure_id, type_dict, structure_svc, enum_svc)
         schema_obj = {'type': 'object', 'properties': {'type': {'type': 'string'},
-                                                       'value': {'$ref': '#/definitions/' + error.structure_id}}}
+                                                       'value': {'$ref': '#/definitions/' + structure_id}}}
         type_dict[error.structure_id + '_error'] = schema_obj
-        response_obj = {'description': error.documentation, 'schema': {'$ref': '#/definitions/' + error.structure_id + '_error'}}
+        response_obj = {'description': error.documentation,
+                        'schema': {'$ref': '#/definitions/' + structure_id + '_error'}}
         response_map[status_code] = response_obj
     return response_map
 
 
 def post_process_path(path_obj):
     # Temporary fixes necessary for generated spec files.
-    # Hardcoding for now as it is not available from metadata.
+    # Hardcode for now as it is not available from metadata.
     if path_obj['path'] == '/com/vmware/cis/session' and path_obj['method'] == 'post':
         header_parameter = {'in': 'header', 'required': 'true', 'type': 'string',
                             'name': 'vmware-use-header-authn',
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
+
+    # Allow invoking $task operations from the api-explorer
+    if path_obj['operationId'].endswith('$task'):
+        path_obj['path'] = add_query_param(path_obj['path'], 'vmw-task=true')
+
+
+def add_query_param(url, param):
+    """
+    Rudimentary support for adding a query parameter to a url.
+    Does nothing if the parameter is already there.
+    :param url: the input url
+    :param param: the parameter to add (in the form of key=value)
+    :return: url with added param, ?param or &param at the end
+    """
+    pre_param_symbol = '?'
+    query_index = url.find('?')
+    if query_index > -1:
+        if query_index == len(url):
+            pre_param_symbol = ''
+        elif url[query_index + 1:].find(param) > -1:
+            return url
+        else:
+            pre_param_symbol = '&'
+    return url + pre_param_symbol + param
 
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
@@ -443,7 +474,9 @@ def build_path(service_name, method, path, documentation, parameters, operation_
             # todo:
             # Need to add space here, otherwise swagger-ui breaks. figure out why.
             tag += split + '/'
-        path_obj['tags'] = [tag[0:len(tag) - 1] + ' ']
+        # Not adding the trailing space.
+        # It leads to _ appearing in the Service and Method names
+        path_obj['tags'] = [tag[0:len(tag) - 1]]
     if method is not None:
         path_obj['method'] = method
     if path is not None:
@@ -500,6 +533,9 @@ def cleanup(path_dict, type_dict):
 
 def process_output(path_dict, type_dict, output_dir, output_filename):
     description_map = load_description()
+    new_type_dict = {}
+    for key, value in type_dict.items():
+        new_type_dict[remove_com_vmware(key)] = type_dict.get(key)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
                                  'title': output_filename,
@@ -508,7 +544,7 @@ def process_output(path_dict, type_dict, output_dir, output_filename):
                         'basePath': '/rest', 'tags': [],
                         'schemes': ['https', 'http'],
                         'paths': collections.OrderedDict(sorted(path_dict.items())),
-                        'definitions': collections.OrderedDict(sorted(type_dict.items()))}
+                        'definitions': collections.OrderedDict(sorted(new_type_dict.items()))}
     write_json_data_to_file(output_dir + os.path.sep + output_filename + '.json', swagger_template)
 
 
@@ -545,7 +581,8 @@ def extract_path_parameters(params, url):
                     new_url = new_url.replace(path_param_name_match.group(), '{' + param.name + '}')
                 break
         if path_param_info is None:
-            eprint('%s parameter from %s is not found among the operation\'s parameters' % (path_param_placeholder, url))
+            eprint(
+                '%s parameter from %s is not found among the operation\'s parameters' % (path_param_placeholder, url))
         else:
             path_params.append(path_param_info)
             other_params.remove(path_param_info)
@@ -664,9 +701,9 @@ def wrap_body_params(service_name, operation_name, body_param_list, type_dict, s
         body_obj['required'] = required
         parameter_obj['required'] = True
 
-    type_dict[wrapper_name] = body_obj
+    type_dict[remove_com_vmware(wrapper_name)] = body_obj
 
-    schema_obj = {'$ref': '#/definitions/' + wrapper_name}
+    schema_obj = {'$ref': '#/definitions/' + remove_com_vmware(wrapper_name)}
     parameter_obj['schema'] = schema_obj
     return parameter_obj
 
@@ -757,7 +794,8 @@ def contains_rm_annotation(service_info):
     return True
 
 
-def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map):
+def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id,
+             error_map):
     documentation = operation_info.documentation
     params = operation_info.params
     errors = operation_info.errors
@@ -798,7 +836,8 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
                 operation_id = operation.name
                 operation_info = service_info.operations.get(operation_id)
 
-                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
+                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
+                                operation_id, error_map)
                 path_list.append(path)
             continue
 
@@ -827,7 +866,8 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
             url, method = find_url(service_operation['links'])
             url = get_service_path_from_service_url(url, base_url)
             operation_info = service_info.operations.get(operation_id)
-            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
+            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
+                            operation_id, error_map)
             path_list.append(path)
     pathdict = convert_path_list_to_path_map(path_list)
     cleanup(path_dict=pathdict, type_dict=type_dict)
@@ -843,7 +883,8 @@ def get_input_params():
         description='Generate swagger.json files for apis on vcenter')
     parser.add_argument('-m', '--metadata-url', help='URL of the metadata API')
     parser.add_argument('-rn', '--rest-navigation-url', help='URL of the rest-navigation API')
-    parser.add_argument('-vc', '--vcip', help='IP Address of vCenter Server. If specified, would be used to calculate metadata-url and rest-navigation-url')
+    parser.add_argument('-vc', '--vcip',
+                        help='IP Address of vCenter Server. If specified, would be used to calculate metadata-url and rest-navigation-url')
     parser.add_argument('-o', '--output',
                         help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
     args = parser.parse_args()
@@ -924,6 +965,10 @@ def find_url_method(opinfo):
     return url, method
 
 
+def remove_com_vmware(element_name):
+    return element_name.replace('com.vmware.', '')
+
+
 def populate_dicts(component_svc, enumeration_dict, structure_dict, service_dict, service_urls_map, base_url):
     components = component_svc.list()
     for component in components:
@@ -932,20 +977,45 @@ def populate_dicts(component_svc, enumeration_dict, structure_dict, service_dict
         for package in component_packages:
             package_info = component_packages.get(package)
             for enumeration, enumeration_info in package_info.enumerations.items():
-                enumeration_dict[enumeration] = enumeration_info
+                enumeration_name = remove_com_vmware(enumeration)
+                enumeration_info.name = enumeration_name
+                # enumeration_dict[enumeration] = enumeration_info
+                enumeration_dict[enumeration_name] = enumeration_info
             for structure, structure_info in package_info.structures.items():
-                structure_dict[structure] = structure_info
-                for enum_name, enum_info in structure_info.enumerations.items():
-                    enumeration_dict[enum_name] = enum_info
+                structure_name = remove_com_vmware(structure)
+                structure_info.name = structure_name
+                # structure_dict[structure] = structure_info
+                structure_dict[structure_name] = structure_info
+                for et, et_info in structure_info.enumerations.items():
+                    et_name = remove_com_vmware(et)
+                    et_info.name = et_name
+                    # enumeration_dict[et] = et_info
+                    enumeration_dict[et_name] = et_info
             for service, service_info in package_info.services.items():
+                temp_service_info = copy.deepcopy(service_info)
+                for st, st_info in service_info.structures.items():
+                    st_name = remove_com_vmware(st)
+                    st_info.name = st_name
+                    # structure_dict[st] = st_info
+                    structure_dict[st_name] = st_info
+                    temp_st_info = copy.deepcopy(st_info)
+                    for et1, et_info1 in st_info.enumerations.items():
+                        etl_name = remove_com_vmware(et1)
+                        et_info1.name = etl_name
+                        # enumeration_dict[et1] = et_info1
+                        enumeration_dict[etl_name] = et_info1
+                        temp_st_info.enumerations.pop(et1)
+                        temp_st_info.enumerations[etl_name] = et_info1
+                    temp_service_info.structures[st_name] = temp_st_info
+                for et, et_info in service_info.enumerations.items():
+                    et_name = remove_com_vmware(et)
+                    et_info.name = et_name
+                    enumeration_dict[et_name] = et_info
+                    # enumeration_dict[et] = et_info
+                    temp_service_info.enumerations.pop(et)
+                    temp_service_info.enumerations[et_name] = et_info
                 service_dict[service] = service_info
                 service_urls_map[get_service_url_from_service_id(base_url, service)] = service
-                for structure_name, structure_info in service_info.structures.items():
-                    structure_dict[structure_name] = structure_info
-                    for et1, et_info1 in structure_info.enumerations.items():
-                        enumeration_dict[et1] = et_info1
-                for enum_name, enum_info in service_info.enumerations.items():
-                    enumeration_dict[enum_name] = enum_info
 
 
 def get_service_url_from_service_id(base_url, service_id):
@@ -981,7 +1051,8 @@ def main():
     threads = []
     for package, service_urls in six.iteritems(package_dict):
         worker = threading.Thread(target=process_service_urls, args=(
-            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map, error_map, rest_navigation_url))
+            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map,
+            error_map, rest_navigation_url))
         worker.daemon = True
         worker.start()
         threads.append(worker)
