@@ -33,7 +33,7 @@ def eprint(*args, **kwargs):
 VERIFY = False
 
 '''
-This script uses metamodel apis and rest navigation to generate swagger compliant json files
+This script uses metamodel apis and rest navigation to generate openapi json files
 for apis available on vcenter.
 '''
 
@@ -390,7 +390,7 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
     success_response = {'description': output.documentation}
     schema = find_output_schema(output, type_dict, structure_svc, enum_svc)
     # if type of schema is void, don't include it.
-    # this prevents showing response as void.
+    # this prevents showing response as void in swagger-ui.
     if schema is not None:
         if not ('type' in schema and schema['type'] == 'void'):
             value_wrapper = {'type': 'object',
@@ -401,7 +401,7 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
                 type_dict[remove_com_vmware(type_name)] = value_wrapper
             success_response['schema'] = {"$ref": "#/definitions/" + remove_com_vmware(type_name)}
     # success response is not mapped through metamodel.
-    # hardcode it for now.
+    # hardcoded it for now.
     response_map[requests.codes.ok] = success_response
     for error in errors:
         structure_id = remove_com_vmware(error.structure_id)
@@ -418,7 +418,7 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
 
 def post_process_path(path_obj):
     # Temporary fixes necessary for generated spec files.
-    # Hardcode for now as it is not available from metadata.
+    # Hardcoded for now as it is not available from metadata.
     if path_obj['path'] == '/com/vmware/cis/session' and path_obj['method'] == 'post':
         header_parameter = {'in': 'header', 'required': 'true', 'type': 'string',
                             'name': 'vmware-use-header-authn',
@@ -475,7 +475,8 @@ def build_path(service_name, method, path, documentation, parameters, operation_
             # Need to add space here, otherwise swagger-ui breaks. figure out why.
             tag += split + '/'
         # Not adding the trailing space.
-        # It leads to _ appearing in the Service and Method names
+        # It leads to '_' appearing in the Service and Method names
+        # appearing in the swagger/openapi based generator
         path_obj['tags'] = [tag[0:len(tag) - 1]]
     if method is not None:
         path_obj['method'] = method
@@ -581,8 +582,7 @@ def extract_path_parameters(params, url):
                     new_url = new_url.replace(path_param_name_match.group(), '{' + param.name + '}')
                 break
         if path_param_info is None:
-            eprint(
-                '%s parameter from %s is not found among the operation\'s parameters' % (path_param_placeholder, url))
+            eprint('%s parameter from %s is not found among the operation\'s parameters' % (path_param_placeholder, url))
         else:
             path_params.append(path_param_info)
             other_params.remove(path_param_info)
