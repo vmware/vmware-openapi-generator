@@ -425,30 +425,11 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
-    # Allow invoking $task operations from the api-explorer
-    if path_obj['operationId'].endswith('$task'):
-        path_obj['path'] = add_query_param(path_obj['path'], 'vmw-task=true')
-
-
-def add_query_param(url, param):
-    """
-    Rudimentary support for adding a query parameter to a url.
-    Does nothing if the parameter is already there.
-    :param url: the input url
-    :param param: the parameter to add (in the form of key=value)
-    :return: url with added param, ?param or &param at the end
-    """
-    pre_param_symbol = '?'
-    query_index = url.find('?')
-    if query_index > -1:
-        if query_index == len(url):
-            pre_param_symbol = ''
-        elif url[query_index + 1:].find(param) > -1:
-            return url
-        else:
-            pre_param_symbol = '&'
-    return url + pre_param_symbol + param
-
+def tags_from_service_name(service_name):
+    if isinstance(service_name, str):
+        return ['_'.join(service_name.split('.')[3:])]
+    else:
+        return []
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
                produces):
@@ -465,19 +446,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
     :return: swagger path object.
     """
     path_obj = {}
-    if service_name is not None:
-
-        splits = service_name.split('.')
-        splits = splits[3:]
-        tag = ''
-        for split in splits:
-            # todo:
-            # Need to add space here, otherwise swagger-ui breaks. figure out why.
-            tag += split + '/'
-        # Not adding the trailing space.
-        # It leads to '_' appearing in the Service and Method names
-        # appearing in the swagger/openapi based generator
-        path_obj['tags'] = [tag[0:len(tag) - 1]]
+    path_obj['tags'] = tags_from_service_name(service_name)
     if method is not None:
         path_obj['method'] = method
     if path is not None:
