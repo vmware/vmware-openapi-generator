@@ -494,36 +494,8 @@ def cleanup(path_dict, type_dict):
                 del method_value['method']
 
 
-def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
-    if isinstance(swagger_obj, dict):
-        for key, item in swagger_obj.items():
-            if isinstance(item, str):
-                if key in ('$ref', 'summary', 'description'):
-                    swagger_obj[key] = item.replace('com.vmware.', '')
-            elif isinstance(item, list):
-                for itm in item:
-                    remove_com_vmware_from_dict(itm, depth+1, keys_list)
-            elif isinstance(item, dict):
-                if depth == 0 and isinstance(key, str) and key.startswith('com.vmware.'):
-                    keys_list.append(key)
-                remove_com_vmware_from_dict(item, depth+1, keys_list)
-    elif isinstance(swagger_obj, list):
-        for itm in swagger_obj:
-            remove_com_vmware_from_dict(itm, depth+1)
-    if depth == 0 and len(keys_list) > 0:
-        while keys_list:
-            old_key = keys_list.pop()
-            new_key = old_key.replace('com.vmware.', '')
-            try:
-                swagger_obj[new_key] = swagger_obj.pop(old_key)
-            except KeyError:
-                print('Could not find the Swagger Element :  {}'.format(old_key))
-
-
 def process_output(path_dict, type_dict, output_dir, output_filename):
     description_map = load_description()
-    remove_com_vmware_from_dict(path_dict)
-    remove_com_vmware_from_dict(type_dict)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
                                  'title': output_filename,
