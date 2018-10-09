@@ -281,7 +281,7 @@ def process_structure_info(type_name, structure_info, type_dict, structure_svc, 
         else:
             if property_value['required'] == 'true':
                 required.append(property_name)
-    if not required:
+    if len(required) > 0:
         new_type['required'] = required
     type_dict[type_name] = new_type
 
@@ -413,7 +413,7 @@ def post_process_path(path_obj):
     # Temporary fixes necessary for generated spec files.
     # Hardcoding for now as it is not available from metadata.
     if path_obj['path'] == '/com/vmware/cis/session' and path_obj['method'] == 'post':
-        header_parameter = {'in': 'header', 'required': 'true', 'type': 'string',
+        header_parameter = {'in': 'header', 'required': True, 'type': 'string',
                             'name': 'vmware-use-header-authn',
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
@@ -671,7 +671,7 @@ def process_put_post_patch_request(url, service_name, operation_name, params,
                                    type_dict, structure_svc, enum_svc):
     """
     Handles http post/put/patch request.
-    todo: handle query, formData, header parameters
+    todo: handle query, formData and header parameters
     """
     path_param_list, body_param_list, new_url = extract_path_parameters(params, url)
     par_array = []
