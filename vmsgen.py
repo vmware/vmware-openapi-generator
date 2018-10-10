@@ -278,9 +278,8 @@ def process_structure_info(type_name, structure_info, type_dict, structure_svc, 
     for property_name, property_value in six.iteritems(new_type['properties']):
         if 'required' not in property_value:
             required.append(property_name)
-        else:
-            if property_value['required'] == 'true':
-                required.append(property_name)
+        elif property_value['required'] == 'true':
+            required.append(property_name)
     if len(required) > 0:
         new_type['required'] = required
     type_dict[type_name] = new_type
@@ -643,11 +642,20 @@ def process_get_request(url, params, type_dict, structure_svc, enum_svc):
     # process query parameters
     for field_info in query_param_list:
         # this is how we determine, if input parameter is a filterspec.
+        # TODO: The logic to determine filterspec in incorrect
+        # The Input parameter named anything other that 'filter' would fail
         if field_info.name == 'filter':
             flattened_params = flatten_filter_spec(field_info, type_dict, structure_svc,
                                                    enum_svc)
             if flattened_params is not None:
                 param_array[1:1] = flattened_params
+        else:
+            query_params_obj = convert_field_info_to_swagger_parameter('query', field_info,
+                                                                type_dict, structure_svc,
+                                                                enum_svc)
+            if query_params_obj is not None:
+                param_array.append(query_params_obj)
+
     return param_array, new_url
 
 
@@ -684,7 +692,7 @@ def wrap_body_params(service_name, operation_name, body_param_list, type_dict, s
                 required.append(param.name)
 
     parameter_obj = {'in': 'body', 'name': 'request_body'}
-    if not required:
+    if len(required) > 0:
         body_obj['required'] = required
         parameter_obj['required'] = True
 
@@ -839,7 +847,8 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
             # for example OPTIONS on com.vmware.content.library returns operations from following services
             # instead of just com.vmware.content.library.item
             # com.vmware.content.library.item.storage
-            # com.vmware.content.libary.item
+            # com.vmware.content.library.item
+            # com.vmware.content.library.item.file
             # com.vmware.content.library.item.update_session
             # com.vmware.content.library.item.updatesession.file
             service_info = service_dict.get(service_name, None)
