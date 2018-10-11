@@ -398,7 +398,7 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
     # hardcode it for now.
     response_map[requests.codes.ok] = success_response
     for error in errors:
-        status_code = error_map[error.structure_id]
+        status_code = error_map.get(error.structure_id, http_client.INTERNAL_SERVER_ERROR)
         check_type('com.vmware.vapi.structure', error.structure_id, type_dict, structure_svc, enum_svc)
         schema_obj = {'type': 'object', 'properties': {'type': {'type': 'string'},
                                                        'value': {'$ref': '#/definitions/' + error.structure_id}}}
