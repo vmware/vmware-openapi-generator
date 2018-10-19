@@ -418,7 +418,7 @@ def post_process_path(path_obj):
         path_obj['parameters'] = [header_parameter]
 
 def tags_from_service_name(service_name):
-    if isinstance(service_name, str):
+    if isinstance(service_name, six.string_types):
         return ['_'.join(service_name.split('.')[3:])]
     else:
         return []
