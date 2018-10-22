@@ -418,10 +418,7 @@ def post_process_path(path_obj):
         path_obj['parameters'] = [header_parameter]
 
 def tags_from_service_name(service_name):
-    if isinstance(service_name, str):
-        return ['_'.join(service_name.split('.')[3:])]
-    else:
-        return []
+    return ['_'.join(service_name.split('.')[3:])]
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
                produces):
