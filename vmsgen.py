@@ -28,10 +28,6 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-# Specify the SSL Trust path to certificates or False to ignore SSL
-VERIFY = False
-
-
 '''
 This script uses metamodel apis and rest navigation to generate openapi json files
 for apis available on vcenter.
@@ -876,6 +872,7 @@ def get_input_params():
     parser.add_argument('-vc', '--vcip', help='IP Address of vCenter Server. If specified, would be used to calculate metadata-url and rest-navigation-url')
     parser.add_argument('-o', '--output',
                         help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
+    parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -892,7 +889,8 @@ def get_input_params():
     output_dir = args.output
     if output_dir is None:
         output_dir = os.getcwd()
-    return metadata_url, rest_navigation_url, output_dir
+    verify = not args.insecure
+    return metadata_url, rest_navigation_url, output_dir, verify
 
 
 def get_component_service(connector):
@@ -901,9 +899,9 @@ def get_component_service(connector):
     return component_svc
 
 
-def get_service_urls_from_rest_navigation(rest_navigation_url):
-    component_services_urls = get_component_services_urls(rest_navigation_url, VERIFY)
-    return get_all_services_urls(component_services_urls, VERIFY)
+def get_service_urls_from_rest_navigation(rest_navigation_url, verify):
+    component_services_urls = get_component_services_urls(rest_navigation_url, verify)
+    return get_all_services_urls(component_services_urls, verify)
 
 
 def categorize_service_urls_by_package_names(service_urls_map, base_url):
@@ -985,7 +983,7 @@ def get_service_url_from_service_id(base_url, service_id):
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir = get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify = get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -1004,7 +1002,7 @@ def main():
     component_svc = get_component_service(connector)
     populate_dicts(component_svc, enumeration_dict, structure_dict, service_dict, service_urls_map, rest_navigation_url)
 
-    service_urls_map = get_service_urls_from_rest_navigation(rest_navigation_url)
+    service_urls_map = get_service_urls_from_rest_navigation(rest_navigation_url, verify)
     package_dict = categorize_service_urls_by_package_names(service_urls_map, rest_navigation_url)
     error_map = build_error_map()
 
