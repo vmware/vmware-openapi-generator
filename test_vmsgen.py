@@ -38,3 +38,17 @@ def test_tag_separator_option(monkeypatch):
         m.setattr(sys, 'argv', ['a', '-vc', 'b', '-o', 'c', '-s', expected])
         _, _, _, actual, _ = vmsgen.get_input_params()
         assert expected == actual
+
+def test_default_ssl_security_option(monkeypatch):
+    with monkeypatch.context() as m:
+         expected = True
+         m.setattr(sys, 'argv', ['a', '-vc', 'b'])
+         _, _, _, _, actual = vmsgen.get_input_params()
+         assert expected == actual
+
+def test_setting_insecure_ssl_security_option(monkeypatch):
+    with monkeypatch.context() as m:
+         expected = False
+         m.setattr(sys, 'argv', ['a', '-vc', 'b', '-k'])
+         _, _, _, _, actual = vmsgen.get_input_params()
+         assert expected == actual

@@ -880,6 +880,7 @@ def get_input_params():
                         help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     parser.add_argument('-s', '--tag-separator', default='/', help='Separator to use in tag name')
+    parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
