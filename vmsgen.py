@@ -878,7 +878,6 @@ def get_input_params():
     parser.add_argument('-vc', '--vcip', help='IP Address of vCenter Server. If specified, would be used to calculate metadata-url and rest-navigation-url')
     parser.add_argument('-o', '--output',
                         help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
-    parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     parser.add_argument('-s', '--tag-separator', default='/', help='Separator to use in tag name')
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     args = parser.parse_args()
