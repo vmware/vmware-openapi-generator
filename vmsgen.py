@@ -183,6 +183,7 @@ def visit_type_category(struct_type, new_prop, type_dict, structure_svc, enum_sv
 
 
 def visit_type_category_dict(struct_type, new_prop, type_dict, structure_svc, enum_svc):
+    new_prop['required'] = True
     if struct_type['category'] == 'BUILTIN':
         visit_builtin(struct_type['builtin_type'], new_prop)
     elif struct_type['category'] == 'GENERIC':
