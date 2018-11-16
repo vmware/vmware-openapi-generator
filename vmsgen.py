@@ -497,8 +497,8 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
     2. replaces $ with _ from the model names
 
     This is done on both definitions and path
-    'definitions' : where they are defined and may be referenced.
-    'path' : where they are referenced.
+    'definitions' : where models are defined and may be referenced.
+    'path' : where models are referenced.
     :param swagger_obj: should be path of definitions dictionary
     :param depth: depth of the dictionary. Defaults to 0
     :param keys_list: List of updated model names
