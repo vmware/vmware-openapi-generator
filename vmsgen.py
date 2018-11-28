@@ -494,16 +494,32 @@ def cleanup(path_dict, type_dict):
 
 
 def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
+    """
+    The method
+    1. removes 'com.vmware.' from model names
+    2. replaces $ with _ from the model names
+
+    This is done on both definitions and path
+    'definitions' : where models are defined and may be referenced.
+    'path' : where models are referenced.
+    :param swagger_obj: should be path of definitions dictionary
+    :param depth: depth of the dictionary. Defaults to 0
+    :param keys_list: List of updated model names
+    :return:
+    """
     if isinstance(swagger_obj, dict):
         for key, item in swagger_obj.items():
             if isinstance(item, str):
                 if key in ('$ref', 'summary', 'description'):
-                    swagger_obj[key] = item.replace('com.vmware.', '')
+                    item = item.replace('com.vmware.', '')
+                    if key == '$ref':
+                        item = item.replace('$', '_')
+                    swagger_obj[key] = item
             elif isinstance(item, list):
                 for itm in item:
                     remove_com_vmware_from_dict(itm, depth+1, keys_list)
             elif isinstance(item, dict):
-                if depth == 0 and isinstance(key, str) and key.startswith('com.vmware.'):
+                if depth == 0 and isinstance(key, str) and (key.startswith('com.vmware.') or '$' in key):
                     keys_list.append(key)
                 remove_com_vmware_from_dict(item, depth+1, keys_list)
     elif isinstance(swagger_obj, list):
@@ -513,6 +529,7 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
         while keys_list:
             old_key = keys_list.pop()
             new_key = old_key.replace('com.vmware.', '')
+            new_key = new_key.replace('$', '_')
             try:
                 swagger_obj[new_key] = swagger_obj.pop(old_key)
             except KeyError:
