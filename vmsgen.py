@@ -508,6 +508,8 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
     :return:
     """
     if isinstance(swagger_obj, dict):
+        if '$ref' in swagger_obj and 'required' in swagger_obj:
+            del swagger_obj['required']
         for key, item in swagger_obj.items():
             if isinstance(item, str):
                 if key in ('$ref', 'summary', 'description'):
