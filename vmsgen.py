@@ -33,6 +33,7 @@ This script uses metamodel apis and rest navigation to generate openapi json fil
 for apis available on vcenter.
 '''
 
+GENERATE_UNIQUE_OP_IDS = False
 
 def build_error_map():
     """
@@ -538,9 +539,88 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
                 print('Could not find the Swagger Element :  {}'.format(old_key))
 
 
+def create_camelized_op_id(path, http_method, operations_dict):
+    """
+    Creates camelized operation id.
+    Takes the path, http_method and operation dictionary as input parameter:
+    1. Iterates through all the operation array to return the current operation id
+    2. Appends path to the existing operation id and
+     replaces '/' and '-' with '_' and removes 'com_vmware_'
+    3. Splits the string by '_'
+    4. Converts the first letter of all the words except the first one from lower to upper
+    5. Joins all the words together and returns the new camelcase string
+
+    e.g
+        parameter : abc_def_ghi
+        return    : AbcDefGhi
+    :param path:
+    :param http_method:
+    :param operations_dict:
+    :return: new_op_id
+    """
+    curr_op_id = operations_dict['operationId']
+    raw_op_id = curr_op_id.replace('-', '_')
+    new_op_id = raw_op_id
+    if '_' in raw_op_id:
+        raw_op_id_iter = iter(raw_op_id.split('_'))
+        new_op_id = next(raw_op_id_iter)
+        for new_op_id_element in raw_op_id_iter:
+            new_op_id += new_op_id_element.title()
+    if path.rfind('?') > 0:
+        paths_array = re.split('\?action=|\?~action=', path)
+        path = paths_array[0]
+    path_elements = path.replace('-', '_').split('/')
+    path_elements_iter = iter(path_elements)
+    for path_element in path_elements_iter:
+        if '{' in path_element:
+            continue
+        if 'com' == path_element or 'vmware' == path_element:
+            continue
+        if path_element.lower() == raw_op_id.lower():
+            continue
+        if '_' in path_element:
+            sub_path_iter = iter(path_element.split('_'))
+            for sub_path_element in sub_path_iter:
+                new_op_id += sub_path_element.title()
+        else:
+            new_op_id += path_element.title()
+    return new_op_id
+
+
+def create_unique_op_ids(path_dict):
+    """
+    Creates unique operation ids
+    Takes the path dictionary as input parameter:
+    1. Iterates through all the http_operation array
+    2. For every operation gets the current operation id
+    3. Calls method to get the camelized operation id
+    4. Checks for uniqueness
+    5. Updates the path dictionary with the unique operation id
+    
+    :param path_dict:
+    """
+    op_id_list = ['get', 'set', 'list', 'add', 'run', 'start', 'stop',
+                  'restart', 'reset', 'cancel', 'create', 'update', 'delete']
+    if not isinstance(path_dict, dict):
+        print('The path section in the swagger is of invalid')
+        return
+    for path, http_operation in path_dict.items():
+        if not isinstance(http_operation, dict):
+            print('The Operation section in the swagger is invalid')
+            return
+        for http_method, operation_dict in http_operation.items():
+            op_id_val = create_camelized_op_id(path, http_method, operation_dict)
+            if op_id_val not in op_id_list:
+                operation_dict['operationId'] = op_id_val
+                op_id_list.append(op_id_val)
+
+
 def process_output(path_dict, type_dict, output_dir, output_filename):
     description_map = load_description()
     remove_com_vmware_from_dict(path_dict)
+    global GENERATE_UNIQUE_OP_IDS
+    if GENERATE_UNIQUE_OP_IDS:
+        create_unique_op_ids(path_dict)
     remove_com_vmware_from_dict(type_dict)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
@@ -834,6 +914,7 @@ def get_path(operation_info, http_method, url, service_name, type_dict, structur
 
 def process_service_urls(package_name, service_urls, output_dir, structure_dict, enum_dict,
                          service_dict, service_url_dict, error_map, base_url, tag_separator):
+
     print('processing package ' + package_name + os.linesep)
     type_dict = {}
     path_list = []
@@ -881,9 +962,9 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
             operation_info = service_info.operations.get(operation_id)
             path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator)
             path_list.append(path)
-    pathdict = convert_path_list_to_path_map(path_list)
-    cleanup(path_dict=pathdict, type_dict=type_dict)
-    process_output(pathdict, type_dict, output_dir, package_name)
+    path_dict = convert_path_list_to_path_map(path_list)
+    cleanup(path_dict=path_dict, type_dict=type_dict)
+    process_output(path_dict, type_dict, output_dir, package_name)
 
 
 def get_input_params():
@@ -900,6 +981,8 @@ def get_input_params():
                         help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
     parser.add_argument('-s', '--tag-separator', default='/', help='Separator to use in tag name')
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
+    parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False,
+                    help="Pass this parameter to generate Unique Operation Ids.")
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -917,6 +1000,8 @@ def get_input_params():
     if output_dir is None:
         output_dir = os.getcwd()
     verify = not args.insecure
+    global GENERATE_UNIQUE_OP_IDS
+    GENERATE_UNIQUE_OP_IDS = args.unique_operation_ids
     return metadata_url, rest_navigation_url, output_dir, args.tag_separator, verify
 
 
