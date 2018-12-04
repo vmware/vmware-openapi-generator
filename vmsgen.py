@@ -34,6 +34,7 @@ for apis available on vcenter.
 '''
 
 GENERATE_UNIQUE_OP_IDS = False
+TAG_SEPARATOR = '/'
 
 def build_error_map():
     """
@@ -415,17 +416,17 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
-def tags_from_service_name(service_name, tag_separator):
+def tags_from_service_name(service_name):
     """
     Generates the tags based on the service name.
     :param service_name: name of the service
-    :param tag_separator: the separator to use in the tag
     :return: a list of tags
     """
-    return [tag_separator.join(service_name.split('.')[3:])]
+    global TAG_SEPARATOR
+    return [TAG_SEPARATOR.join(service_name.split('.')[3:])]
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
-               produces, tag_separator):
+               produces):
     """
     builds swagger path object
     :param service_name: name of service. ex com.vmware.vcenter.VM
@@ -439,7 +440,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
     :return: swagger path object.
     """
     path_obj = {}
-    path_obj['tags'] = tags_from_service_name(service_name, tag_separator)
+    path_obj['tags'] = tags_from_service_name(service_name)
     if method is not None:
         path_obj['method'] = method
     if path is not None:
@@ -885,7 +886,7 @@ def contains_rm_annotation(service_info):
     return True
 
 
-def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator):
+def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map):
     documentation = operation_info.documentation
     params = operation_info.params
     errors = operation_info.errors
@@ -905,12 +906,12 @@ def get_path(operation_info, http_method, url, service_name, type_dict, structur
                       url,
                       documentation, par_array, operation_id=operation_id,
                       responses=response_map,
-                      consumes=consumes_json, produces=produces, tag_separator=tag_separator)
+                      consumes=consumes_json, produces=produces)
     return path
 
 
 def process_service_urls(package_name, service_urls, output_dir, structure_dict, enum_dict,
-                         service_dict, service_url_dict, error_map, base_url, tag_separator):
+                         service_dict, service_url_dict, error_map, base_url):
 
     print('processing package ' + package_name + os.linesep)
     type_dict = {}
@@ -927,7 +928,7 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
                 operation_id = operation.name
                 operation_info = service_info.operations.get(operation_id)
 
-                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator)
+                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
                 path_list.append(path)
             continue
 
@@ -957,7 +958,7 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
             url, method = find_url(service_operation['links'])
             url = get_service_path_from_service_url(url, base_url)
             operation_info = service_info.operations.get(operation_id)
-            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator)
+            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
             path_list.append(path)
     path_dict = convert_path_list_to_path_map(path_list)
     cleanup(path_dict=path_dict, type_dict=type_dict)
@@ -999,7 +1000,9 @@ def get_input_params():
     verify = not args.insecure
     global GENERATE_UNIQUE_OP_IDS
     GENERATE_UNIQUE_OP_IDS = args.unique_operation_ids
-    return metadata_url, rest_navigation_url, output_dir, args.tag_separator, verify
+    global TAG_SEPARATOR
+    TAG_SEPARATOR = args.tag_separator
+    return metadata_url, rest_navigation_url, output_dir, verify
 
 
 def get_component_service(connector):
@@ -1092,7 +1095,7 @@ def get_service_url_from_service_id(base_url, service_id):
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, tag_separator, verify = get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify = get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -1118,7 +1121,7 @@ def main():
     threads = []
     for package, service_urls in six.iteritems(package_dict):
         worker = threading.Thread(target=process_service_urls, args=(
-            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map, error_map, rest_navigation_url, tag_separator))
+            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map, error_map, rest_navigation_url))
         worker.daemon = True
         worker.start()
         threads.append(worker)
