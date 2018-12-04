@@ -680,51 +680,96 @@ def is_param_path_variable(param, path_param_placeholder):
     return param.metadata['PathVariable'].elements['value'].string_value == path_param_placeholder
 
 
-def flatten_filter_spec(field_info, type_dict, structure_svc, enum_svc):
+def flatten_query_param_spec(query_param_info, type_dict, structure_svc, enum_svc):
     """
-    Flattens filterspec.
-    This method creates a separate query parameter for every field in filterspec.
-    consider example of datacenter get which accepts optional filterspec.
-    Optional<Datacenter.FilterSpec> filter)
-    gets converted to 3 separate query parameters
-    filter.datacenters, filter.names, filter.folders.
+    Flattens query parameters specs.
+    1. Create a query parameter for every field in spec.
+        Example 1:
+            consider datacenter get which accepts optional filterspec.
+            Optional<Datacenter.FilterSpec> filter)
+            The method would convert the filterspec to 3 separate query parameters
+            filter.datacenters, filter.names and filter.folders.
+        Example 2:
+            consider /vcenter/deployment/install/initial-config/remote-psc/thumbprint get
+            which accepts parameter
+            vcenter.deployment.install.initial_config.remote_psc.thumbprint.remote_spec.
+            The two members defined under remote_spec
+            address and https_port are converted to two separate query parameters
+            address(required) and https_port(optional).
+    2. The field info is simple type. i.e the type is string, integer
+        then it is converted it to swagger parameter.
+        Example:
+            consider /com/vmware/content/library/item get
+            which accepts parameter 'library_id'. The field is converted
+             to library_id query parameter.
+    3. This field has references to a spec but the spec is not
+        a complex type and does not have property 'properties'.
+        i.e the type is string, integer. The members defined under the spec are
+        converted to query parameter.
+        Example:
+            consider /appliance/update/pending get which accepts two parameter
+            'source_type' and url. Where source_type is defined in the spec
+            'appliance.update.pending.source_type' and field url
+            is of type string.
+            The fields 'source_type' and 'url' are converted to query parameter
+             of type string.
     """
-    name = field_info.name
-    new_prop = {}
-    visit_type_category(field_info.type, new_prop, type_dict, structure_svc, enum_svc)
-    reference = new_prop['$ref']
-    reference = reference.replace('#/definitions/', '')
-    type_ref = type_dict.get(reference, None)
-    if type_ref is None:
-        return None
     prop_array = []
-    for property_name, property_value in six.iteritems(type_ref['properties']):
-        prop = {'in': 'query', 'name': name + '.' + property_name}
-        if 'type' in property_value:
-            prop['type'] = property_value['type']
-            if prop['type'] == 'array':
-                prop['collectionFormat'] = 'multi'
-                prop['items'] = property_value['items']
-                if '$ref' in property_value['items']:
-                    ref = property_value['items']['$ref']
-                    ref = ref.replace('#/definitions/', '')
-                    type_ref = type_dict[ref]
-                    prop['items'] = type_ref
-                    if 'description' in prop['items']:
-                        del prop['items']['description']
-            if 'description' in property_value:
-                prop['description'] = property_value['description']
-        elif '$ref' in property_value:
-            reference = property_value['$ref']
-            reference = reference.replace('#/definitions/', '')
-            prop_obj = type_dict[reference]
-            if 'type' in prop_obj:
-                prop['type'] = prop_obj['type']
-            if 'enum' in prop_obj:
-                prop['enum'] = prop_obj['enum']
-            if 'description' in prop_obj:
-                prop['description'] = prop_obj['description']
-        prop_array.append(prop)
+    parameter_obj = {}
+    visit_type_category(query_param_info.type, parameter_obj, type_dict, structure_svc, enum_svc)
+    if '$ref' in parameter_obj:
+        reference = parameter_obj['$ref'].replace('#/definitions/', '')
+        type_ref = type_dict.get(reference, None)
+        if type_ref is None:
+            return None
+        if 'properties' in type_ref:
+            for property_name, property_value in six.iteritems(type_ref['properties']):
+                prop = {'in': 'query', 'name': query_param_info.name + '.' + property_name}
+                if 'type' in property_value:
+                    prop['type'] = property_value['type']
+                    if prop['type'] == 'array':
+                        prop['collectionFormat'] = 'multi'
+                        prop['items'] = property_value['items']
+                        if '$ref' in property_value['items']:
+                            ref = property_value['items']['$ref'].replace('#/definitions/', '')
+                            type_ref = type_dict[ref]
+                            prop['items'] = type_ref
+                            if 'description' in prop['items']:
+                                del prop['items']['description']
+                    if 'description' in property_value:
+                        prop['description'] = property_value['description']
+                elif '$ref' in property_value:
+                    reference = property_value['$ref'].replace('#/definitions/', '')
+                    prop_obj = type_dict[reference]
+                    if 'type' in prop_obj:
+                        prop['type'] = prop_obj['type']
+                    if 'enum' in prop_obj:
+                        prop['enum'] = prop_obj['enum']
+                    if 'description' in prop_obj:
+                        prop['description'] = prop_obj['description']
+                if 'required' in type_ref:
+                    if property_name in type_ref['required']:
+                        prop['required'] = True
+                    else:
+                        prop['required'] = False
+                prop_array.append(prop)
+        else:
+            prop = {'in': 'query', 'name': query_param_info.name, 'description': type_ref['description'],
+                    'type': type_ref['type']}
+            if 'enum' in type_ref:
+                prop['enum'] = type_ref['enum']
+            if 'required' not in parameter_obj:
+                prop['required'] = True
+            else:
+                prop['required'] = parameter_obj['required']
+            prop_array.append(prop)
+    else:
+        parameter_obj['in'] = 'query'
+        parameter_obj['name'] = query_param_info.name
+        parameter_obj['description'] = query_param_info.documentation
+        if 'required' not in parameter_obj:
+            parameter_obj['required'] = True
+        prop_array.append(parameter_obj)
     return prop_array
 
 
@@ -738,21 +783,12 @@ def process_get_request(url, params, type_dict, structure_svc, enum_svc):
         param_array.append(parameter_obj)
     # process query parameters
     for field_info in query_param_list:
-        # this is how we determine, if input parameter is a filterspec.
-        # TODO: The logic to determine filterspec in incorrect
-        # The Input parameter named anything other that 'filter' would fail
-        if field_info.name == 'filter':
-            flattened_params = flatten_filter_spec(field_info, type_dict, structure_svc,
+        # See documentation of method flatten_query_param_spec to understand
+        # handling of all the query parameters; filter as well as non filter
+            flattened_params = flatten_query_param_spec(field_info, type_dict, structure_svc,
                                                    enum_svc)
             if flattened_params is not None:
                 param_array[1:1] = flattened_params
-        else:
-            query_params_obj = convert_field_info_to_swagger_parameter('query', field_info,
-                                                                type_dict, structure_svc,
-                                                                enum_svc)
-            if query_params_obj is not None:
-                param_array.append(query_params_obj)
-
     return param_array, new_url
 
 
