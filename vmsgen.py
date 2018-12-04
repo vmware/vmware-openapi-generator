@@ -566,9 +566,12 @@ def create_camelized_op_id(path, http_method, operations_dict):
         new_op_id = next(raw_op_id_iter)
         for new_op_id_element in raw_op_id_iter:
             new_op_id += new_op_id_element.title()
-    if path.rfind('?') > 0:
-        paths_array = re.split('\?action=|\?~action=', path)
-        path = paths_array[0]
+    ''' 
+        Removes query parameters form the path. 
+        Only path elements are used in operation ids
+    '''
+    paths_array = re.split('\?', path)
+    path = paths_array[0]
     path_elements = path.replace('-', '_').split('/')
     path_elements_iter = iter(path_elements)
     for path_element in path_elements_iter:
@@ -601,13 +604,7 @@ def create_unique_op_ids(path_dict):
     """
     op_id_list = ['get', 'set', 'list', 'add', 'run', 'start', 'stop',
                   'restart', 'reset', 'cancel', 'create', 'update', 'delete']
-    if not isinstance(path_dict, dict):
-        print('The path section in the swagger is of invalid')
-        return
     for path, http_operation in path_dict.items():
-        if not isinstance(http_operation, dict):
-            print('The Operation section in the swagger is invalid')
-            return
         for http_method, operation_dict in http_operation.items():
             op_id_val = create_camelized_op_id(path, http_method, operation_dict)
             if op_id_val not in op_id_list:
