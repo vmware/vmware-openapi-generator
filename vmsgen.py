@@ -33,6 +33,8 @@ This script uses metamodel apis and rest navigation to generate openapi json fil
 for apis available on vcenter.
 '''
 
+GENERATE_UNIQUE_OP_IDS = False
+TAG_SEPARATOR = '/'
 
 def build_error_map():
     """
@@ -414,17 +416,17 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
-def tags_from_service_name(service_name, tag_separator):
+def tags_from_service_name(service_name):
     """
     Generates the tags based on the service name.
     :param service_name: name of the service
-    :param tag_separator: the separator to use in the tag
     :return: a list of tags
     """
-    return [tag_separator.join(service_name.split('.')[3:])]
+    global TAG_SEPARATOR
+    return [TAG_SEPARATOR.join(service_name.split('.')[3:])]
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
-               produces, tag_separator):
+               produces):
     """
     builds swagger path object
     :param service_name: name of service. ex com.vmware.vcenter.VM
@@ -438,7 +440,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
     :return: swagger path object.
     """
     path_obj = {}
-    path_obj['tags'] = tags_from_service_name(service_name, tag_separator)
+    path_obj['tags'] = tags_from_service_name(service_name)
     if method is not None:
         path_obj['method'] = method
     if path is not None:
@@ -538,9 +540,85 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
                 print('Could not find the Swagger Element :  {}'.format(old_key))
 
 
+def create_camelized_op_id(path, http_method, operations_dict):
+    """
+    Creates camelized operation id.
+    Takes the path, http_method and operation dictionary as input parameter:
+    1. Iterates through all the operation array to return the current operation id
+    2. Appends path to the existing operation id and
+     replaces '/' and '-' with '_' and removes 'com_vmware_'
+    3. Splits the string by '_'
+    4. Converts the first letter of all the words except the first one from lower to upper
+    5. Joins all the words together and returns the new camelcase string
+
+    e.g
+        parameter : abc_def_ghi
+        return    : AbcDefGhi
+    :param path:
+    :param http_method:
+    :param operations_dict:
+    :return: new_op_id
+    """
+    curr_op_id = operations_dict['operationId']
+    raw_op_id = curr_op_id.replace('-', '_')
+    new_op_id = raw_op_id
+    if '_' in raw_op_id:
+        raw_op_id_iter = iter(raw_op_id.split('_'))
+        new_op_id = next(raw_op_id_iter)
+        for new_op_id_element in raw_op_id_iter:
+            new_op_id += new_op_id_element.title()
+    ''' 
+        Removes query parameters form the path. 
+        Only path elements are used in operation ids
+    '''
+    paths_array = re.split('\?', path)
+    path = paths_array[0]
+    path_elements = path.replace('-', '_').split('/')
+    path_elements_iter = iter(path_elements)
+    for path_element in path_elements_iter:
+        if '{' in path_element:
+            continue
+        if 'com' == path_element or 'vmware' == path_element:
+            continue
+        if path_element.lower() == raw_op_id.lower():
+            continue
+        if '_' in path_element:
+            sub_path_iter = iter(path_element.split('_'))
+            for sub_path_element in sub_path_iter:
+                new_op_id += sub_path_element.title()
+        else:
+            new_op_id += path_element.title()
+    return new_op_id
+
+
+def create_unique_op_ids(path_dict):
+    """
+    Creates unique operation ids
+    Takes the path dictionary as input parameter:
+    1. Iterates through all the http_operation array
+    2. For every operation gets the current operation id
+    3. Calls method to get the camelized operation id
+    4. Checks for uniqueness
+    5. Updates the path dictionary with the unique operation id
+    
+    :param path_dict:
+    """
+    op_id_list = ['get', 'set', 'list', 'add', 'run', 'start', 'stop',
+                  'restart', 'reset', 'cancel', 'create', 'update', 'delete']
+    for path, http_operation in path_dict.items():
+        for http_method, operation_dict in http_operation.items():
+            op_id_val = create_camelized_op_id(path, http_method, operation_dict)
+            if op_id_val not in op_id_list:
+                operation_dict['operationId'] = op_id_val
+                op_id_list.append(op_id_val)
+
+
 def process_output(path_dict, type_dict, output_dir, output_filename):
     description_map = load_description()
     remove_com_vmware_from_dict(path_dict)
+    global GENERATE_UNIQUE_OP_IDS
+    if GENERATE_UNIQUE_OP_IDS:
+        create_unique_op_ids(path_dict)
     remove_com_vmware_from_dict(type_dict)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
@@ -808,7 +886,7 @@ def contains_rm_annotation(service_info):
     return True
 
 
-def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator):
+def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map):
     documentation = operation_info.documentation
     params = operation_info.params
     errors = operation_info.errors
@@ -828,12 +906,13 @@ def get_path(operation_info, http_method, url, service_name, type_dict, structur
                       url,
                       documentation, par_array, operation_id=operation_id,
                       responses=response_map,
-                      consumes=consumes_json, produces=produces, tag_separator=tag_separator)
+                      consumes=consumes_json, produces=produces)
     return path
 
 
 def process_service_urls(package_name, service_urls, output_dir, structure_dict, enum_dict,
-                         service_dict, service_url_dict, error_map, base_url, tag_separator):
+                         service_dict, service_url_dict, error_map, base_url):
+
     print('processing package ' + package_name + os.linesep)
     type_dict = {}
     path_list = []
@@ -849,7 +928,7 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
                 operation_id = operation.name
                 operation_info = service_info.operations.get(operation_id)
 
-                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator)
+                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
                 path_list.append(path)
             continue
 
@@ -879,11 +958,11 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
             url, method = find_url(service_operation['links'])
             url = get_service_path_from_service_url(url, base_url)
             operation_info = service_info.operations.get(operation_id)
-            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map, tag_separator)
+            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
             path_list.append(path)
-    pathdict = convert_path_list_to_path_map(path_list)
-    cleanup(path_dict=pathdict, type_dict=type_dict)
-    process_output(pathdict, type_dict, output_dir, package_name)
+    path_dict = convert_path_list_to_path_map(path_list)
+    cleanup(path_dict=path_dict, type_dict=type_dict)
+    process_output(path_dict, type_dict, output_dir, package_name)
 
 
 def get_input_params():
@@ -900,6 +979,8 @@ def get_input_params():
                         help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
     parser.add_argument('-s', '--tag-separator', default='/', help='Separator to use in tag name')
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
+    parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False,
+                    help="Pass this parameter to generate Unique Operation Ids.")
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -917,7 +998,11 @@ def get_input_params():
     if output_dir is None:
         output_dir = os.getcwd()
     verify = not args.insecure
-    return metadata_url, rest_navigation_url, output_dir, args.tag_separator, verify
+    global GENERATE_UNIQUE_OP_IDS
+    GENERATE_UNIQUE_OP_IDS = args.unique_operation_ids
+    global TAG_SEPARATOR
+    TAG_SEPARATOR = args.tag_separator
+    return metadata_url, rest_navigation_url, output_dir, verify
 
 
 def get_component_service(connector):
@@ -1010,7 +1095,7 @@ def get_service_url_from_service_id(base_url, service_id):
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, tag_separator, verify = get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify = get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -1036,7 +1121,7 @@ def main():
     threads = []
     for package, service_urls in six.iteritems(package_dict):
         worker = threading.Thread(target=process_service_urls, args=(
-            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map, error_map, rest_navigation_url, tag_separator))
+            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map, error_map, rest_navigation_url))
         worker.daemon = True
         worker.start()
         threads.append(worker)
