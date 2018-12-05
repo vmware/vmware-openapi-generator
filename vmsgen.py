@@ -124,9 +124,11 @@ def get_structure_info(struct_type, structure_svc):
     """
     try:
         structure_info = structure_svc.get(struct_type)
+        if structure_info is None:
+            eprint("Could not fetch structure info for " + struct_type)
         return structure_info
     except Exception as ex:
-        eprint("Could not fetch structure info for " + struct_type)
+        eprint("Error fetching structure info for " + struct_type)
         eprint(ex)
         return None
 
@@ -313,9 +315,11 @@ def get_enum_info(type_name, enum_svc):
     """
     try:
         enum_info = enum_svc.get(type_name)
+        if enum_info is None:
+            eprint("Could not fetch enum info for " + type_name)
         return enum_info
     except Exception as exception:
-        eprint("Could not fetch enum info for " + type_name)
+        eprint("Error fetching enum info for " + type_name)
         eprint(exception)
         return None
 
@@ -416,6 +420,7 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
+
 def tags_from_service_name(service_name):
     """
     Generates the tags based on the service name.
@@ -424,6 +429,7 @@ def tags_from_service_name(service_name):
     """
     global TAG_SEPARATOR
     return [TAG_SEPARATOR.join(service_name.split('.')[3:])]
+
 
 def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
                produces):
@@ -1002,21 +1008,18 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
 
 
 def get_input_params():
-    '''
-    Get input parameters from command line
+    """
+    Gets input parameters from command line
     :return:
-    '''
-    parser = argparse.ArgumentParser(
-        description='Generate swagger.json files for apis on vcenter')
+    """
+    parser = argparse.ArgumentParser(description='Generate swagger.json files for apis on vcenter')
     parser.add_argument('-m', '--metadata-url', help='URL of the metadata API')
     parser.add_argument('-rn', '--rest-navigation-url', help='URL of the rest-navigation API')
     parser.add_argument('-vc', '--vcip', help='IP Address of vCenter Server. If specified, would be used to calculate metadata-url and rest-navigation-url')
-    parser.add_argument('-o', '--output',
-                        help='Output directory of swagger.json file. if not specified, current working directory is chosen as output directory')
+    parser.add_argument('-o', '--output', help='Output directory of swagger files. if not specified, current working directory is chosen as output directory')
     parser.add_argument('-s', '--tag-separator', default='/', help='Separator to use in tag name')
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
-    parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False,
-                    help="Pass this parameter to generate Unique Operation Ids.")
+    parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False, help="Pass this parameter to generate Unique Operation Ids.")
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
