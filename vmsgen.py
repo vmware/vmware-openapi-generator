@@ -632,28 +632,47 @@ def merge_dictionaries(x, y):
 
 def remove_query_params(path_dict):
     """
-    Swagger/Open API specification prohibits describing query parameter as part of the the request mapping url.
-    This method attempts to remove the Query Parameters from the Path and have them in the parameter section.
-     in the Swagger.
-    APIs which result in duplicate APIS on removing the query parameters from the path will be left as is.
-    Duplicate REST APIs are those which have same request mapping path as well as HTTP Operation.
+    Swagger/Open API specification prohibits appending query parameter to the request mapping path.
 
-    On removing the Query Parameter from the Path following 4 scenarios are possible:
+    Duplicate paths in Open API :
+        Since request mapping paths are keys in the Open Api JSON, there is no scope of duplicate request mapping paths
 
-    1. The Path and the Operation Types are same as one of the existing Path:
-        Handling Such APIs is Out of Scope of this method. These APIs will appear
-         in the new Swagger definition without any change.
+    Partial Duplicates in Open API: APIs which have same request mapping paths hut different HTTP Operations.
+
+    Such Operations can be merged together under one path
+        eg: Consider these two paths
+            /A/B/C : [POST]
+            /A/B/C : [PUT]
+        On merging these, the new path would look like:
+        /A/B/C : [POST, PUT]
+
+    Absolute Duplicates in Open API: APIs which have same request mapping path and HTTP Operation(s)
+        eg: Consider two paths
+            /A/B/C : [POST, PUT]
+            /A/B/C : [PUT]
+    Such paths can not co-exist in the same Open API definition.
+
+    This method attempts to move query parameters from request mapping url to parameter section.
+
+    There are 4 possibilities which may arise on removing the query parameter from request mapping path:
+
+     1. Absolute Duplicate
+        The combination of path and the HTTP Operation Type(s)are same to that of an existing path:
+        Handling Such APIs is Out of Scope of this method. Such APIs will appear in the Open API definition unchanged.
         Example :
                 /com/vmware/cis/session?~action=get : [POST]
                 /com/vmware/cis/session : [POST, DELETE]
-    2. The Paths are duplicate but the operations are Unique:
+    2. Partial Duplicate:
+        The Paths are same but the HTTP operations are Unique:
         Handling Such APIs involves adding the Operations of the new duplicate path to that of the existing path
         Example :
                 /cis/tasks/{task}?action=cancel : [POST]
                 /cis/tasks/{task} : [GET]
-    3. The new path is not a duplicate of any path in the current Swagger.
-        The Path is changed to new path by trimming off the url post ?
-    4.The Duplicate Paths are formed when two paths with QueryParameters are fixed
+    3. New Unique Path:
+        The new path is not a duplicate of any path in the current Open API definition.
+        The Path is changed to new path by trimming off the path post '?'
+
+    4. The duplicate paths are formed when two paths with QueryParameters are fixed
         All the scenarios under 1, 2 and 3 are possible.
         Example :
                 /com/vmware/cis/tagging/tag-association/id:{tag_id}?~action=detach-tag-from-multiple-objects
