@@ -34,7 +34,6 @@ for apis available on vcenter.
 '''
 
 GENERATE_UNIQUE_OP_IDS = False
-REMOVE_QUERY_PARAMS_FROM_PATH = False
 TAG_SEPARATOR = '/'
 
 
@@ -637,7 +636,7 @@ def remove_query_params(path_dict):
     Duplicate paths in Open API :
         Since request mapping paths are keys in the Open Api JSON, there is no scope of duplicate request mapping paths
 
-    Partial Duplicates in Open API: APIs which have same request mapping paths hut different HTTP Operations.
+    Partial Duplicates in Open API: APIs which have same request mapping paths but different HTTP Operations.
 
     Such Operations can be merged together under one path
         eg: Consider these two paths
@@ -710,9 +709,7 @@ def process_output(path_dict, type_dict, output_dir, output_filename):
     global GENERATE_UNIQUE_OP_IDS
     if GENERATE_UNIQUE_OP_IDS:
         create_unique_op_ids(path_dict)
-    global REMOVE_QUERY_PARAMS_FROM_PATH
-    if REMOVE_QUERY_PARAMS_FROM_PATH:
-        remove_query_params(path_dict)
+    remove_query_params(path_dict)
     remove_com_vmware_from_dict(type_dict)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
@@ -873,15 +870,13 @@ def process_get_request(url, params, type_dict, structure_svc, enum_svc):
     path_param_list, query_param_list, new_url = extract_path_parameters(params, url)
     for field_info in path_param_list:
         parameter_obj = convert_field_info_to_swagger_parameter('path', field_info,
-                                                                type_dict, structure_svc,
-                                                                enum_svc)
+                                                                type_dict, structure_svc, enum_svc)
         param_array.append(parameter_obj)
     # process query parameters
     for field_info in query_param_list:
         # See documentation of method flatten_query_param_spec to understand
         # handling of all the query parameters; filter as well as non filter
-            flattened_params = flatten_query_param_spec(field_info, type_dict, structure_svc,
-                                                   enum_svc)
+            flattened_params = flatten_query_param_spec(field_info, type_dict, structure_svc, enum_svc)
             if flattened_params is not None:
                 param_array[1:1] = flattened_params
     return param_array, new_url
@@ -1115,8 +1110,6 @@ def get_input_params():
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False,
                         help="Pass this parameter to generate Unique Operation Ids.")
-    parser.add_argument("-rq", "--remove-query-params", required=False, nargs='?', const=True, default=False,
-                        help="Pass this parameter to remove query parameters from request mapping path.")
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -1138,8 +1131,6 @@ def get_input_params():
     GENERATE_UNIQUE_OP_IDS = args.unique_operation_ids
     global TAG_SEPARATOR
     TAG_SEPARATOR = args.tag_separator
-    global REMOVE_QUERY_PARAMS_FROM_PATH
-    REMOVE_QUERY_PARAMS_FROM_PATH = args.remove_query_params
     return metadata_url, rest_navigation_url, output_dir, verify
 
 
