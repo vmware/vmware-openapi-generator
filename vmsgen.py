@@ -5,6 +5,12 @@
 
 # pylint: disable=C0111, E1121, R0913, R0914, R0911, W0703, E1101, C0301, W0511,C0413
 from __future__ import print_function
+import six
+from six.moves import http_client
+
+from vmware.vapi.lib.connect import get_requests_connector
+from vmware.vapi.stdlib.client.factories import StubConfigurationFactory
+from com.vmware.vapi.metadata import metamodel_client
 import sys
 import os
 import argparse
@@ -13,15 +19,9 @@ import timeit
 import json
 import threading
 import re
+import requests
 import warnings
 warnings.filterwarnings("ignore")
-import requests
-import six
-from six.moves import http_client
-
-from vmware.vapi.lib.connect import get_requests_connector
-from vmware.vapi.stdlib.client.factories import StubConfigurationFactory
-from com.vmware.vapi.metadata import metamodel_client
 
 
 def eprint(*args, **kwargs):
@@ -35,6 +35,7 @@ for apis available on vcenter.
 
 GENERATE_UNIQUE_OP_IDS = False
 TAG_SEPARATOR = '/'
+
 
 def build_error_map():
     """
@@ -75,8 +76,9 @@ def load_description():
         'content': 'VMware vSphere\u00ae Content Library empowers vSphere Admins to effectively manage VM templates, '
                    'vApps, ISO images and scripts with ease.', 'spbm': 'SPBM',
         'vapi': 'vAPI is an extensible API Platform for modelling and delivering APIs/SDKs/CLIs.',
-        'vcenter': 'VMware vCenter Server provides a centralized platform for managing your VMware vSphere environments',
-        'appliance': 'The vCenter Server Appliance is a preconfigured Linux-based virtual machine optimized for running vCenter Server and associated services.'}
+        'vcenter': 'VMware vCenter Server provides a centralized platform for managing your VMware vSphere environments'
+        , 'appliance': 'The vCenter Server Appliance is a preconfigured Linux-based virtual machine'
+          ' optimized for running vCenter Server and associated services.'}
     return desc
 
 
@@ -246,7 +248,8 @@ def visit_generic(generic_instantiation, new_prop, type_dict, structure_svc, enu
                 generic_instantiation.map_value_type.builtin_type)[0]}
         elif generic_instantiation.map_value_type.category == 'GENERIC':
             new_type['properties']['value'] = {}
-            visit_generic(generic_instantiation.map_value_type.generic_instantiation, new_type['properties']['value'], type_dict, structure_svc, enum_svc)
+            visit_generic(generic_instantiation.map_value_type.generic_instantiation,
+                          new_type['properties']['value'], type_dict, structure_svc, enum_svc)
         new_prop['type'] = 'array'
         new_prop['items'] = new_type
         if '$ref' in new_prop:
@@ -406,7 +409,8 @@ def populate_response_map(output, errors, error_map, type_dict, structure_svc, e
         schema_obj = {'type': 'object', 'properties': {'type': {'type': 'string'},
                                                        'value': {'$ref': '#/definitions/' + error.structure_id}}}
         type_dict[error.structure_id + '_error'] = schema_obj
-        response_obj = {'description': error.documentation, 'schema': {'$ref': '#/definitions/' + error.structure_id + '_error'}}
+        response_obj = {'description': error.documentation, 'schema': {'$ref': '#/definitions/'
+                                                                               + error.structure_id + '_error'}}
         response_map[status_code] = response_obj
     return response_map
 
@@ -619,12 +623,93 @@ def create_unique_op_ids(path_dict):
                 op_id_list.append(op_id_val)
 
 
+def merge_dictionaries(x, y):
+    z = x.copy()   # start with x's keys and values
+    z.update(y)    # modifies z with y's keys and values & returns None
+    return z
+
+
+def remove_query_params(path_dict):
+    """
+    Swagger/Open API specification prohibits appending query parameter to the request mapping path.
+
+    Duplicate paths in Open API :
+        Since request mapping paths are keys in the Open Api JSON, there is no scope of duplicate request mapping paths
+
+    Partial Duplicates in Open API: APIs which have same request mapping paths but different HTTP Operations.
+
+    Such Operations can be merged together under one path
+        eg: Consider these two paths
+            /A/B/C : [POST]
+            /A/B/C : [PUT]
+        On merging these, the new path would look like:
+        /A/B/C : [POST, PUT]
+
+    Absolute Duplicates in Open API: APIs which have same request mapping path and HTTP Operation(s)
+        eg: Consider two paths
+            /A/B/C : [POST, PUT]
+            /A/B/C : [PUT]
+    Such paths can not co-exist in the same Open API definition.
+
+    This method attempts to move query parameters from request mapping url to parameter section.
+
+    There are 4 possibilities which may arise on removing the query parameter from request mapping path:
+
+     1. Absolute Duplicate
+        The combination of path and the HTTP Operation Type(s)are same to that of an existing path:
+        Handling Such APIs is Out of Scope of this method. Such APIs will appear in the Open API definition unchanged.
+        Example :
+                /com/vmware/cis/session?~action=get : [POST]
+                /com/vmware/cis/session : [POST, DELETE]
+    2. Partial Duplicate:
+        The Paths are same but the HTTP operations are Unique:
+        Handling Such APIs involves adding the Operations of the new duplicate path to that of the existing path
+        Example :
+                /cis/tasks/{task}?action=cancel : [POST]
+                /cis/tasks/{task} : [GET]
+    3. New Unique Path:
+        The new path is not a duplicate of any path in the current Open API definition.
+        The Path is changed to new path by trimming off the path post '?'
+
+    4. The duplicate paths are formed when two paths with QueryParameters are fixed
+        All the scenarios under 1, 2 and 3 are possible.
+        Example :
+                /com/vmware/cis/tagging/tag-association/id:{tag_id}?~action=detach-tag-from-multiple-objects
+                /com/vmware/cis/tagging/tag-association/id:{tag_id}?~action=list-attached-objects
+    :param path_dict:
+    """
+    paths_to_delete = []
+    for old_path, http_operations in path_dict.items():
+        if '?' in old_path:
+            paths_array = re.split('\?', old_path)
+            new_path = paths_array[0]
+            query_parameters = paths_array[1]
+            key_value = query_parameters.split('=')
+            q_param = {'name': key_value[0], 'in': 'query', 'description': key_value[0] + '=' + key_value[1],
+                       'required': True, 'type': 'string', 'enum': [key_value[1]]}
+            if new_path in path_dict:
+                new_path_operations = path_dict[new_path].keys()
+                path_operations = http_operations.keys()
+                if len(set(path_operations).intersection(new_path_operations)) < 1:
+                    for http_method, operation_dict in http_operations.items():
+                        operation_dict['parameters'].append(q_param)
+                    path_dict[new_path] = merge_dictionaries(http_operations, path_dict[new_path])
+                    paths_to_delete.append(old_path)
+            else:
+                for http_method, operation_dict in http_operations.items():
+                    operation_dict['parameters'].append(q_param)
+                path_dict[new_path] = path_dict.pop(old_path)
+    for path in paths_to_delete:
+        del path_dict[path]
+
+
 def process_output(path_dict, type_dict, output_dir, output_filename):
     description_map = load_description()
     remove_com_vmware_from_dict(path_dict)
     global GENERATE_UNIQUE_OP_IDS
     if GENERATE_UNIQUE_OP_IDS:
         create_unique_op_ids(path_dict)
+    remove_query_params(path_dict)
     remove_com_vmware_from_dict(type_dict)
     swagger_template = {'swagger': '2.0',
                         'info': {'description': description_map.get(output_filename, ''),
@@ -671,7 +756,8 @@ def extract_path_parameters(params, url):
                     new_url = new_url.replace(path_param_name_match.group(), '{' + param.name + '}')
                 break
         if path_param_info is None:
-            eprint('%s parameter from %s is not found among the operation\'s parameters' % (path_param_placeholder, url))
+            eprint('%s parameter from %s is not found among the operation\'s parameters'
+                   % (path_param_placeholder, url))
         else:
             path_params.append(path_param_info)
             other_params.remove(path_param_info)
@@ -784,15 +870,13 @@ def process_get_request(url, params, type_dict, structure_svc, enum_svc):
     path_param_list, query_param_list, new_url = extract_path_parameters(params, url)
     for field_info in path_param_list:
         parameter_obj = convert_field_info_to_swagger_parameter('path', field_info,
-                                                                type_dict, structure_svc,
-                                                                enum_svc)
+                                                                type_dict, structure_svc, enum_svc)
         param_array.append(parameter_obj)
     # process query parameters
     for field_info in query_param_list:
         # See documentation of method flatten_query_param_spec to understand
         # handling of all the query parameters; filter as well as non filter
-            flattened_params = flatten_query_param_spec(field_info, type_dict, structure_svc,
-                                                   enum_svc)
+            flattened_params = flatten_query_param_spec(field_info, type_dict, structure_svc, enum_svc)
             if flattened_params is not None:
                 param_array[1:1] = flattened_params
     return param_array, new_url
@@ -928,7 +1012,8 @@ def contains_rm_annotation(service_info):
     return True
 
 
-def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map):
+def get_path(operation_info, http_method, url, service_name, type_dict, structure_dict, enum_dict,
+             operation_id, error_map):
     documentation = operation_info.documentation
     params = operation_info.params
     errors = operation_info.errors
@@ -970,7 +1055,8 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
                 operation_id = operation.name
                 operation_info = service_info.operations.get(operation_id)
 
-                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
+                path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
+                                operation_id, error_map)
                 path_list.append(path)
             continue
 
@@ -1000,7 +1086,8 @@ def process_service_urls(package_name, service_urls, output_dir, structure_dict,
             url, method = find_url(service_operation['links'])
             url = get_service_path_from_service_url(url, base_url)
             operation_info = service_info.operations.get(operation_id)
-            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict, operation_id, error_map)
+            path = get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
+                            operation_id, error_map)
             path_list.append(path)
     path_dict = convert_path_list_to_path_map(path_list)
     cleanup(path_dict=path_dict, type_dict=type_dict)
@@ -1015,11 +1102,14 @@ def get_input_params():
     parser = argparse.ArgumentParser(description='Generate swagger.json files for apis on vcenter')
     parser.add_argument('-m', '--metadata-url', help='URL of the metadata API')
     parser.add_argument('-rn', '--rest-navigation-url', help='URL of the rest-navigation API')
-    parser.add_argument('-vc', '--vcip', help='IP Address of vCenter Server. If specified, would be used to calculate metadata-url and rest-navigation-url')
-    parser.add_argument('-o', '--output', help='Output directory of swagger files. if not specified, current working directory is chosen as output directory')
+    parser.add_argument('-vc', '--vcip', help='IP Address of vCenter Server. If specified, would be used'
+                                              ' to calculate metadata-url and rest-navigation-url')
+    parser.add_argument('-o', '--output', help='Output directory of swagger files. if not specified,'
+                                               ' current working directory is chosen as output directory')
     parser.add_argument('-s', '--tag-separator', default='/', help='Separator to use in tag name')
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
-    parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False, help="Pass this parameter to generate Unique Operation Ids.")
+    parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False,
+                        help="Pass this parameter to generate Unique Operation Ids.")
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -1160,7 +1250,8 @@ def main():
     threads = []
     for package, service_urls in six.iteritems(package_dict):
         worker = threading.Thread(target=process_service_urls, args=(
-            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map, error_map, rest_navigation_url))
+            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map
+            , error_map, rest_navigation_url))
         worker.daemon = True
         worker.start()
         threads.append(worker)
