@@ -277,5 +277,155 @@ class TestVmsGen(unittest.TestCase):
         vmsgen.cleanup(path_dict, type_dict)
         self.assertEqual(type_dict, type_dict_expected)
 
+    def test_remove_query_params(self):
+
+        # case 1: Absolute Duplicate paths, which will remain unchanged
+        path_dict = {
+            'mock/path1?action=mock_action':{
+                'post':{
+                    'parameters' : [] # parameters attr is always created even if there isn't any
+                }
+            },
+            'mock/path1':{
+                'post':{
+                }
+            }
+        }
+
+        path_dict_expected = {
+            'mock/path1?action=mock_action':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1':{
+                'post':{
+                }
+            }
+        }
+        vmsgen.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
+
+
+        # case 2: Partial Duplicate, adding the Operations of the new duplicate path to that of the existing path based on method type
+        # case 2.1: only one of them as query parameter
+        path_dict = {
+            'mock/path1?action=mock_action':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1':{
+                'get':{
+                    'parameters' : []
+                }
+            }
+        }
+        path_dict_expected = {
+            'mock/path1': {
+                'post': {
+                    'parameters': [
+                        {
+                            'name': 'action', 
+                            'in': 'query', 
+                            'description':'action=mock_action', 
+                            'required': True, 
+                            'type': 'string', 
+                            'enum': ['mock_action']
+                        }
+                    ]
+                }, 
+                'get': {
+                    'parameters' : []
+                }
+            }
+        }
+        vmsgen.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
+
+        # case 2.2: both of them has query parameter
+        path_dict = {
+            'mock/path1?action=mock_action_1':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1?action=mock_action_2':{
+                'get':{
+                    'parameters' : []
+                }
+            }
+        }
+        path_dict_expected = {
+            'mock/path1': {
+                'post': {
+                    'parameters': [{'name': 'action',  'in': 'query', 'description': 'action=mock_action_1', 'required': True, 'type': 'string', 'enum': ['mock_action_1']}]
+                }, 
+                'get': {
+                    'parameters': [{'name': 'action',  'in': 'query', 'description': 'action=mock_action_2', 'required': True, 'type': 'string', 'enum': ['mock_action_2']}]
+                }
+            }
+        }
+        vmsgen.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
+
+        # case 3: QueryParameters are fixed
+        # case 3.1 : method types are different
+        path_dict = {
+            'mock/path1?action=mock_action_1':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1?action=mock_action_2':{
+                'get':{
+                    'parameters' : []
+                }
+            }
+        }
+
+        path_dict_expected = {
+            'mock/path1': {
+                'get': {
+                    'parameters': [{'name': 'action', 'in': 'query', 'description': 'action=mock_action_2', 'required': True, 'type': 'string', 'enum': ['mock_action_2']}]
+                }, 
+                'post': {
+                    'parameters': [{'name': 'action', 'in': 'query', 'description': 'action=mock_action_1', 'required': True, 'type': 'string', 'enum': ['mock_action_1']}]
+                }
+            }
+        }
+
+        vmsgen.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
+
+        # case 3.2 : method types are same
+        path_dict = {
+            'mock/path1?action=mock_action_1':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1?action=mock_action_2':{
+                'post':{
+                    'parameters' : []
+                }
+            }
+        }
+
+        path_dict_expected = {
+            'mock/path1': {
+                'post': {
+                    'parameters': [{'name': 'action', 'in': 'query', 'description': 'action=mock_action_1', 'required': True, 'type': 'string', 'enum': ['mock_action_1']}]
+                }
+            },
+            'mock/path1?action=mock_action_2': {
+                'post': {
+                    'parameters': []
+                }
+            }
+        }
+        vmsgen.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
+
 if __name__ == '__main__':
     unittest.main()
