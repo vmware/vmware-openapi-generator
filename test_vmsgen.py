@@ -427,5 +427,116 @@ class TestVmsGen(unittest.TestCase):
         vmsgen.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
 
+    def test_remove_com_vmware_from_dict(self):
+
+        # case 1 (path dict processing): removing com.vmware. from every key-value pair which contains it and $ from every ref value of definition
+        # case 1.1: remove com.vmware from value of when key is either of ('$ref', 'summary', 'description')
+        # case 1.2: removing $ sign from ref value's, example: { "$ref" : "#/definitions/vcenter.vcha.cluster.failover$task_result" }
+        # case 1.3: removing attr required when it is with '$ref'
+        
+        path_dict = {
+            'com/vmware/mock/path':{
+                'get': {
+                    'tags': ['mock'], 
+                    'summary': 'com.vmware.mock',  # 1.1:  example 1
+                    'parameters': [
+                        {
+                            "in" : "path",
+                            "description" : "com.vmware.somemockparam description" # # 1.1: example 2
+                        },
+                        {
+                            "$ref": '#/parameters/com.vmware.somemockparam' # 1.1 : example 3
+                        }
+                    ], 
+                    'responses': {
+                        'mock 200': {
+                            'description': 'description about com.vmware.mock_response',
+                            'schema': {
+                                '$ref': '#/definitions/com.vmware.mock_response$result', # 1.2
+                                'required': False # 1.3
+                            }
+                        }
+                    },
+                    'operationId': 'get'
+                }
+            }
+        }
+
+        path_dict_expected = {
+            'com/vmware/mock/path': {
+                'get': {
+                    'tags': ['mock'], 
+                    'summary': 'mock', 
+                    'parameters': [
+                        {
+                            'in': 'path', 
+                            'description': 'somemockparam description'
+                        }, 
+                        {
+                            '$ref': '#/parameters/somemockparam'
+                        }
+                    ],
+                    'responses': {
+                        'mock 200': {
+                            'description': 'description about mock_response', 
+                            'schema': {
+                                '$ref': '#/definitions/mock_response_result'
+                            }
+                        }
+                    },
+                    'operationId': 'get'
+                }
+            }
+        }
+
+        vmsgen.remove_com_vmware_from_dict(path_dict)   
+        self.assertEqual(path_dict, path_dict_expected)
+
+        # case 2 (type dict processing)
+        # case 2.1 : remove com.vmware and replace '$' from key's
+        # case 2.2 : removing attr required when it is with '$ref'
+        type_dict = { 
+            'com.vmware.mock.mock_check$list' : { # 2.1 : example 1
+                'type': 'object', 
+                'properties': {
+                    'value': {
+                        'description': ' value desc.', 
+                        'type': 'array', 
+                        'items': {
+                            '$ref': '#/definitions/com.vmware.mock_check_item', # 2.1 : example 2
+                            'required': True # 2.2
+                        }
+                    },
+                    'data': {
+                        'description': ' data desc ', 
+                        'type': 'object'
+                    },
+                    'required': ['value']
+                }
+            }
+        }
+        type_dict_expected = {
+            'mock.mock_check_list': {
+                'type': 'object', 
+                'properties': {
+                    'value': {
+                        'description': 
+                        ' value desc.', 
+                        'type': 'array', 
+                        'items': {
+                            '$ref': '#/definitions/mock_check_item'
+                        }
+                    }, 
+                    'data': {
+                        'description': ' data desc ', 
+                        'type': 'object'
+                    }, 
+                    'required': ['value']
+                }
+            }
+        }
+        vmsgen.remove_com_vmware_from_dict(type_dict)
+        self.assertEqual(type_dict, type_dict_expected)
+
 if __name__ == '__main__':
     unittest.main()
