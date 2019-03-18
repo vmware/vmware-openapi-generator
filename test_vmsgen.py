@@ -538,5 +538,100 @@ class TestVmsGen(unittest.TestCase):
         vmsgen.remove_com_vmware_from_dict(type_dict)
         self.assertEqual(type_dict, type_dict_expected)
 
+    def test_create_camelized_op_id(self):
+
+        # case 1 - without query parameter: removes com/vmware/ and replaces '/' & '-' with '_' also converts the first letter of all the words except the first one from lower to upper before concatenating to form unique op id
+        path = "com/vmware/mock-path"
+        http_method = "post"
+        operations_dict = {
+            'operationId' : 'post'
+        }
+        op_id_expected = 'postMockPath'
+        op_id_actual = vmsgen.create_camelized_op_id(path, http_method, operations_dict)
+        self.assertEqual(op_id_actual, op_id_expected)
+
+        # Case 2 - similar to case 1 with added query param to path
+        path = "com/vmware/mock-path?action=value"
+        http_method = "post"
+        operations_dict = {
+            'operationId' : 'post'
+        }
+        op_id_expected = 'postMockPath'
+        op_id_actual = vmsgen.create_camelized_op_id(path, http_method, operations_dict)
+        self.assertEqual(op_id_actual, op_id_expected)
+
+        # Case 3 - similar to case 1 with path variable
+        path = "com/vmware/mock-path/{mock}/test"
+        http_method = "post"
+        operations_dict = {
+            'operationId' : 'post'
+        }
+        op_id_expected = 'postMockPathTest'
+        op_id_actual = vmsgen.create_camelized_op_id(path, http_method, operations_dict)
+        self.assertEqual(op_id_actual, op_id_expected)
+
+        # Note: create_unique_op_ids(path_dict) test cases are handled in test cases provided for create_camelized_op_id
+
+    def test_categorize_service_urls_by_package_names(self):
+
+        # A simple mock example to show case the result
+        base_url = "https://vcip/rest"
+        service_urls_map = [
+            "https://vcip/rest/com/vmware/package-mock-1/mock/",
+            "https://vcip/rest/com/vmware/package-mock-1/mock-test/",
+            "https://vcip/rest/com/vmware/package-mock-2/"
+        ]
+        path_dict_expected = {
+            "package-mock-1" : [
+                "https://vcip/rest/com/vmware/package-mock-1/mock/",
+                "https://vcip/rest/com/vmware/package-mock-1/mock-test/"
+            ],
+            "package-mock-2" : ["https://vcip/rest/com/vmware/package-mock-2/"]
+        }
+        path_dict_actual = vmsgen.categorize_service_urls_by_package_names(service_urls_map, base_url) 
+        self.assertEqual(path_dict_actual, path_dict_expected)
+
+    def test_find_url(self):
+        
+        # case 1: if only one element is in the list return it
+        list_of_links = [{'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock?~action=value'}]
+        ret_expected = ('https://vcip/rest/com/vmware/mock?~action=value','POST')
+        ret_actual = vmsgen.find_url(list_of_links)
+
+        self.assertEqual(ret_actual, ret_expected)
+
+
+        # case 2: if multiple links are provided
+        # case 2.1 : return a link which does not contain "~action"
+        list_of_links = [
+            {'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock?~action=value'},
+            {'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock-action-value'}
+        ]
+        ret_expected = ('https://vcip/rest/com/vmware/mock-action-value','POST')
+        ret_actual = vmsgen.find_url(list_of_links)
+
+        self.assertEqual(ret_actual, ret_expected)
+
+
+        # case 2.2 : all links have ~action in them then check if any of them has id: and return it.
+        list_of_links = [
+            {'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock?~action=value'},
+            {'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock/id:{mock_id}?~action=value'}
+        ]
+        ret_expected = ('https://vcip/rest/com/vmware/mock/id:{mock_id}?~action=value','POST')
+        ret_actual = vmsgen.find_url(list_of_links)
+
+        self.assertEqual(ret_actual, ret_expected)
+
+
+        # case 2.3 : all links have ~action in them and none of them have id:, pick any by default first one.
+        list_of_links = [
+            {'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock?~action=value1'},
+            {'method': 'POST', 'href':'https://vcip/rest/com/vmware/mock?~action=value2'}
+        ]
+        ret_expected = ('https://vcip/rest/com/vmware/mock?~action=value1','POST')
+        ret_actual = vmsgen.find_url(list_of_links)
+        self.assertEqual(ret_actual, ret_expected)
+        
 if __name__ == '__main__':
     unittest.main()
