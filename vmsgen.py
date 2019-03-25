@@ -425,6 +425,12 @@ def post_process_path(path_obj):
         path_obj['parameters'] = [header_parameter]
 
 
+def add_basic_auth(path_obj):
+    """Add basic auth security requirement to paths requiring it."""
+    if path_obj['path'] == '/com/vmware/cis/session' and path_obj['method'] == 'post':
+        path_obj['security'] = [{'basic_auth': []}]
+
+
 def tags_from_service_name(service_name):
     """
     Generates the tags based on the service name.
@@ -468,6 +474,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
     if operation_id is not None:
         path_obj['operationId'] = operation_id
     post_process_path(path_obj)
+    add_basic_auth(path_obj)
     return path_obj
 
 
@@ -716,6 +723,7 @@ def process_output(path_dict, type_dict, output_dir, output_filename):
                                  'title': output_filename,
                                  'termsOfService': 'http://swagger.io/terms/',
                                  'version': '2.0.0'}, 'host': '<vcenter>',
+                        'securityDefinitions': {'basic_auth': {'type': 'basic'}},
                         'basePath': '/rest', 'tags': [],
                         'schemes': ['https', 'http'],
                         'paths': collections.OrderedDict(sorted(path_dict.items())),
