@@ -722,7 +722,7 @@ def process_output(path_dict, type_dict, output_dir, output_filename):
                         'info': {'description': description_map.get(output_filename, ''),
                                  'title': output_filename,
                                  'termsOfService': 'http://swagger.io/terms/',
-                                 'version': '2.0.0'}, 'host': '<vcenter>',
+                                 'version': '2.0.0'}, 'host': '',
                         'securityDefinitions': {'basic_auth': {'type': 'basic'}},
                         'basePath': '/rest', 'tags': [],
                         'schemes': ['https', 'http'],
