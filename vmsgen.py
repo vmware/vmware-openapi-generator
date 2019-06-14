@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2016-2018 VMware, Inc.
+# Copyright 2016-2019 VMware, Inc.
 # SPDX-License-Identifier: MIT
 
 # pylint: disable=C0111, E1121, R0913, R0914, R0911, W0703, E1101, C0301, W0511,C0413
@@ -424,6 +424,28 @@ def post_process_path(path_obj):
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
         path_obj['parameters'] = [header_parameter]
 
+    # Allow invoking $task operations from the api-explorer
+    if path_obj['operationId'].endswith('$task'):
+        path_obj['path'] = add_query_param(path_obj['path'], 'vmw-task=true')
+
+def add_query_param(url, param):
+    """
+    Rudimentary support for adding a query parameter to a url.
+    Does nothing if the parameter is already there.
+    :param url: the input url
+    :param param: the parameter to add (in the form of key=value)
+    :return: url with added param, ?param or &param at the end
+    """
+    pre_param_symbol = '?'
+    query_index = url.find('?')
+    if query_index > -1:
+        if query_index == len(url):
+            pre_param_symbol = ''
+        elif url[query_index + 1:].find(param) > -1:
+            return url
+        else:
+            pre_param_symbol = '&'
+    return url + pre_param_symbol + param
 
 def add_basic_auth(path_obj):
     """Add basic auth security requirement to paths requiring it."""
