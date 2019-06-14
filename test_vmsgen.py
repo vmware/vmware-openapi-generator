@@ -67,29 +67,35 @@ class TestVmsGen(unittest.TestCase):
             Test cases to check if post process path which adds vmware-use-header-authn as a nessecary header params
         '''
         # case 1: case where hardcoded header should be added
-        path_obj = {'path':'/com/vmware/cis/session', 'method':'post'}
+        path_obj = {'path':'/com/vmware/cis/session', 'method':'post', "operationId":"create"}
         header_parameter = {'in': 'header', 'required': True, 'type': 'string',
                             'name': 'vmware-use-header-authn',
                             'description': 'Custom header to protect against CSRF attacks in browser based clients'}
-        path_obj_expected  = {'path':'/com/vmware/cis/session', 'method':'post', 'parameters':[header_parameter]}
+        path_obj_expected  = {'path':'/com/vmware/cis/session', 'method':'post', "operationId":"create", 'parameters':[header_parameter]}
         vmsgen.post_process_path(path_obj)
         self.assertEqual(path_obj_expected, path_obj)
 
         # case 2.1: case where hardcoded header should be shouldn't be added based on path
-        path_obj = {'path':'mock/path', 'method':'post'}
-        path_obj_expected  = {'path':'mock/path', 'method':'post'}
+        path_obj = {'path':'mock/path', 'method':'post', "operationId":"mock"}
+        path_obj_expected  = {'path':'mock/path', 'method':'post', "operationId":"mock"}
         vmsgen.post_process_path(path_obj)
         self.assertEqual(path_obj_expected, path_obj)
 
-        # case 2.1: case where hardcoded header should be shouldn't be added based on method
-        path_obj = {'path':'/com/vmware/cis/session', 'method':'get'}
-        path_obj_expected  = {'path':'/com/vmware/cis/session', 'method':'get'}
+        # case 2.2: case where hardcoded header should be shouldn't be added based on method
+        path_obj = {'path':'/com/vmware/cis/session', 'method':'get', "operationId":"get"}
+        path_obj_expected  = {'path':'/com/vmware/cis/session', 'method':'get', "operationId":"get"}
+        vmsgen.post_process_path(path_obj)
+        self.assertEqual(path_obj_expected, path_obj)
+
+        # case 3: adding the vmw-task=true parameter to path when operationId end with $task
+        path_obj = {'path':'mock/path', 'method':'get', "operationId":"mock$task"}
+        path_obj_expected  = {'path':'mock/path?vmw-task=true', 'method':'get', "operationId":"mock$task"}
         vmsgen.post_process_path(path_obj)
         self.assertEqual(path_obj_expected, path_obj)
 
     def test_get_response_object_name(self):
         '''
-           test case for response type name to be used based on method is get or not  
+           test case for response type name to be used based on method is get or not
         '''
         # case 1:
         operation_id = 'get'
@@ -109,19 +115,19 @@ class TestVmsGen(unittest.TestCase):
         '''
         '''
         typeset_cases          = ['binary', 'boolean', 'datetime', 'double', 'dynamicstructure', 'exception', 'id', 'long', 'opaque', 'secret', 'string', 'uri']
-        
+
         typeset_cases_out_expected = [True]*len(typeset_cases)
         typeset_cases_out_actual   = []
-        
+
         for val in typeset_cases:
             typeset_cases_out_actual.append(vmsgen.is_type_builtin(val))
 
         self.assertEqual(typeset_cases_out_actual, typeset_cases_out_expected)
-        
+
     def test_metamodel_to_swagger_type_converter(self):
 
         input_type_cases        = ['date_time', 'secret', 'any_error', 'dynamic_structure', 'uri', 'id', 'long', 'double', 'binary', 'notValidType']
-        
+
         input_type_out_expected = [('string','date-time'), ('string', 'password'), ('string', None), ('object', None), ('string', 'uri'), ('string', None), ('integer', 'int64'), ('number', 'double'), ('string', 'binary'), ('notvalidtype', None)]
         input_type_out_actual   = []
 
@@ -164,36 +170,37 @@ class TestVmsGen(unittest.TestCase):
 
         # case 1: generic mock example
         expected = {
-            'tags': ['mock_tag'], 
-            'method': 'get', 
-            'path': '/com/vmware/mock_package/mock_tag', 
-            'summary': 'mock documentation', 
-            'responses': 'mock responses', 
-            'consumes': 'mock consumes', 
-            'produces': 'mock produces', 
-            'operationId': 'mock id', 
+            'tags': ['mock_tag'],
+            'method': 'get',
+            'path': '/com/vmware/mock_package/mock_tag',
+            'summary': 'mock documentation',
+            'responses': 'mock responses',
+            'consumes': 'mock consumes',
+            'produces': 'mock produces',
+            'operationId': 'mock id',
             'parameters': [{'mock params':'params 1'}]
         }
         actual = vmsgen.build_path('com.vmware.mock_package.mock_tag', 'get', '/com/vmware/mock_package/mock_tag', 'mock documentation', [{'mock params':'params 1'}], 'mock id', 'mock responses','mock consumes', 'mock produces')
         self.assertEqual(actual, expected)
 
-        # case 2 related specifically to '/com/vmware/cis/session'  
+        # case 2 related specifically to '/com/vmware/cis/session'
         # case 2.1: case where hardcoded header should be added
         expected = {
-            'tags': ['session'], 
-            'method': 'post', 
-            'path': '/com/vmware/cis/session', 
-            'summary': 'mock documentation', 
-            'responses': 'mock responses', 
-            'consumes': 'mock consumes', 
-            'produces': 'mock produces', 
-            'operationId': 'mock id', 
+            'tags': ['session'],
+            'method': 'post',
+            'path': '/com/vmware/cis/session',
+            'summary': 'mock documentation',
+            'responses': 'mock responses',
+            'consumes': 'mock consumes',
+            'produces': 'mock produces',
+            'operationId': 'mock id',
+            'security': [{'basic_auth': []}],
             'parameters': [
                 {
-                    'in': 'header', 
-                    'required': True, 
-                    'type': 'string', 
-                    'name': 'vmware-use-header-authn', 
+                    'in': 'header',
+                    'required': True,
+                    'type': 'string',
+                    'name': 'vmware-use-header-authn',
                     'description': 'Custom header to protect against CSRF attacks in browser based clients'
                 }
             ]
