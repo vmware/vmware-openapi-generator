@@ -34,6 +34,7 @@ for apis available on vcenter.
 '''
 
 GENERATE_UNIQUE_OP_IDS = False
+API_SERVER_HOST = '<vcenter>'
 TAG_SEPARATOR = '/'
 
 
@@ -744,7 +745,7 @@ def process_output(path_dict, type_dict, output_dir, output_filename):
                         'info': {'description': description_map.get(output_filename, ''),
                                  'title': output_filename,
                                  'termsOfService': 'http://swagger.io/terms/',
-                                 'version': '2.0.0'}, 'host': '<vcenter>',
+                                 'version': '2.0.0'}, 'host': API_SERVER_HOST,
                         'securityDefinitions': {'basic_auth': {'type': 'basic'}},
                         'basePath': '/rest', 'tags': [],
                         'schemes': ['https', 'http'],
@@ -1140,6 +1141,8 @@ def get_input_params():
     parser.add_argument('-k', '--insecure', action='store_true', help='Bypass SSL certificate validation')
     parser.add_argument("-uo", "--unique-operation-ids", required=False, nargs='?', const=True, default=False,
                         help="Pass this parameter to generate Unique Operation Ids.")
+    parser.add_argument('--host', help='Domain name or IP address (IPv4) of the host that serves the API. '
+                                             'Default value is "<vcenter>"')
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -1154,6 +1157,9 @@ def get_input_params():
     metadata_url = metadata_url.rstrip('/')
     rest_navigation_url = rest_navigation_url.rstrip('/')
     output_dir = args.output
+    if args.host is not None:
+        global API_SERVER_HOST
+        API_SERVER_HOST = args.host
     if output_dir is None:
         output_dir = os.getcwd()
     verify = not args.insecure
