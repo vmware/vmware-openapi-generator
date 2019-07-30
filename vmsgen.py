@@ -751,6 +751,8 @@ def process_output(path_dict, type_dict, output_dir, output_filename):
                             'basic_auth': {'type': 'basic'},
                             'api_key': {'type': 'apiKey', 'name': 'vmware-api-session-id', 'in': 'header'}},
                         "security": [{"api_key": []}],
+                        'consumes': ['application/json'],
+                        'produces': ['application/json'],
                         'basePath': '/rest', 'tags': [],
                         'schemes': ['https', 'http'],
                         'paths': collections.OrderedDict(sorted(path_dict.items())),
