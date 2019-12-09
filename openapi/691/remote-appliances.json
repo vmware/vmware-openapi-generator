@@ -1,0 +1,362 @@
+{
+    "basePath": "",
+    "consumes": [
+        "application/json"
+    ],
+    "definitions": {
+        "remote_appliances.services.software.config": {
+            "properties": {
+                "target_version": {
+                    "description": "Desired version of the service. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                },
+                "update_dir": {
+                    "description": "Path on disk where software update can be found. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "update_dir",
+                "target_version"
+            ],
+            "type": "object"
+        },
+        "remote_appliances.services.software_resp": {
+            "properties": {
+                "value": {
+                    "items": {
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "$ref": "#/definitions/remote_appliances.services.software.config"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "value"
+            ],
+            "type": "object"
+        },
+        "remote_appliances.software.config": {
+            "properties": {
+                "target_version": {
+                    "description": "Desired version of the appliance software. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                },
+                "update_dir": {
+                    "description": "Path on disk where software update of the specified appliance type can be found. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "update_dir",
+                "target_version"
+            ],
+            "type": "object"
+        },
+        "remote_appliances.software_resp": {
+            "properties": {
+                "value": {
+                    "items": {
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "$ref": "#/definitions/remote_appliances.software.config"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "value"
+            ],
+            "type": "object"
+        },
+        "vapi.std.errors.error.type": {
+            "description": "Enumeration of all standard errors. Used as discriminator in protocols that have no standard means for transporting the error type, e.g. REST.",
+            "enum": [
+                "ERROR",
+                "ALREADY_EXISTS",
+                "ALREADY_IN_DESIRED_STATE",
+                "CANCELED",
+                "CONCURRENT_CHANGE",
+                "FEATURE_IN_USE",
+                "INTERNAL_SERVER_ERROR",
+                "INVALID_ARGUMENT",
+                "INVALID_ELEMENT_CONFIGURATION",
+                "INVALID_ELEMENT_TYPE",
+                "INVALID_REQUEST",
+                "NOT_ALLOWED_IN_CURRENT_STATE",
+                "NOT_FOUND",
+                "OPERATION_NOT_FOUND",
+                "RESOURCE_BUSY",
+                "RESOURCE_IN_USE",
+                "RESOURCE_INACCESSIBLE",
+                "SERVICE_UNAVAILABLE",
+                "TIMED_OUT",
+                "UNABLE_TO_ALLOCATE_RESOURCE",
+                "UNAUTHENTICATED",
+                "UNAUTHORIZED",
+                "UNEXPECTED_INPUT",
+                "UNSUPPORTED",
+                "UNVERIFIED_PEER"
+            ],
+            "type": "string"
+        },
+        "vapi.std.errors.unauthenticated": {
+            "properties": {
+                "challenge": {
+                    "description": "Indicates the authentication challenges applicable to the target API provider. It can be used by a client to discover the correct authentication scheme to use. The exact syntax of the value is defined by the specific provider, the protocol and authentication schemes used. <p> For example, a provider using REST may adhere to the WWW-Authenticate HTTP header specification, RFC7235, section 4.1. In this case an example challenge value may be: SIGN realm=\"27da1358-2ba4-11e9-b210-d663bd873d93\",sts=\"http://vcenter/sso?vsphere.local\", Basic realm=\"vCenter\" Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                },
+                "data": {
+                    "description": "Data to facilitate clients responding to the {@term operation} reporting a standard {@term error} to indicating that it was unable to complete successfully. <p> {@term Operations} may provide data that clients can use when responding to {@term errors}.  Since the data that clients need may be specific to the context of the {@term operation} reporting the {@term error}, different {@term operations} that report the same {@term error} may provide different data in the {@term error}.  The documentation for each each {@term operation} will describe what, if any, data it provides for each {@term error} it reports. The {@link ArgumentLocations}, {@link FileLocations}, and {@link TransientIndication} {@term structures} are intended as possible values for this {@term field}.  {@link vapi.std.DynamicID} may also be useful as a value for this {@term field} (although that is not its primary purpose).  Some {@term services} may provide their own specific {@term structures} for use as the value of this {@term field} when reporting {@term errors} from their {@term operations}.",
+                    "type": "object"
+                },
+                "error_type": {
+                    "$ref": "#/definitions/vapi.std.errors.error.type",
+                    "description": "Discriminator field to help API consumers identify the structure type."
+                },
+                "messages": {
+                    "description": "Stack of one or more localizable messages for human {@term error} consumers. <p> The message at the top of the stack (first in the list) describes the {@term error} from the perspective of the {@term operation} the client invoked. Each subsequent message in the stack describes the \"cause\" of the prior message.",
+                    "items": {
+                        "$ref": "#/definitions/vapi.std.localizable_message"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "messages"
+            ],
+            "type": "object"
+        },
+        "vapi.std.errors.unauthenticated_error": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "$ref": "#/definitions/vapi.std.errors.unauthenticated"
+                }
+            },
+            "type": "object"
+        },
+        "vapi.std.localizable_message": {
+            "properties": {
+                "args": {
+                    "description": "Positional arguments to be substituted into the message template. This list will be empty if the message uses named arguments or has no arguments.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "default_message": {
+                    "description": "The value of this localizable string or message template in the {@code en_US} (English) locale.  If {@link #id} refers to a message template, the default message will contain the substituted arguments. This value can be used by clients that do not need to display strings and messages in the native language of the user.  It could also be used as a fallback if a client is unable to access the appropriate message catalog.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Unique identifier of the localizable string or message template. <p> This identifier is typically used to retrieve a locale-specific string or message template from a message catalog.",
+                    "type": "string"
+                },
+                "localized": {
+                    "description": "Localized string value as per request requirements. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                },
+                "params": {
+                    "description": "Named arguments to be substituted into the message template. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "items": {
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "$ref": "#/definitions/vapi.std.localization_param"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id",
+                "default_message",
+                "args"
+            ],
+            "type": "object"
+        },
+        "vapi.std.localization_param": {
+            "properties": {
+                "d": {
+                    "description": "The {@term double} value associated with the parameter. The number of displayed fractional digits is changed via {@name #precision} {@term field}. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "format": "double",
+                    "type": "number"
+                },
+                "dt": {
+                    "description": "Date and time value associated with the parameter. Use the {@name #format} {@term field} to specify date and time display style. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "format": {
+                    "$ref": "#/definitions/vapi.std.localization_param.date_time_format",
+                    "description": "Format associated with the date and time value in {@name #dt} {@term field}. The {@term enumeration value} {@code SHORT_DATETIME} will be used as default. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented."
+                },
+                "i": {
+                    "description": "{@term long} value associated with the parameter. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "format": "int64",
+                    "type": "integer"
+                },
+                "l": {
+                    "$ref": "#/definitions/vapi.std.nested_localizable_message",
+                    "description": "Nested localizable value associated with the parameter. This is useful construct to convert to human readable localized form {@term enumerated type} and {@term boolean} values. It can also be used for proper handling of pluralization and gender forms in localization. Recursive {@name NestedLocalizableMessage} instances can be used for localizing short lists of items. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented."
+                },
+                "precision": {
+                    "description": "Number of fractional digits to include in formatted {@term double} value. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "format": "int64",
+                    "type": "integer"
+                },
+                "s": {
+                    "description": "{@term String} value associated with the parameter. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "vapi.std.localization_param.date_time_format": {
+            "description": "The {@name DateTimeFormat} {@term enumerated type} lists possible date and time formatting options. It combines the Unicode CLDR format types - full, long, medium and short with 3 different presentations - date only, time only and combined date and time presentation. Warning: This enumeration is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+            "enum": [
+                "SHORT_DATE",
+                "MED_DATE",
+                "LONG_DATE",
+                "FULL_DATE",
+                "SHORT_TIME",
+                "MED_TIME",
+                "LONG_TIME",
+                "FULL_TIME",
+                "SHORT_DATE_TIME",
+                "MED_DATE_TIME",
+                "LONG_DATE_TIME",
+                "FULL_DATE_TIME"
+            ],
+            "type": "string"
+        },
+        "vapi.std.nested_localizable_message": {
+            "properties": {
+                "id": {
+                    "description": "Unique identifier of the localizable string or message template. <p> This identifier is typically used to retrieve a locale-specific string or message template from a message catalog. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "type": "string"
+                },
+                "params": {
+                    "description": "Named Arguments to be substituted into the message template. Warning: This attribute is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                    "items": {
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "$ref": "#/definitions/vapi.std.localization_param"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "type": "object"
+        }
+    },
+    "host": "sc2-rdops-vm06-dhcp-197-19.eng.vmware.com",
+    "info": {
+        "description": "",
+        "termsOfService": "http://swagger.io/terms/",
+        "title": "remote-appliances",
+        "version": "2.0.0"
+    },
+    "paths": {
+        "/rest/remote-appliances/services/software": {
+            "get": {
+                "operationId": "get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Mapping from service identifiers to the software configuration for the service.",
+                        "schema": {
+                            "$ref": "#/definitions/remote_appliances.services.software_resp"
+                        }
+                    },
+                    "401": {
+                        "description": "when session is not authenticated.",
+                        "schema": {
+                            "$ref": "#/definitions/vapi.std.errors.unauthenticated_error"
+                        }
+                    }
+                },
+                "summary": "Returns the desired software configuration for the services running on the appliance. Warning: This operation is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                "tags": [
+                    "services/software"
+                ]
+            }
+        },
+        "/rest/remote-appliances/software": {
+            "get": {
+                "operationId": "get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Mapping from appliance types to the desired software configuration for the appliance type.",
+                        "schema": {
+                            "$ref": "#/definitions/remote_appliances.software_resp"
+                        }
+                    },
+                    "401": {
+                        "description": "when session is not authenticated.",
+                        "schema": {
+                            "$ref": "#/definitions/vapi.std.errors.unauthenticated_error"
+                        }
+                    }
+                },
+                "summary": "Returns the desired software configuration of the appliances. Warning: This operation is part of a new feature in development. It may be changed at any time and may not have all supported functionality implemented.",
+                "tags": [
+                    "software"
+                ]
+            }
+        }
+    },
+    "produces": [
+        "application/json"
+    ],
+    "schemes": [
+        "https",
+        "http"
+    ],
+    "security": [
+        {
+            "api_key": []
+        }
+    ],
+    "securityDefinitions": {
+        "api_key": {
+            "in": "header",
+            "name": "vmware-api-session-id",
+            "type": "apiKey"
+        },
+        "basic_auth": {
+            "type": "basic"
+        }
+    },
+    "swagger": "2.0",
+    "tags": []
+}

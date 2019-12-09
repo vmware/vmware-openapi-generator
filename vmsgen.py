@@ -485,7 +485,7 @@ def populate_response_map(output, errors, http_error_map, type_dict, structure_s
             success_response['schema'] = resp
 
     success_response_code = requests.codes.ok
-    if endpoint == 'api' and op_metadata['Response'] is not None:
+    if endpoint == 'api' and 'Response' in op_metadata and op_metadata['Response'] is not None:
         success_response_code = int(op_metadata['Response'].elements['code'].string_value)
     # success response is not mapped through metamodel.
     # hardcode it for now apis under /rest.

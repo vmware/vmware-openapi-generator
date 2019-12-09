@@ -1,0 +1,39 @@
+{
+    "basePath": "",
+    "consumes": [
+        "application/json"
+    ],
+    "definitions": {},
+    "host": "sc2-rdops-vm06-dhcp-197-19.eng.vmware.com",
+    "info": {
+        "description": "",
+        "termsOfService": "http://swagger.io/terms/",
+        "title": "cdc",
+        "version": "2.0.0"
+    },
+    "paths": {},
+    "produces": [
+        "application/json"
+    ],
+    "schemes": [
+        "https",
+        "http"
+    ],
+    "security": [
+        {
+            "api_key": []
+        }
+    ],
+    "securityDefinitions": {
+        "api_key": {
+            "in": "header",
+            "name": "vmware-api-session-id",
+            "type": "apiKey"
+        },
+        "basic_auth": {
+            "type": "basic"
+        }
+    },
+    "swagger": "2.0",
+    "tags": []
+}

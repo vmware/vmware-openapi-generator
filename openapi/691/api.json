@@ -1,0 +1,14 @@
+{
+    "files": [
+        "vcenter",
+        "cis",
+        "appliance",
+        "remote-appliances",
+        "vapi",
+        "esx",
+        "cdc",
+        "transfer",
+        "content",
+        "contentinternal"
+    ]
+}
