@@ -558,6 +558,7 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
                     item = item.replace('com.vmware.', '')
                     if key == '$ref':
                         item = item.replace('$', '_')
+                    item = item.replace('.', '_')
                     swagger_obj[key] = item
             elif isinstance(item, list):
                 for itm in item:
@@ -574,6 +575,7 @@ def remove_com_vmware_from_dict(swagger_obj, depth=0, keys_list=[]):
             old_key = keys_list.pop()
             new_key = old_key.replace('com.vmware.', '')
             new_key = new_key.replace('$', '_')
+            new_key = new_key.replace('.', '_')
             try:
                 swagger_obj[new_key] = swagger_obj.pop(old_key)
             except KeyError:
