@@ -161,6 +161,8 @@ def metamodel_to_swagger_type_converter(input_type):
         return 'string', 'password'
     if input_type == 'any_error':
         return 'string', None
+    if input_type == 'opaque':
+        return 'object', None
     if input_type == 'dynamic_structure':
         return 'object', None
     if input_type == 'uri':
