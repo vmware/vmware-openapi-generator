@@ -16,8 +16,9 @@ This generator can be used to work with an existing vCenter Server (6.5+) to gen
 
 ### Build & Run
 
+
 ```  
-python vmsgen.py -vc <vCenter IP> -o <output directory path>  
+python vmsgen.py -vc <vCenter IP> -o <output directory path>  -k
 ```
 
     
