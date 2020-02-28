@@ -15,8 +15,8 @@ from vmware.vapi.core import ApplicationContext
 from lib import utils
 from lib import establish_connection as ec
 from lib import dictionary_processing as dp
-from lib.api_endpoint import api_url_processing as api
-from lib.rest_endpoint import rest_url_processing as rest
+from lib.api_endpoint.api_url_processing import apiUrlProcessing
+from lib.rest_endpoint.rest_url_processing import restUrlProcessing 
 
 GENERATE_UNIQUE_OP_IDS = False
 GENERATE_METAMODEL = False
@@ -61,7 +61,10 @@ def main():
 
     # package_dict_api holds list of all service urls which come under /api 
     package_dict_api, package_dict = dp.add_service_urls_using_metamodel(service_urls_map, service_dict, rest_navigation_url)
-    
+
+    rest = restUrlProcessing()
+    api = apiUrlProcessing()
+
     threads = []
     for package, service_urls in six.iteritems(package_dict):
         worker = threading.Thread(target=rest.process_service_urls, args=(

@@ -3,44 +3,6 @@ import six
 from lib import utils
 from lib.rest_endpoint.oas3.rest_openapi_type_handler import typeHandler
 
-def extract_path_parameters(params, url):
-    """
-    Return list of field_infos which are path variables, another list of
-    field_infos which are not path parameters and the url that eventually
-    changed due to mismatching param names.
-    An example of a URL that changes:
-    /vcenter/resource-pool/{resource-pool} to
-    /vcenter/resource-pool/{resource_pool}
-    """
-    # Regex to look for {} placeholders with a group to match only the parameter name
-    re_path_param = re.compile('{(.+?)}')
-    path_params = []
-    other_params = list(params)
-    new_url = url
-    for path_param_name_match in re_path_param.finditer(url):
-        path_param_placeholder = path_param_name_match.group(1)
-        path_param_info = None
-        for param in other_params:
-            if is_param_path_variable(param, path_param_placeholder):
-                path_param_info = param
-                if param.name != path_param_placeholder:
-                    new_url = new_url.replace(path_param_name_match.group(), '{' + param.name + '}')
-                break
-        if path_param_info is None:
-            utils.eprint('%s parameter from %s is not found among the operation\'s parameters'
-                   % (path_param_placeholder, url))
-        else:
-            path_params.append(path_param_info)
-            other_params.remove(path_param_info)
-    return path_params, other_params, new_url
-
-def is_param_path_variable(param, path_param_placeholder):
-    if param.name == path_param_placeholder:
-        return True
-    if 'PathVariable' not in param.metadata:
-        return False
-    return param.metadata['PathVariable'].elements['value'].string_value == path_param_placeholder
-
 def convert_field_info_to_swagger_parameter(param_type, input_parameter_obj, type_dict,
                                             structure_svc, enum_svc, enable_filtering):
     """

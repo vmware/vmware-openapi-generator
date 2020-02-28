@@ -1,33 +1,6 @@
 import six
 from lib import utils
 
-def metamodel_to_swagger_type_converter(input_type):
-    """
-    Converts API Metamodel type to their equivalent Swagger type.
-    A tuple is returned. first value of tuple is main type.
-    second value of tuple has 'format' information, if available.
-    """
-    input_type = input_type.lower()
-    if input_type == 'date_time':
-        return 'string', 'date-time'
-    if input_type == 'secret':
-        return 'string', 'password'
-    if input_type == 'any_error':
-        return 'string', None
-    if input_type == 'dynamic_structure':
-        return 'object', None
-    if input_type == 'uri':
-        return 'string', 'uri'
-    if input_type == 'id':
-        return 'string', None
-    if input_type == 'long':
-        return 'integer', 'int64'
-    if input_type == 'double':
-        return 'number', 'double'
-    if input_type == 'binary':
-        return 'string', 'binary'
-    return input_type, None
-
 class typeHandler():
 
     def __init__(self):
@@ -59,7 +32,7 @@ class typeHandler():
 
 
     def visit_builtin(self, builtin_type, new_prop):
-        data_type, format_ = metamodel_to_swagger_type_converter(builtin_type)
+        data_type, format_ = utils.metamodel_to_swagger_type_converter(builtin_type)
         if 'type' in new_prop and new_prop['type'] == 'array':
             item_obj = {'type': data_type}
             new_prop['items'] = item_obj
@@ -95,7 +68,7 @@ class typeHandler():
                 new_type['properties']['key'] = {'$ref': ref_path + res_id}
                 self.check_type(res_type, res_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
             else:
-                new_type['properties']['key'] = {'type': metamodel_to_swagger_type_converter(
+                new_type['properties']['key'] = {'type': utils.metamodel_to_swagger_type_converter(
                     generic_instantiation.map_key_type.builtin_type)[0]}
 
             if generic_instantiation.map_value_type.category == 'USER_DEFINED':
@@ -106,7 +79,7 @@ class typeHandler():
                 self.check_type(res_type, res_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
 
             elif generic_instantiation.map_value_type.category == 'BUILTIN':
-                new_type['properties']['value'] = {'type': metamodel_to_swagger_type_converter(
+                new_type['properties']['value'] = {'type': utils.metamodel_to_swagger_type_converter(
                 generic_instantiation.map_value_type.builtin_type)[0]}
                 
             elif generic_instantiation.map_value_type.category == 'GENERIC':
@@ -125,14 +98,6 @@ class typeHandler():
             if '$ref' in new_prop:
                 del new_prop['$ref']
 
-
-    def is_type_builtin(self, type_):
-        type_ = type_.lower()
-        typeset = {'binary', 'boolean', 'datetime', 'double', 'dynamicstructure', 'exception',
-                'id', 'long', 'opaque', 'secret', 'string', 'uri'}
-        if type_ in typeset:
-            return True
-        return False
 
     def get_structure_info(self, struct_type, structure_svc, enable_filtering):
         """
@@ -199,7 +164,7 @@ class typeHandler():
         type_dict[type_name] = enum_type
 
     def check_type(self, resource_type, type_name, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
-        if type_name in type_dict or self.is_type_builtin(type_name):
+        if type_name in type_dict or utils.is_type_builtin(type_name):
             return
         if resource_type == 'com.vmware.vapi.structure':
             structure_info = self.get_structure_info(type_name, structure_svc, enable_filtering)
