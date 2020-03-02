@@ -25,7 +25,7 @@ python3 vmsgen.py -k -vc <vcip> -c -o output -oas 2
 ```
 
 ## Part : 1
-Refer the [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/README.md) file of the lib folder to understand as to what this part of the code is doing.
+Refer the [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib) file of the lib folder to understand as to what this part of the code is doing.
 ``` python
 def main():
     # Get user input.
@@ -40,7 +40,7 @@ def main():
     service_urls_map = {}
 ```
 ## Part : 2
-The [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/README.md) of the lib folder provides a detailed description of this section.
+The [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib) of the lib folder provides a detailed description of this section.
 ``` python
     start = timeit.default_timer()
     print('Trying to connect ' + metadata_api_url)
@@ -53,7 +53,7 @@ The [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/ma
     component_svc = ec.get_component_service(connector)
 ```
 ## Part : 3
-The explaintion of the below part can the found in this [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/README.md) of the lib folder.
+The explanation of the below part can the found in this [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib) of the lib folder.
 ``` python
     dp.populate_dicts(component_svc, enumeration_dict, structure_dict, service_dict, service_urls_map, rest_navigation_url, GENERATE_METAMODEL)
     if enable_filtering:
@@ -64,7 +64,7 @@ The explaintion of the below part can the found in this [readme.md](https://gith
     package_dict_api, package_dict = dp.add_service_urls_using_metamodel(service_urls_map, service_dict, rest_navigation_url)
 ```
 ## Part : 4
-You can find the description of the following part in this [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/rest_endpoint/README.md) under the lib/rest_endpoint section.
+You can find the description of the following part in this [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/rest_endpoint) under the lib/rest_endpoint section.
 ```python
     threads = []
     for package, service_urls in six.iteritems(package_dict):
@@ -76,7 +76,7 @@ You can find the description of the following part in this [readme.md](https://g
         threads.append(worker)
 ```
 ## Part : 5
-Refer to [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/rest_endpoint/README.md) under the lib/api_endpoint section for details.
+Refer to [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/api_endpoint) under the lib/api_endpoint section for details.
 ```python
     for package, service_urls in six.iteritems(package_dict_api):
         worker = threading.Thread(target=api.process_service_urls, args=(
