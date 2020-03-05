@@ -1,10 +1,7 @@
 import six
 from lib import utils
 
-class typeHandler():
-
-    def __init__(self):
-       pass
+class typeHandlerCommon():
 
     def visit_type_category(self, struct_type, new_prop, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
         if isinstance(struct_type, dict):
@@ -17,8 +14,7 @@ class typeHandler():
         elif struct_type.category == 'USER_DEFINED':
             self.visit_user_defined(struct_type.user_defined_type, new_prop, type_dict, structure_svc,
                             enum_svc, ref_path, enable_filtering)
-
-
+    
     def visit_type_category_dict(self, struct_type, new_prop, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
         new_prop['required'] = True
         if struct_type['category'] == 'BUILTIN':
@@ -29,8 +25,7 @@ class typeHandler():
         elif struct_type['category'] == 'USER_DEFINED':
             self.visit_user_defined(struct_type['user_defined_type'], new_prop, type_dict, structure_svc,
                             enum_svc, ref_path, enable_filtering)
-
-
+    
     def visit_builtin(self, builtin_type, new_prop):
         data_type, format_ = utils.metamodel_to_swagger_type_converter(builtin_type)
         if 'type' in new_prop and new_prop['type'] == 'array':
@@ -43,61 +38,8 @@ class typeHandler():
             if format_ is not None:
                 new_prop['format'] = format_
 
-
     def visit_generic(self, generic_instantiation, new_prop, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
-        if generic_instantiation.generic_type == 'OPTIONAL':
-            new_prop['required'] = False
-            self.visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
-                                structure_svc, enum_svc, ref_path, enable_filtering)
-        elif generic_instantiation.generic_type == 'LIST':
-            new_prop['type'] = 'array'
-            self.visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
-                                structure_svc, enum_svc, ref_path, enable_filtering)
-        elif generic_instantiation.generic_type == 'SET':
-            new_prop['type'] = 'array'
-            new_prop['uniqueItems'] = True
-            self.visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
-                                structure_svc, enum_svc, ref_path, enable_filtering)
-        elif generic_instantiation.generic_type == 'MAP':
-            # Have static key/value pair object maping for /rest paths
-            # while use additionalProperties for /api paths
-            new_type = {'type': 'object', 'properties': {}}
-            if generic_instantiation.map_key_type.category == 'USER_DEFINED':
-                res_id = generic_instantiation.map_key_type.user_defined_type.resource_id
-                res_type = generic_instantiation.map_key_type.user_defined_type.resource_type    
-                new_type['properties']['key'] = {'$ref': ref_path + res_id}
-                self.check_type(res_type, res_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
-            else:
-                new_type['properties']['key'] = {'type': utils.metamodel_to_swagger_type_converter(
-                    generic_instantiation.map_key_type.builtin_type)[0]}
-
-            if generic_instantiation.map_value_type.category == 'USER_DEFINED':
-                new_type['properties']['value'] = {
-                    '$ref': ref_path + generic_instantiation.map_value_type.user_defined_type.resource_id}
-                res_type = generic_instantiation.map_value_type.user_defined_type.resource_type
-                res_id = generic_instantiation.map_value_type.user_defined_type.resource_id
-                self.check_type(res_type, res_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
-
-            elif generic_instantiation.map_value_type.category == 'BUILTIN':
-                new_type['properties']['value'] = {'type': utils.metamodel_to_swagger_type_converter(
-                generic_instantiation.map_value_type.builtin_type)[0]}
-                
-            elif generic_instantiation.map_value_type.category == 'GENERIC':
-                temp_new_type = {}
-                self.visit_generic( generic_instantiation.map_value_type.generic_instantiation,
-                            temp_new_type, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
-                new_type['properties']['value'] = temp_new_type
-                    
-            new_prop['type'] = 'array'
-            new_prop['items'] = new_type
-            
-            if 'additionalProperties' in new_type:
-                if not new_type['additionalProperties'].get('required', True):
-                    del new_type['additionalProperties']['required']
-
-            if '$ref' in new_prop:
-                del new_prop['$ref']
-
+        pass
 
     def get_structure_info(self, struct_type, structure_svc, enable_filtering):
         """
@@ -116,8 +58,7 @@ class typeHandler():
             utils.eprint("Error fetching structure info for " + struct_type)
             utils.eprint(ex)
             return None
-
-
+    
     def process_structure_info(self, type_name, structure_info, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
         new_type = {'type': 'object', 'properties': {}}
         for field in structure_info.fields:
@@ -140,7 +81,7 @@ class typeHandler():
         if len(required) > 0:
             new_type['required'] = required
         type_dict[type_name] = new_type
-
+    
     def get_enum_info(self, type_name, enum_svc, enable_filtering):
         """
         Given a type, return its enum info, if the type is enum.
@@ -157,12 +98,12 @@ class typeHandler():
             utils.eprint("Error fetching enum info for " + type_name)
             utils.eprint(exception)
             return None
-
+    
     def process_enum_info(self, type_name, enum_info, type_dict, enable_filtering):
         enum_type = {'type': 'string', 'description': enum_info.documentation}
         enum_type.setdefault('enum', [value.value for value in enum_info.values if not utils.is_filtered(value.metadata, enable_filtering)])
         type_dict[type_name] = enum_type
-
+    
     def check_type(self, resource_type, type_name, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
         if type_name in type_dict or utils.is_type_builtin(type_name):
             return
@@ -183,10 +124,10 @@ class typeHandler():
         if user_defined_type.resource_id is None:
             return
         if 'type' in newprop and newprop['type'] == 'array':
-            item_obj = {'$ref': '#/definitions/' + user_defined_type.resource_id}
+            item_obj = {'$ref': ref_path + user_defined_type.resource_id}
             newprop['items'] = item_obj
         # if not array, fill in type or ref
         else:
-            newprop['$ref'] = '#/definitions/' + user_defined_type.resource_id
+            newprop['$ref'] = ref_path + user_defined_type.resource_id
 
         self.check_type(user_defined_type.resource_type, user_defined_type.resource_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)

@@ -1,14 +1,16 @@
 import os
 import six
 from lib import utils
-from lib.endpoint_processing import urlProcessing
-from lib.api_endpoint.oas3 import api_metamodel2openapi as openapi
-from lib.api_endpoint.swagger2 import api_metamodel2swagger as swagg
+from lib.url_processing import urlProcessing
+from lib.api_endpoint.oas3.api_metamodel2openapi import apiMetamodel2Openapi  
+from lib.api_endpoint.swagger2.api_metamodel2swagger import apiMetamodel2Swagger  
 from lib.api_endpoint.oas3.api_openapi_final_path_processing import apiOpenapiPathProcessing
 from lib.api_endpoint.swagger2.api_swagger_final_path_processing import apiSwaggerPathProcessing
 
 api_openapi_fpp = apiOpenapiPathProcessing()
 api_swagg_fpp = apiSwaggerPathProcessing()
+openapi = apiMetamodel2Openapi()
+swagg = apiMetamodel2Swagger()
 
 class apiUrlProcessing(urlProcessing):
 
@@ -47,44 +49,7 @@ class apiUrlProcessing(urlProcessing):
 
                     path_list.append(path)
             continue
-            # use rest navigation service to get the REST mappings for a service.
-            service_operations = utils.get_json(rest_navigation_url + service_url + '?~method=OPTIONS', False)
-            if service_operations is None:
-                continue
-
-            for service_operation in service_operations:
-                service_name = service_operation['service']
-                # service_info must be re-assigned when service_operations are obtained through ?~method=OPTIONS.
-                # this is because all service operations matching the prefix of the service is returned instead of returning
-                # only operations which has exact match.
-                # for example OPTIONS on com.vmware.content.library returns operations from following services
-                # instead of just com.vmware.content.library.item
-                # com.vmware.content.library.item.storage
-                # com.vmware.content.library.item
-                # com.vmware.content.library.item.file
-                # com.vmware.content.library.item.update_session
-                # com.vmware.content.library.item.updatesession.file
-                service_info = service_dict.get(service_name, None)
-                if service_info is None:
-                    continue
-                operation_id = service_operation['name']
-                if operation_id not in service_info.operations:
-                    continue
-                op_metadata = service_info.operations[operation_id].metadata
-                if utils.is_filtered(op_metadata, enable_filtering):
-                    continue
-                url, method = super().find_url(service_operation['links'])
-                url = super().get_service_path_from_service_url(url, rest_navigation_url)
-                operation_info = service_info.operations.get(operation_id)
-
-                if spec == '2':
-                    path = swagg.get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
-                                    operation_id, error_map, enable_filtering)
-                if spec == '3':
-                    path = openapi.get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
-                                    operation_id, error_map, enable_filtering)
-
-                path_list.append(path)
+            
         path_dict = super().convert_path_list_to_path_map(path_list)
         super().cleanup(path_dict=path_dict, type_dict=type_dict)
 

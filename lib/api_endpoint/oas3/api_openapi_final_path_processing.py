@@ -2,7 +2,7 @@ import os
 import re
 import collections
 from lib import utils
-from lib.endpoint_processing import pathProcessing
+from lib.path_processing import pathProcessing
 
 class apiOpenapiPathProcessing(pathProcessing):
 

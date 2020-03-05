@@ -1,12 +1,14 @@
 import os
 import six
 from lib import utils
-from lib.endpoint_processing import urlProcessing
-from lib.rest_endpoint.oas3 import rest_metamodel2openapi as openapi
-from lib.rest_endpoint.swagger2 import rest_metamodel2swagger as swagg
+from lib.url_processing import urlProcessing
+from lib.rest_endpoint.oas3.rest_metamodel2openapi import restMetamodel2Openapi
+from lib.rest_endpoint.swagger2.rest_metamodel2swagger import restMetamodel2Swagger
 from lib.rest_endpoint.oas3.rest_openapi_final_path_processing import restOpenapiPathProcessing
 from lib.rest_endpoint.swagger2.rest_swagger_final_path_processing import restSwaggerPathProcessing
 
+swagg = restMetamodel2Swagger()
+openapi = restMetamodel2Openapi()
 rest_openapi_fpp = restOpenapiPathProcessing()
 rest_swagg_fpp = restSwaggerPathProcessing()
 
