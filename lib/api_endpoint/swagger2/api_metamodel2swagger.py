@@ -16,7 +16,7 @@ class apiMetamodel2Swagger(apiMetamodel2Spec):
         http_method = http_method.lower()
         consumes_json = self.find_consumes(http_method)
         produces = None
-        par_array, url = super().handle_request_mapping(url, http_method, service_name,
+        par_array, url = self.handle_request_mapping(url, http_method, service_name,
                                                 operation_id, params, type_dict,
                                                 structure_dict, enum_dict, enable_filtering, api_swagg_ph)
         response_map = api_swagg_rh.populate_response_map(output,

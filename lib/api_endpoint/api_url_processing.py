@@ -50,8 +50,8 @@ class apiUrlProcessing(urlProcessing):
                     path_list.append(path)
             continue
             
-        path_dict = super().convert_path_list_to_path_map(path_list)
-        super().cleanup(path_dict=path_dict, type_dict=type_dict)
+        path_dict = self.convert_path_list_to_path_map(path_list)
+        self.cleanup(path_dict=path_dict, type_dict=type_dict)
 
         if spec == '2':
             api_swagg_fpp.process_output(path_dict, type_dict, output_dir, package_name, gen_unique_op_id)

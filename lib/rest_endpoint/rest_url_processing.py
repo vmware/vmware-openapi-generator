@@ -74,8 +74,8 @@ class restUrlProcessing(urlProcessing):
                 op_metadata = service_info.operations[operation_id].metadata
                 if utils.is_filtered(op_metadata, enable_filtering):
                     continue
-                url, method = super().find_url(service_operation['links'])
-                url = super().get_service_path_from_service_url(url, rest_navigation_url)
+                url, method = self.find_url(service_operation['links'])
+                url = self.get_service_path_from_service_url(url, rest_navigation_url)
                 operation_info = service_info.operations.get(operation_id)
 
                 if spec == '2':
@@ -86,8 +86,8 @@ class restUrlProcessing(urlProcessing):
                                     operation_id, error_map, enable_filtering)
 
                 path_list.append(path)
-        path_dict = super().convert_path_list_to_path_map(path_list)
-        super().cleanup(path_dict=path_dict, type_dict=type_dict)
+        path_dict = self.convert_path_list_to_path_map(path_list)
+        self.cleanup(path_dict=path_dict, type_dict=type_dict)
         if spec == '2':
             rest_swagg_fpp.process_output(path_dict, type_dict, output_dir, package_name, gen_unique_op_id)    
         if spec== '3':

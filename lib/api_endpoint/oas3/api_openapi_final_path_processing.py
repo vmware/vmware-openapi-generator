@@ -12,13 +12,13 @@ class apiOpenapiPathProcessing(pathProcessing):
     def process_output(self, path_dict, type_dict, output_dir, output_filename, gen_unique_op_id):
         reqBody = {}
         description_map = utils.load_description()
-        super().remove_com_vmware_from_dict(path_dict)
+        self.remove_com_vmware_from_dict(path_dict)
         if gen_unique_op_id:
-            super().create_unique_op_ids(path_dict)
+            self.create_unique_op_ids(path_dict)
         self.remove_query_params(path_dict)
-        super().remove_com_vmware_from_dict(type_dict)
+        self.remove_com_vmware_from_dict(type_dict)
         if 'requestBodies' in type_dict:
-            super().remove_com_vmware_from_dict(type_dict['requestBodies'])
+            self.remove_com_vmware_from_dict(type_dict['requestBodies'])
             reqBody =  collections.OrderedDict(sorted(type_dict['requestBodies'].items()))
         swagger_template = {'openapi': '3.0.0',
                             'info': {'description': description_map.get(output_filename, ''),
@@ -114,7 +114,7 @@ class apiOpenapiPathProcessing(pathProcessing):
                     if len(set(path_operations).intersection(new_path_operations)) < 1:
                         for http_method, operation_dict in http_operations.items():
                             operation_dict['parameters'] = operation_dict['parameters'] + query_param
-                        path_dict[new_path] = super().merge_dictionaries(http_operations, path_dict[new_path])
+                        path_dict[new_path] = self.merge_dictionaries(http_operations, path_dict[new_path])
                         paths_to_delete.append(old_path)
                 else:
                     for http_method, operation_dict in http_operations.items():

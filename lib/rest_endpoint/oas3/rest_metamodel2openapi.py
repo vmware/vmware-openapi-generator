@@ -17,7 +17,7 @@ class restMetamodel2Openapi(restMetamodel2Spec):
         http_method = http_method.lower()
         consumes = None
         produces = None
-        par_array, url = super().handle_request_mapping(url, http_method, service_name,
+        par_array, url = self.handle_request_mapping(url, http_method, service_name,
                                                 operation_id, params, type_dict,
                                                 structure_dict, enum_dict, enable_filtering, rest_open_ph)
         response_map = rest_open_rh.populate_response_map(output,

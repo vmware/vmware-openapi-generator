@@ -6,16 +6,16 @@ class apiTypeHandler(typeHandlerCommon):
       def visit_generic(self, generic_instantiation, new_prop, type_dict, structure_svc, enum_svc, ref_path, enable_filtering):
         if generic_instantiation.generic_type == 'OPTIONAL':
             new_prop['required'] = False
-            super().visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
+            self.visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
                                 structure_svc, enum_svc, ref_path, enable_filtering)
         elif generic_instantiation.generic_type == 'LIST':
             new_prop['type'] = 'array'
-            super().visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
+            self.visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
                                 structure_svc, enum_svc, ref_path, enable_filtering)
         elif generic_instantiation.generic_type == 'SET':
             new_prop['type'] = 'array'
             new_prop['uniqueItems'] = True
-            super().visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
+            self.visit_type_category(generic_instantiation.element_type, new_prop, type_dict,
                                 structure_svc, enum_svc, ref_path, enable_filtering)
         elif generic_instantiation.generic_type == 'MAP':
             # Have static key/value pair object maping for /rest paths
@@ -28,7 +28,7 @@ class apiTypeHandler(typeHandlerCommon):
                     }
                 res_type = generic_instantiation.map_value_type.user_defined_type.resource_type
                 res_id = generic_instantiation.map_value_type.user_defined_type.resource_id
-                super().check_type(res_type, res_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
+                self.check_type(res_type, res_id, type_dict, structure_svc, enum_svc, ref_path, enable_filtering)
 
             elif generic_instantiation.map_value_type.category == 'BUILTIN':
                 new_type['additionalProperties'] = {'type': utils.metamodel_to_swagger_type_converter(
