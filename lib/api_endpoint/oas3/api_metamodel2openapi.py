@@ -1,7 +1,7 @@
 from lib import utils
 from lib.api_endpoint.api_metamodel2spec import apiMetamodel2Spec
-from lib.api_endpoint.oas3.api_openapi_parameter_handler import apiOpenapiParaHandler  
-from lib.api_endpoint.oas3.api_openapi_response_handler import apiOpenapiRespHandler 
+from .api_openapi_parameter_handler import apiOpenapiParaHandler  
+from .api_openapi_response_handler import apiOpenapiRespHandler 
 
 api_open_ph = apiOpenapiParaHandler()
 api_open_rh = apiOpenapiRespHandler()

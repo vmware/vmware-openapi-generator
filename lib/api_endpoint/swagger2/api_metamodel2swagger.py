@@ -1,7 +1,7 @@
 from lib import utils
 from lib.api_endpoint.api_metamodel2spec import apiMetamodel2Spec
-from lib.api_endpoint.swagger2.api_swagger_parameter_handler import apiSwaggerParaHandler  
-from lib.api_endpoint.swagger2.api_swagger_response_handler import apiSwaggerRespHandler   
+from .api_swagger_parameter_handler import apiSwaggerParaHandler  
+from .api_swagger_response_handler import apiSwaggerRespHandler   
 
 api_swagg_ph = apiSwaggerParaHandler()
 api_swagg_rh = apiSwaggerRespHandler()

@@ -1,7 +1,7 @@
 from lib import utils
 from lib.rest_endpoint.rest_metamodel2spec import restMetamodel2Spec
-from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import restOpenapiParaHandler 
-from lib.rest_endpoint.oas3.rest_openapi_response_handler import restOpenapiRespHandler  
+from .rest_openapi_parameter_handler import restOpenapiParaHandler 
+from .rest_openapi_response_handler import restOpenapiRespHandler  
 
 rest_open_ph = restOpenapiParaHandler()
 rest_open_rh = restOpenapiRespHandler()

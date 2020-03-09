@@ -1,7 +1,7 @@
 from lib import utils
 from lib.rest_endpoint.rest_metamodel2spec import restMetamodel2Spec
-from lib.rest_endpoint.swagger2.rest_swagger_parameter_handler import restSwaggerParaHandler 
-from lib.rest_endpoint.swagger2.rest_swagger_response_handler import restSwaggerRespHandler  
+from .rest_swagger_parameter_handler import restSwaggerParaHandler 
+from .rest_swagger_response_handler import restSwaggerRespHandler  
 
 rest_swagg_ph = restSwaggerParaHandler()
 rest_swagg_rh = restSwaggerRespHandler()

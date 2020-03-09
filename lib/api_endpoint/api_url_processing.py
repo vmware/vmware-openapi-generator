@@ -2,10 +2,10 @@ import os
 import six
 from lib import utils
 from lib.url_processing import urlProcessing
-from lib.api_endpoint.oas3.api_metamodel2openapi import apiMetamodel2Openapi  
-from lib.api_endpoint.swagger2.api_metamodel2swagger import apiMetamodel2Swagger  
-from lib.api_endpoint.oas3.api_openapi_final_path_processing import apiOpenapiPathProcessing
-from lib.api_endpoint.swagger2.api_swagger_final_path_processing import apiSwaggerPathProcessing
+from .oas3.api_metamodel2openapi import apiMetamodel2Openapi  
+from .swagger2.api_metamodel2swagger import apiMetamodel2Swagger  
+from .oas3.api_openapi_final_path_processing import apiOpenapiPathProcessing
+from .swagger2.api_swagger_final_path_processing import apiSwaggerPathProcessing
 
 api_openapi_fpp = apiOpenapiPathProcessing()
 api_swagg_fpp = apiSwaggerPathProcessing()
