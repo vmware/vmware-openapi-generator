@@ -15,8 +15,6 @@ class restMetamodel2Openapi(restMetamodel2Spec):
         errors = operation_info.errors
         output = operation_info.output
         http_method = http_method.lower()
-        consumes = None
-        produces = None
         par_array, url = self.handle_request_mapping(url, http_method, service_name,
                                                 operation_id, params, type_dict,
                                                 structure_dict, enum_dict, enable_filtering, rest_open_ph)
@@ -28,8 +26,7 @@ class restMetamodel2Openapi(restMetamodel2Spec):
                         http_method,
                         url,
                         documentation, par_array, operation_id=operation_id,
-                        responses=response_map,
-                        consumes=consumes, produces=produces)
+                        responses=response_map)
         self.post_process_path(path_obj)
         path = utils.add_basic_auth(path_obj)
         return path

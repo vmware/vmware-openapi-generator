@@ -123,8 +123,8 @@ def is_param_path_variable(param, path_param_placeholder):
         return False
     return param.metadata['PathVariable'].elements['value'].string_value == path_param_placeholder
 
-def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes,
-               produces):
+def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes=None,
+               produces=None):
     """
     builds swagger path object
     :param service_name: name of service. ex com.vmware.vcenter.VM
