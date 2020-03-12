@@ -1,30 +1,43 @@
 import os
 import six
 from lib import utils
-from lib.url_processing import urlProcessing
-from .oas3.rest_metamodel2openapi import restMetamodel2Openapi
-from .swagger2.rest_metamodel2swagger import restMetamodel2Swagger
-from .oas3.rest_openapi_final_path_processing import restOpenapiPathProcessing
-from .swagger2.rest_swagger_final_path_processing import restSwaggerPathProcessing
+from lib.url_processing import UrlProcessing
+from .oas3.rest_metamodel2openapi import RestMetamodel2Openapi
+from .swagger2.rest_metamodel2swagger import RestMetamodel2Swagger
+from .oas3.rest_openapi_final_path_processing import RestOpenapiPathProcessing
+from .swagger2.rest_swagger_final_path_processing import RestSwaggerPathProcessing
 
-swagg = restMetamodel2Swagger()
-openapi = restMetamodel2Openapi()
-rest_openapi_fpp = restOpenapiPathProcessing()
-rest_swagg_fpp = restSwaggerPathProcessing()
+swagg = RestMetamodel2Swagger()
+openapi = RestMetamodel2Openapi()
+rest_openapi_fpp = RestOpenapiPathProcessing()
+rest_swagg_fpp = RestSwaggerPathProcessing()
 
-class restUrlProcessing(urlProcessing):
+
+class RestUrlProcessing(UrlProcessing):
     def __init__(self):
         pass
 
-    def process_service_urls(self,package_name, service_urls, output_dir, structure_dict, enum_dict,
-                            service_dict, service_url_dict, error_map, rest_navigation_url, enable_filtering
-                            , spec, gen_unique_op_id):
+    def process_service_urls(
+            self,
+            package_name,
+            service_urls,
+            output_dir,
+            structure_dict,
+            enum_dict,
+            service_dict,
+            service_url_dict,
+            error_map,
+            rest_navigation_url,
+            enable_filtering,
+            spec,
+            gen_unique_op_id):
 
         print('processing package ' + package_name + os.linesep)
         type_dict = {}
         path_list = []
         for service_url in service_urls:
-            service_name, service_end_point = service_url_dict.get(service_url, None)
+            service_name, service_end_point = service_url_dict.get(
+                service_url, None)
             service_info = service_dict.get(service_name, None)
             if service_info is None:
                 continue
@@ -40,16 +53,36 @@ class restUrlProcessing(urlProcessing):
                     operation_info = service_info.operations.get(operation_id)
 
                     if spec == '2':
-                        path = swagg.get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
-                                    operation_id, error_map, enable_filtering)
+                        path = swagg.get_path(
+                            operation_info,
+                            method,
+                            url,
+                            service_name,
+                            type_dict,
+                            structure_dict,
+                            enum_dict,
+                            operation_id,
+                            error_map,
+                            enable_filtering)
                     if spec == '3':
-                        path = openapi.get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
-                                    operation_id, error_map, enable_filtering)
+                        path = openapi.get_path(
+                            operation_info,
+                            method,
+                            url,
+                            service_name,
+                            type_dict,
+                            structure_dict,
+                            enum_dict,
+                            operation_id,
+                            error_map,
+                            enable_filtering)
 
                     path_list.append(path)
                 continue
-            # use rest navigation service to get the REST mappings for a service.
-            service_operations = utils.get_json(rest_navigation_url + service_url + '?~method=OPTIONS', False)
+            # use rest navigation service to get the REST mappings for a
+            # service.
+            service_operations = utils.get_json(
+                rest_navigation_url + service_url + '?~method=OPTIONS', False)
             if service_operations is None:
                 continue
 
@@ -75,31 +108,60 @@ class restUrlProcessing(urlProcessing):
                 if utils.is_filtered(op_metadata, enable_filtering):
                     continue
                 url, method = self.find_url(service_operation['links'])
-                url = self.get_service_path_from_service_url(url, rest_navigation_url)
+                url = self.get_service_path_from_service_url(
+                    url, rest_navigation_url)
                 operation_info = service_info.operations.get(operation_id)
 
                 if spec == '2':
-                    path = swagg.get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
-                                    operation_id, error_map, enable_filtering)
+                    path = swagg.get_path(
+                        operation_info,
+                        method,
+                        url,
+                        service_name,
+                        type_dict,
+                        structure_dict,
+                        enum_dict,
+                        operation_id,
+                        error_map,
+                        enable_filtering)
                 if spec == '3':
-                    path = openapi.get_path(operation_info, method, url, service_name, type_dict, structure_dict, enum_dict,
-                                    operation_id, error_map, enable_filtering)
+                    path = openapi.get_path(
+                        operation_info,
+                        method,
+                        url,
+                        service_name,
+                        type_dict,
+                        structure_dict,
+                        enum_dict,
+                        operation_id,
+                        error_map,
+                        enable_filtering)
 
                 path_list.append(path)
         path_dict = self.convert_path_list_to_path_map(path_list)
         self.cleanup(path_dict=path_dict, type_dict=type_dict)
         if spec == '2':
-            rest_swagg_fpp.process_output(path_dict, type_dict, output_dir, package_name, gen_unique_op_id)    
-        if spec== '3':
-            rest_openapi_fpp.process_output(path_dict, type_dict, output_dir, package_name, gen_unique_op_id)     
+            rest_swagg_fpp.process_output(
+                path_dict,
+                type_dict,
+                output_dir,
+                package_name,
+                gen_unique_op_id)
+        if spec == '3':
+            rest_openapi_fpp.process_output(
+                path_dict,
+                type_dict,
+                output_dir,
+                package_name,
+                gen_unique_op_id)
 
-    def contains_rm_annotation(self,service_info):
+    def contains_rm_annotation(self, service_info):
         for operation in service_info.operations.values():
             if 'RequestMapping' not in operation.metadata:
                 return False
         return True
 
-    def find_url_method(self,opinfo):
+    def find_url_method(self, opinfo):
         """
         Given OperationInfo, find url and method if it exists
         :param opinfo:
@@ -123,7 +185,7 @@ class restUrlProcessing(urlProcessing):
             url = url + '?' + params
         return url, method
 
-    def find_string_element_value(self,element_value):
+    def find_string_element_value(self, element_value):
         """
         if input parameter is a path variable, this method
         determines name of the path variable.
@@ -133,4 +195,3 @@ class restUrlProcessing(urlProcessing):
                 return element_value['string_value']
         else:
             return element_value.string_value
-

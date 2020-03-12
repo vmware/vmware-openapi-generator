@@ -1,12 +1,12 @@
 import six
 import re
 
-class urlProcessing():
+class UrlProcessing():
 
     def __init__(self):
         pass
-    
-    def find_url(self,list_of_links):
+
+    def find_url(self, list_of_links):
         """
         There are many apis which get same work done.
         The idea here is to show the best one.
@@ -26,22 +26,24 @@ class urlProcessing():
                 if non_action_link is None:
                     non_action_link = link
         if non_action_link is None:
-            # all links have ~action in them. check if any of them has id: and return it.
+            # all links have ~action in them. check if any of them has id: and
+            # return it.
             for link in list_of_links:
                 if "id:" in link['href']:
                     return link['href'], link['method']
 
-            # all links have ~action in them and none of them have id: (pick any one)
+            # all links have ~action in them and none of them have id: (pick
+            # any one)
             return list_of_links[0]['href'], list_of_links[0]['method']
 
         return non_action_link['href'], non_action_link['method']
 
-    def get_service_path_from_service_url(self,service_url, base_url):
+    def get_service_path_from_service_url(self, service_url, base_url):
         if not service_url.startswith(base_url):
             return service_url
         return service_url[len(base_url):]
 
-    def convert_path_list_to_path_map(self,path_list):
+    def convert_path_list_to_path_map(self, path_list):
         """
         The same path can have multiple methods.
         For example: /vcenter/vm can have 'get', 'patch', 'put'
@@ -59,8 +61,7 @@ class urlProcessing():
                 x[path['method']] = path
         return path_dict
 
-
-    def cleanup(self,path_dict, type_dict):
+    def cleanup(self, path_dict, type_dict):
         for _, type_object in six.iteritems(type_dict):
             if 'properties' in type_object or 'additionalProperties' in type_object:
 
@@ -71,13 +72,13 @@ class urlProcessing():
 
                 for key, property_value in properties.items():
                     if isinstance(property_value, dict):
-                        if 'required' in property_value and isinstance(property_value['required'], bool):
+                        if 'required' in property_value and isinstance(
+                                property_value['required'], bool):
                             del property_value['required']
-                        
+
         for _, path_value in six.iteritems(path_dict):
             for _, method_value in six.iteritems(path_value):
                 if 'path' in method_value:
                     del method_value['path']
                 if 'method' in method_value:
                     del method_value['method']
-

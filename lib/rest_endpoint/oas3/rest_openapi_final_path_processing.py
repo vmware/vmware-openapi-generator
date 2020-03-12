@@ -2,13 +2,20 @@ import os
 import re
 import collections
 from lib import utils
-from lib.path_processing import pathProcessing
+from lib.path_processing import PathProcessing
 
-class restOpenapiPathProcessing(pathProcessing):
+
+class RestOpenapiPathProcessing(PathProcessing):
     def __init__(self):
         pass
 
-    def process_output(self, path_dict, type_dict, output_dir, output_filename, gen_unique_op_id):
+    def process_output(
+            self,
+            path_dict,
+            type_dict,
+            output_dir,
+            output_filename,
+            gen_unique_op_id):
         reqBody = {}
         description_map = utils.load_description()
         self.remove_com_vmware_from_dict(path_dict)
@@ -18,28 +25,37 @@ class restOpenapiPathProcessing(pathProcessing):
         self.remove_com_vmware_from_dict(type_dict)
         if 'requestBodies' in type_dict:
             self.remove_com_vmware_from_dict(type_dict['requestBodies'])
-            reqBody = collections.OrderedDict(sorted(type_dict['requestBodies'].items()))
+            reqBody = collections.OrderedDict(
+                sorted(type_dict['requestBodies'].items()))
         swagger_template = {'openapi': '3.0.0',
                             'info': {'description': description_map.get(output_filename, ''),
-                                    'title': output_filename,
-                                    'termsOfService': 'http://swagger.io/terms/',
-                                    'version': '2.0.0'},
+                                     'title': output_filename,
+                                     'termsOfService': 'http://swagger.io/terms/',
+                                     'version': '2.0.0'},
                             'paths': collections.OrderedDict(sorted(path_dict.items())),
                             'components': {
-                                    'requestBodies': reqBody
-                                    #'requestBodies': collections.OrderedDict(sorted(type_dict['requestBodies'].items()))
-                                #,
+                                'requestBodies': reqBody
+                                # 'requestBodies': collections.OrderedDict(sorted(type_dict['requestBodies'].items()))
+                                # ,
                                 # 'securitySchemes':{'basic_auth': {'type': 'basic'}}
                             }
-                        }
-        if 'requestBodies' in type_dict:                
+                            }
+        if 'requestBodies' in type_dict:
             del type_dict['requestBodies']
-        swagger_template['components']['schemas'] = collections.OrderedDict(sorted(type_dict.items()))
-        
+        swagger_template['components']['schemas'] = collections.OrderedDict(
+            sorted(type_dict.items()))
+
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-        utils.write_json_data_to_file(output_dir + os.path.sep + '/rest' + "_" + output_filename + '.json', swagger_template)
+        utils.write_json_data_to_file(
+            output_dir +
+            os.path.sep +
+            '/rest' +
+            "_" +
+            output_filename +
+            '.json',
+            swagger_template)
 
     def remove_query_params(self, path_dict):
         """
@@ -94,14 +110,17 @@ class restOpenapiPathProcessing(pathProcessing):
         for old_path in list(path_dict.keys()):
             http_operations = path_dict[old_path]
             if '?' in old_path:
-                paths_array = re.split('\?', old_path)
+                paths_array = re.split(r'\?', old_path)
                 new_path = paths_array[0]
 
                 query_param = []
                 for query_parameter in paths_array[1].split('&'):
                     key_value = query_parameter.split('=')
-                    q_param = {'name': key_value[0], 'in': 'query', 'description': key_value[0] + '=' + key_value[1],
-                            'required': True, 'type': 'string', 'enum': [key_value[1]]}
+                    q_param = {
+                        'name': key_value[0],
+                        'in': 'query',
+                        'description': key_value[0] + '=' + key_value[1],
+                        'required': True}
                     q_param['schema'] = {}
                     q_param['schema']['type'] = 'string'
                     q_param['schema']['enum'] = [key_value[1]]
@@ -110,10 +129,12 @@ class restOpenapiPathProcessing(pathProcessing):
                 if new_path in path_dict:
                     new_path_operations = path_dict[new_path].keys()
                     path_operations = http_operations.keys()
-                    if len(set(path_operations).intersection(new_path_operations)) < 1:
+                    if len(set(path_operations).intersection(
+                            new_path_operations)) < 1:
                         for http_method, operation_dict in http_operations.items():
                             operation_dict['parameters'] = operation_dict['parameters'] + query_param
-                        path_dict[new_path] = self.merge_dictionaries(http_operations, path_dict[new_path])
+                        path_dict[new_path] = self.merge_dictionaries(
+                            http_operations, path_dict[new_path])
                         paths_to_delete.append(old_path)
                 else:
                     for http_method, operation_dict in http_operations.items():
@@ -121,4 +142,3 @@ class restOpenapiPathProcessing(pathProcessing):
                     path_dict[new_path] = path_dict.pop(old_path)
         for path in paths_to_delete:
             del path_dict[path]
-

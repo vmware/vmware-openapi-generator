@@ -2,35 +2,62 @@ import os
 import re
 import collections
 from lib import utils
-from lib.path_processing import pathProcessing
+from lib.path_processing import PathProcessing
 
-class restSwaggerPathProcessing(pathProcessing):
+
+class RestSwaggerPathProcessing(PathProcessing):
     def __init__(self):
         pass
 
-    def process_output(self, path_dict, type_dict, output_dir, output_filename, gen_unique_op_id):
+    def process_output(
+            self,
+            path_dict,
+            type_dict,
+            output_dir,
+            output_filename,
+            gen_unique_op_id):
         description_map = utils.load_description()
         self.remove_com_vmware_from_dict(path_dict)
         if gen_unique_op_id:
             self.create_unique_op_ids(path_dict)
         self.remove_query_params(path_dict)
         self.remove_com_vmware_from_dict(type_dict)
-        swagger_template = {'swagger': '2.0',
-                            'info': {'description': description_map.get(output_filename, ''),
-                                    'title': output_filename,
-                                    'termsOfService': 'http://swagger.io/terms/',
-                                    'version': '2.0.0'}, 
-                            'host': '<vcenter>',
-                            'securityDefinitions': {'basic_auth': {'type': 'basic'}},
-                            'basePath': '/rest', 'tags': [],
-                            'schemes': ['https', 'http'],
-                            'paths': collections.OrderedDict(sorted(path_dict.items())),
-                            'definitions': collections.OrderedDict(sorted(type_dict.items()))}
-        
+        swagger_template = {
+            'swagger': '2.0',
+            'info': {
+                'description': description_map.get(
+                    output_filename,
+                    ''),
+                'title': output_filename,
+                'termsOfService': 'http://swagger.io/terms/',
+                'version': '2.0.0'},
+            'host': '<vcenter>',
+            'securityDefinitions': {
+                'basic_auth': {
+                    'type': 'basic'}},
+            'basePath': '/rest',
+            'tags': [],
+            'schemes': [
+                'https',
+                'http'],
+            'paths': collections.OrderedDict(
+                sorted(
+                    path_dict.items())),
+            'definitions': collections.OrderedDict(
+                sorted(
+                    type_dict.items()))}
+
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-        utils.write_json_data_to_file(output_dir + os.path.sep + '/rest' + "_" + output_filename + '.json', swagger_template)
+        utils.write_json_data_to_file(
+            output_dir +
+            os.path.sep +
+            '/rest' +
+            "_" +
+            output_filename +
+            '.json',
+            swagger_template)
 
     def remove_query_params(self, path_dict):
         """
@@ -85,23 +112,31 @@ class restSwaggerPathProcessing(pathProcessing):
         for old_path in list(path_dict.keys()):
             http_operations = path_dict[old_path]
             if '?' in old_path:
-                paths_array = re.split('\?', old_path)
+                paths_array = re.split(r'\?', old_path)
                 new_path = paths_array[0]
 
                 query_param = []
                 for query_parameter in paths_array[1].split('&'):
                     key_value = query_parameter.split('=')
-                    q_param = {'name': key_value[0], 'in': 'query', 'description': key_value[0] + '=' + key_value[1],
-                            'required': True, 'type': 'string', 'enum': [key_value[1]]}
+                    q_param = {
+                        'name': key_value[0],
+                        'in': 'query',
+                        'description': key_value[0] + '=' + key_value[1],
+                        'required': True,
+                        'type': 'string',
+                        'enum': [
+                            key_value[1]]}
                     query_param.append(q_param)
 
                 if new_path in path_dict:
                     new_path_operations = path_dict[new_path].keys()
                     path_operations = http_operations.keys()
-                    if len(set(path_operations).intersection(new_path_operations)) < 1:
+                    if len(set(path_operations).intersection(
+                            new_path_operations)) < 1:
                         for http_method, operation_dict in http_operations.items():
                             operation_dict['parameters'] = operation_dict['parameters'] + query_param
-                        path_dict[new_path] = self.merge_dictionaries(http_operations, path_dict[new_path])
+                        path_dict[new_path] = self.merge_dictionaries(
+                            http_operations, path_dict[new_path])
                         paths_to_delete.append(old_path)
                 else:
                     for http_method, operation_dict in http_operations.items():

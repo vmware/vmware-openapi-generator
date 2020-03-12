@@ -5,39 +5,43 @@ import re
 from six.moves import http_client
 TAG_SEPARATOR = '/'
 
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
 
 def build_error_map():
     """
     Builds error_map which maps vapi errors to http status codes.
     """
-    error_map = {'com.vmware.vapi.std.errors.already_exists': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.internal_server_error':http_client.INTERNAL_SERVER_ERROR,
-                 'com.vmware.vapi.std.errors.invalid_argument':http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.invalid_element_configuration':http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
-                 'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
-                 'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
-                 'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
-                 'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
-                 'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
-                 'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
-                 'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
-                 
+    error_map = {
+        'com.vmware.vapi.std.errors.already_exists': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.internal_server_error': http_client.INTERNAL_SERVER_ERROR,
+        'com.vmware.vapi.std.errors.invalid_argument': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.invalid_element_configuration': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
+        'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
+        'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
+        'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
+        'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
+        'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
+        'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
+        'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
+
     return error_map
+
 
 def get_json(url, verify=True):
     try:
@@ -61,18 +65,21 @@ def write_json_data_to_file(file_name, json_data):
     with open(file_name, 'w+') as outfile:
         json.dump(json_data, outfile, indent=4)
 
+
 def load_description():
     """
     Loads description.properties into a dictionary.
     """
     desc = {
         'content': 'VMware vSphere\u00ae Content Library empowers vSphere Admins to effectively manage VM templates, '
-                   'vApps, ISO images and scripts with ease.', 'spbm': 'SPBM',
+        'vApps, ISO images and scripts with ease.',
+        'spbm': 'SPBM',
         'vapi': 'vAPI is an extensible API Platform for modelling and delivering APIs/SDKs/CLIs.',
-        'vcenter': 'VMware vCenter Server provides a centralized platform for managing your VMware vSphere environments'
-        , 'appliance': 'The vCenter Server Appliance is a preconfigured Linux-based virtual machine'
-          ' optimized for running vCenter Server and associated services.'}
+        'vcenter': 'VMware vCenter Server provides a centralized platform for managing your VMware vSphere environments',
+        'appliance': 'The vCenter Server Appliance is a preconfigured Linux-based virtual machine'
+        ' optimized for running vCenter Server and associated services.'}
     return desc
+
 
 def is_filtered(metadata, enable_filtering):
     if not enable_filtering:
@@ -85,6 +92,7 @@ def is_filtered(metadata, enable_filtering):
         return True
     return False
 
+
 def extract_path_parameters(params, url):
     """
     Return list of field_infos which are path variables, another list of
@@ -94,7 +102,8 @@ def extract_path_parameters(params, url):
     /vcenter/resource-pool/{resource-pool} to
     /vcenter/resource-pool/{resource_pool}
     """
-    # Regex to look for {} placeholders with a group to match only the parameter name
+    # Regex to look for {} placeholders with a group to match only the
+    # parameter name
     re_path_param = re.compile('{(.+?)}')
     path_params = []
     other_params = list(params)
@@ -106,15 +115,18 @@ def extract_path_parameters(params, url):
             if is_param_path_variable(param, path_param_placeholder):
                 path_param_info = param
                 if param.name != path_param_placeholder:
-                    new_url = new_url.replace(path_param_name_match.group(), '{' + param.name + '}')
+                    new_url = new_url.replace(
+                        path_param_name_match.group(), '{' + param.name + '}')
                 break
         if path_param_info is None:
-            eprint('%s parameter from %s is not found among the operation\'s parameters'
-                   % (path_param_placeholder, url))
+            eprint(
+                '%s parameter from %s is not found among the operation\'s parameters' %
+                (path_param_placeholder, url))
         else:
             path_params.append(path_param_info)
             other_params.remove(path_param_info)
     return path_params, other_params, new_url
+
 
 def is_param_path_variable(param, path_param_placeholder):
     if param.name == path_param_placeholder:
@@ -123,8 +135,17 @@ def is_param_path_variable(param, path_param_placeholder):
         return False
     return param.metadata['PathVariable'].elements['value'].string_value == path_param_placeholder
 
-def build_path(service_name, method, path, documentation, parameters, operation_id, responses, consumes=None,
-               produces=None):
+
+def build_path(
+        service_name,
+        method,
+        path,
+        documentation,
+        parameters,
+        operation_id,
+        responses,
+        consumes=None,
+        produces=None):
     """
     builds swagger path object
     :param service_name: name of service. ex com.vmware.vcenter.VM
@@ -157,6 +178,7 @@ def build_path(service_name, method, path, documentation, parameters, operation_
         path_obj['operationId'] = operation_id
     return path_obj
 
+
 def tags_from_service_name(service_name):
     """
     Generates the tags based on the service name.
@@ -164,6 +186,7 @@ def tags_from_service_name(service_name):
     :return: a list of tags
     """
     return [TAG_SEPARATOR.join(service_name.split('.')[3:])]
+
 
 def add_query_param(url, param):
     """
@@ -184,11 +207,13 @@ def add_query_param(url, param):
             pre_param_symbol = '&'
     return url + pre_param_symbol + param
 
+
 def add_basic_auth(path_obj):
     """Add basic auth security requirement to paths requiring it."""
     if path_obj['path'] == '/com/vmware/cis/session' and path_obj['method'] == 'post':
         path_obj['security'] = [{'basic_auth': []}]
     return path_obj
+
 
 def extract_body_parameters(params):
     body_params = []
@@ -200,6 +225,7 @@ def extract_body_parameters(params):
             other_params.append(param)
     return body_params, other_params
 
+
 def extract_query_parameters(params):
     query_params = []
     other_params = []
@@ -209,6 +235,7 @@ def extract_query_parameters(params):
         else:
             other_params.append(param)
     return query_params, other_params
+
 
 def metamodel_to_swagger_type_converter(input_type):
     """
@@ -223,6 +250,8 @@ def metamodel_to_swagger_type_converter(input_type):
         return 'string', 'password'
     if input_type == 'any_error':
         return 'string', None
+    if input_type == 'opaque':
+        return 'object', None
     if input_type == 'dynamic_structure':
         return 'object', None
     if input_type == 'uri':
@@ -237,10 +266,22 @@ def metamodel_to_swagger_type_converter(input_type):
         return 'string', 'binary'
     return input_type, None
 
+
 def is_type_builtin(type_):
-        type_ = type_.lower()
-        typeset = {'binary', 'boolean', 'datetime', 'double', 'dynamicstructure', 'exception',
-                'id', 'long', 'opaque', 'secret', 'string', 'uri'}
-        if type_ in typeset:
-            return True
-        return False
+    type_ = type_.lower()
+    typeset = {
+        'binary',
+        'boolean',
+        'datetime',
+        'double',
+        'dynamicstructure',
+        'exception',
+        'id',
+        'long',
+        'opaque',
+        'secret',
+        'string',
+        'uri'}
+    if type_ in typeset:
+        return True
+    return False
