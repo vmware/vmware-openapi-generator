@@ -29,7 +29,6 @@ class RestSwaggerPathProcessing(PathProcessing):
                     output_filename,
                     ''),
                 'title': output_filename,
-                'termsOfService': 'http://swagger.io/terms/',
                 'version': '2.0.0'},
             'host': '<vcenter>',
             'securityDefinitions': {

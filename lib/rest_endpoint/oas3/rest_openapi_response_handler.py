@@ -85,7 +85,7 @@ class RestOpenapiRespHandler():
                 'description': error.documentation,
                 'content': {
                     'application/json': {
-                        'schema': {'$ref': ref_path + error.structure_id + '_error'}
+                        'schema': {'$ref': ref_path + error.structure_id}
                     }
                 }
             }

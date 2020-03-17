@@ -30,15 +30,11 @@ class RestOpenapiPathProcessing(PathProcessing):
         swagger_template = {'openapi': '3.0.0',
                             'info': {'description': description_map.get(output_filename, ''),
                                      'title': output_filename,
-                                     'termsOfService': 'http://swagger.io/terms/',
                                      'version': '2.0.0'},
                             'paths': collections.OrderedDict(sorted(path_dict.items())),
                             'components': {
                                 'requestBodies': reqBody
-                                # 'requestBodies': collections.OrderedDict(sorted(type_dict['requestBodies'].items()))
-                                # ,
-                                # 'securitySchemes':{'basic_auth': {'type': 'basic'}}
-                            }
+                                }
                             }
         if 'requestBodies' in type_dict:
             del type_dict['requestBodies']
