@@ -44,7 +44,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-## Wokflow
+## Workflow
 
 The documentation provides a guide to the working of VMWare Openapi Generator, the workflow execution and explanation of the work performed by each function. Prerequisites for understanding the documentation require being familiar with the structure of [swagger](https://swagger.io/docs/specification/2-0/what-is-swagger/) and [openapi](https://swagger.io/docs/specification/about/) specification files. 
 
@@ -97,32 +97,54 @@ The [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/ma
     session.verify = False
     connector = get_requests_connector(session, url=metadata_api_url)
     if not enable_filtering:
-        connector.set_application_context(ApplicationContext({SHOW_UNRELEASED_APIS: "True"}))
+        connector.set_application_context(
+            ApplicationContext({SHOW_UNRELEASED_APIS: "True"}))
     print('Connected to ' + metadata_api_url)
-    component_svc = ec.get_component_service(connector)
+    component_svc = connection.get_component_service(connector)
 ```
 ## Part : 3
 The explanation of the below part can the found in this [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib) of the lib folder.
 ``` python
-    dp.populate_dicts(component_svc, enumeration_dict, structure_dict, service_dict, service_urls_map, rest_navigation_url, GENERATE_METAMODEL)
+    dict_processing.populate_dicts(
+        component_svc,
+        enumeration_dict,
+        structure_dict,
+        service_dict,
+        service_urls_map,
+        rest_navigation_url,
+        GENERATE_METAMODEL)
     if enable_filtering:
-        service_urls_map = dp.get_service_urls_from_rest_navigation(rest_navigation_url, verify)
+        service_urls_map = dict_processing.get_service_urls_from_rest_navigation(
+            rest_navigation_url, verify)
 
     error_map = utils.build_error_map()
 
-    package_dict_api, package_dict = dp.add_service_urls_using_metamodel(service_urls_map, service_dict, rest_navigation_url)
+    package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
+        service_urls_map, service_dict, rest_navigation_url)
 ```
 ## Part : 4
 You can find the description of the following part in this [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/rest_endpoint) under the lib/rest_endpoint section.
 ```python
-    rest = restUrlProcessing()
-    api = apiUrlProcessing()
+    rest = RestUrlProcessing()
+    api = ApiUrlProcessing()
 
     threads = []
     for package, service_urls in six.iteritems(package_dict):
-        worker = threading.Thread(target=rest.process_service_urls, args=(
-            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map
-            , error_map, rest_navigation_url, enable_filtering, SPECIFICATION, GENERATE_UNIQUE_OP_IDS))
+        worker = threading.Thread(
+            target=rest.process_service_urls,
+            args=(
+                package,
+                service_urls,
+                output_dir,
+                structure_dict,
+                enumeration_dict,
+                service_dict,
+                service_urls_map,
+                error_map,
+                rest_navigation_url,
+                enable_filtering,
+                SPECIFICATION,
+                GENERATE_UNIQUE_OP_IDS))
         worker.daemon = True
         worker.start()
         threads.append(worker)
@@ -131,9 +153,21 @@ You can find the description of the following part in this [readme.md](https://g
 Refer to [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/tree/master/lib/api_endpoint) under the lib/api_endpoint section for details.
 ```python
     for package, service_urls in six.iteritems(package_dict_api):
-        worker = threading.Thread(target=api.process_service_urls, args=(
-            package, service_urls, output_dir, structure_dict, enumeration_dict, service_dict, service_urls_map
-            , error_map, rest_navigation_url, enable_filtering, SPECIFICATION, GENERATE_UNIQUE_OP_IDS))
+        worker = threading.Thread(
+            target=api.process_service_urls,
+            args=(
+                package,
+                service_urls,
+                output_dir,
+                structure_dict,
+                enumeration_dict,
+                service_dict,
+                service_urls_map,
+                error_map,
+                rest_navigation_url,
+                enable_filtering,
+                SPECIFICATION,
+                GENERATE_UNIQUE_OP_IDS))
         worker.daemon = True
         worker.start()
         threads.append(worker)
@@ -145,14 +179,18 @@ As package_dict contains the packages of /rest endpoint and package_dict_api con
 ```python
     api_files_list = []
     for name in list(package_dict.keys()):
-        api_files_list.append("rest_"+name)
+        api_files_list.append("rest_" + name)
 
     for name in list(package_dict_api.keys()):
-        api_files_list.append("api_"+name)
+        api_files_list.append("api_" + name)
 
-    api_files = { 'files': api_files_list }
-    utils.write_json_data_to_file(output_dir + os.path.sep + 'api.json', api_files)
+    api_files = {'files': api_files_list}
+    utils.write_json_data_to_file(
+        output_dir +
+        os.path.sep +
+        'api.json',
+        api_files)
     stop = timeit.default_timer()
-    print('Generated swagger files at ' + output_dir + ' for ' + metadata_api_url + ' in ' + str(
-        stop - start) + ' seconds')
+    print('Generated swagger files at ' + output_dir + ' for ' +
+          metadata_api_url + ' in ' + str(stop - start) + ' seconds')
 ```
