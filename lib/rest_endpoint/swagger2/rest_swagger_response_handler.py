@@ -9,7 +9,7 @@ class RestSwaggerRespHandler():
             self,
             output,
             errors,
-            error_map,
+            http_error_map,
             type_dict,
             structure_svc,
             enum_svc,
@@ -49,15 +49,15 @@ class RestSwaggerRespHandler():
 
                 if type_name not in type_dict:
                     type_dict[type_name] = resp
-
-                success_response['schema'] = {"$ref": ref_path + type_name}
+                resp = {"$ref": ref_path + type_name}
+                success_response['schema'] = resp
 
         # success response is not mapped through metamodel.
         # hardcode it for now.
         response_map[requests.codes.ok] = success_response
 
         for error in errors:
-            status_code = error_map.get(
+            status_code = http_error_map.error_rest_map.get(
                 error.structure_id,
                 http_client.INTERNAL_SERVER_ERROR)
             tpHandler.check_type(

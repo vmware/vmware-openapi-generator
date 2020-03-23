@@ -27,7 +27,7 @@ class ApiUrlProcessing(UrlProcessing):
             enum_dict,
             service_dict,
             service_url_dict,
-            error_map,
+            http_error_map,
             rest_navigation_url,
             enable_filtering,
             spec,
@@ -54,32 +54,32 @@ class ApiUrlProcessing(UrlProcessing):
                     params = "&".join(element_value.list_value)
                     url = url + '?' + params
 
-                    if spec == '2':
-                        path = swagg.get_path(
-                            operation_info,
-                            method,
-                            url,
-                            service_name,
-                            type_dict,
-                            structure_dict,
-                            enum_dict,
-                            operation_id,
-                            error_map,
-                            enable_filtering)
-                    if spec == '3':
-                        path = openapi.get_path(
-                            operation_info,
-                            method,
-                            url,
-                            service_name,
-                            type_dict,
-                            structure_dict,
-                            enum_dict,
-                            operation_id,
-                            error_map,
-                            enable_filtering)
+                if spec == '2':
+                    path = swagg.get_path(
+                        operation_info,
+                        method,
+                        url,
+                        service_name,
+                        type_dict,
+                        structure_dict,
+                        enum_dict,
+                        operation_id,
+                        http_error_map,
+                        enable_filtering)
+                if spec == '3':
+                    path = openapi.get_path(
+                        operation_info,
+                        method,
+                        url,
+                        service_name,
+                        type_dict,
+                        structure_dict,
+                        enum_dict,
+                        operation_id,
+                        http_error_map,
+                        enable_filtering)
 
-                    path_list.append(path)
+                path_list.append(path)
             continue
 
         path_dict = self.convert_path_list_to_path_map(path_list)

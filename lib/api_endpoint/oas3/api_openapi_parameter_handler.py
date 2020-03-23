@@ -198,7 +198,7 @@ class ApiOpenapiParaHandler():
             else:
                 prop = {
                     'in': 'query',
-                    'name': query_param_info['name'],
+                    'name' : query_param_info.name,
                     'description': type_ref['description'],
                     'schema': type_ref}
                 prop_array.append(prop)

@@ -18,9 +18,10 @@ class ApiMetamodel2Openapi(ApiMetamodel2Spec):
             structure_dict,
             enum_dict,
             operation_id,
-            error_map,
+            http_error_map,
             enable_filtering):
         documentation = operation_info.documentation
+        op_metadata = operation_info.metadata
         params = operation_info.params
         errors = operation_info.errors
         output = operation_info.output
@@ -31,12 +32,13 @@ class ApiMetamodel2Openapi(ApiMetamodel2Spec):
         response_map = api_open_rh.populate_response_map(
             output,
             errors,
-            error_map,
+            http_error_map,
             type_dict,
             structure_dict,
             enum_dict,
             service_name,
             operation_id,
+            op_metadata,
             enable_filtering)
 
         path_obj = utils.build_path(

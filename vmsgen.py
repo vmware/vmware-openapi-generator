@@ -30,7 +30,7 @@ SPECIFICATION = '3'
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS = connection.get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR = connection.get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -62,8 +62,8 @@ def main():
         service_urls_map = dict_processing.get_service_urls_from_rest_navigation(
             rest_navigation_url, verify)
 
-    error_map = utils.build_error_map()
-
+    http_error_map = utils.HttpErrorMap(component_svc)
+    
     # package_dict_api holds list of all service urls which come under /api
     package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
         service_urls_map, service_dict, rest_navigation_url)
@@ -83,7 +83,7 @@ def main():
                 enumeration_dict,
                 service_dict,
                 service_urls_map,
-                error_map,
+                http_error_map,
                 rest_navigation_url,
                 enable_filtering,
                 SPECIFICATION,
@@ -103,7 +103,7 @@ def main():
                 enumeration_dict,
                 service_dict,
                 service_urls_map,
-                error_map,
+                http_error_map,
                 rest_navigation_url,
                 enable_filtering,
                 SPECIFICATION,

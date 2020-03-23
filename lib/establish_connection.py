@@ -105,7 +105,7 @@ def get_input_params():
     if args.oas not in ['2', '3']:
         raise Exception(" Input Valid Specification ")
     SPECIFICATION = args.oas
-    return metadata_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS
+    return metadata_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR
 
 
 def get_component_service(connector):

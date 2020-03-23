@@ -26,7 +26,7 @@ class RestUrlProcessing(UrlProcessing):
             enum_dict,
             service_dict,
             service_url_dict,
-            error_map,
+            http_error_map,
             rest_navigation_url,
             enable_filtering,
             spec,
@@ -62,7 +62,7 @@ class RestUrlProcessing(UrlProcessing):
                             structure_dict,
                             enum_dict,
                             operation_id,
-                            error_map,
+                            http_error_map,
                             enable_filtering)
                     if spec == '3':
                         path = openapi.get_path(
@@ -74,7 +74,7 @@ class RestUrlProcessing(UrlProcessing):
                             structure_dict,
                             enum_dict,
                             operation_id,
-                            error_map,
+                            http_error_map,
                             enable_filtering)
 
                     path_list.append(path)
@@ -122,7 +122,7 @@ class RestUrlProcessing(UrlProcessing):
                         structure_dict,
                         enum_dict,
                         operation_id,
-                        error_map,
+                        http_error_map,
                         enable_filtering)
                 if spec == '3':
                     path = openapi.get_path(
@@ -134,7 +134,7 @@ class RestUrlProcessing(UrlProcessing):
                         structure_dict,
                         enum_dict,
                         operation_id,
-                        error_map,
+                        http_error_map,
                         enable_filtering)
 
                 path_list.append(path)

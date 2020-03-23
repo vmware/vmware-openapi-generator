@@ -9,40 +9,6 @@ TAG_SEPARATOR = '/'
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-
-def build_error_map():
-    """
-    Builds error_map which maps vapi errors to http status codes.
-    """
-    error_map = {
-        'com.vmware.vapi.std.errors.already_exists': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.internal_server_error': http_client.INTERNAL_SERVER_ERROR,
-        'com.vmware.vapi.std.errors.invalid_argument': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.invalid_element_configuration': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
-        'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
-        'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
-        'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
-        'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
-        'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
-        'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
-        'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
-
-    return error_map
-
-
 def get_json(url, verify=True):
     try:
         req = requests.get(url, verify=verify)
@@ -285,3 +251,45 @@ def is_type_builtin(type_):
     if type_ in typeset:
         return True
     return False
+
+class HttpErrorMap:
+    """
+        Builds  error_map which maps vapi errors to http status codes.
+    """
+    def __init__(self, component_svc):
+        self.component_svc = component_svc
+        self.error_api_map = {}
+        self.error_rest_map = {'com.vmware.vapi.std.errors.already_exists': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.internal_server_error': http_client.INTERNAL_SERVER_ERROR,
+                     'com.vmware.vapi.std.errors.invalid_argument': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.invalid_element_configuration': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
+                     'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
+                     'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
+                     'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
+                     'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
+                     'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
+                     'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.canceled': http_client.BAD_REQUEST,
+                     'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
+
+        structures = self.component_svc.get('com.vmware.vapi').info.packages['com.vmware.vapi.std.errors'].structures
+        for structure in structures:
+            try:
+                if structures[structure].metadata['Response'] is not None:
+                    code = structures[structure].metadata['Response'].elements['code'].string_value
+                    self.error_api_map[structure] = int(code)
+            except KeyError:
+                print(structure + " :: is does not have an Error Code")

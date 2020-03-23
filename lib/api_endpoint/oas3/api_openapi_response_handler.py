@@ -9,12 +9,13 @@ class ApiOpenapiRespHandler():
             self,
             output,
             errors,
-            error_map,
+            http_error_map,
             type_dict,
             structure_svc,
             enum_svc,
             service_id,
             operation_id,
+            op_metadata,
             enable_filtering):
 
         response_map = {}
@@ -41,25 +42,16 @@ class ApiOpenapiRespHandler():
         if schema is not None:
             if not ('type' in schema and schema['type'] == 'void'):
                 resp = schema
-                # get response object name
-                if operation_id == 'get':
-                    type_name = service_id
-                else:
-                    type_name = service_id + '.' + operation_id
-
-                type_name = type_name + '_result'
-
-                if type_name not in type_dict:
-                    type_dict[type_name] = resp
-
-                success_response['content']['application/json']['schema'] = {
-                    "$ref": ref_path + type_name}
-
+                success_response['content']['application/json']['schema'] = resp
         # success response is not mapped through metamodel.
         # hardcode it for now.
-        response_map[requests.codes.ok] = success_response
+        success_response_code = requests.codes.ok
+        if 'Response' in op_metadata and op_metadata['Response'] is not None:
+            success_response_code = int(op_metadata['Response'].elements['code'].string_value)
+        response_map[success_response_code] = success_response
+
         for error in errors:
-            status_code = error_map.get(
+            status_code = http_error_map.error_api_map.get(
                 error.structure_id,
                 http_client.INTERNAL_SERVER_ERROR)
             tpHandler.check_type(
