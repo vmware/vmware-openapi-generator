@@ -49,10 +49,12 @@ class ApiMetamodel2Openapi(ApiMetamodel2Spec):
             par_array,
             operation_id=operation_id,
             responses=response_map)
+
+        utils.create_req_body_from_params_list(path_obj)
         self.post_process_path(path_obj)
         path = utils.add_basic_auth(path_obj)
         return path
-
+   
     def post_process_path(self, path_obj):
         # Temporary fixes necessary for generated spec files.
         # Hardcoding for now as it is not available from metadata.

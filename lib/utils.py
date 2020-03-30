@@ -252,6 +252,16 @@ def is_type_builtin(type_):
         return True
     return False
 
+def create_req_body_from_params_list(path_obj):
+    # create request body section inside path object from parameter list
+    parameters = path_obj['parameters']
+    for parameter in parameters:
+        if '$ref' in parameter and parameter['$ref'].startswith('#/components/requestBodies/'):
+            path_obj['requestBody'] = { '$ref' : parameter['$ref'] }
+            del parameter['$ref']
+    while {} in parameters:
+        parameters.remove({})
+
 class HttpErrorMap:
     """
         Builds  error_map which maps vapi errors to http status codes.

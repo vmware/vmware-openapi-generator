@@ -48,6 +48,8 @@ class RestMetamodel2Openapi(RestMetamodel2Spec):
             par_array,
             operation_id=operation_id,
             responses=response_map)
+        
+        utils.create_req_body_from_params_list(path_obj)
         self.post_process_path(path_obj)
         path = utils.add_basic_auth(path_obj)
         return path
