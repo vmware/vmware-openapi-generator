@@ -255,12 +255,16 @@ def is_type_builtin(type_):
 def create_req_body_from_params_list(path_obj):
     # create request body section inside path object from parameter list
     parameters = path_obj['parameters']
-    for parameter in parameters:
-        if '$ref' in parameter and parameter['$ref'].startswith('#/components/requestBodies/'):
-            path_obj['requestBody'] = { '$ref' : parameter['$ref'] }
-            del parameter['$ref']
-    while {} in parameters:
-        parameters.remove({})
+    if parameters:
+        index = -1
+        for i in range(len(parameters)):
+            if '$ref' in parameters[i] and parameters[i]['$ref'].startswith('#/components/requestBodies/'):
+                index  = i
+                break
+        if index != -1:
+            path_obj['requestBody'] = {'$ref' : parameters[index]['$ref']}
+            del parameters[index]
+   
 
 class HttpErrorMap:
     """
