@@ -192,7 +192,6 @@ class TestDictionaryProcessing(unittest.TestCase):
         service_info_mock.operations = {
                         'mock-key-1': operation_info_mock
                     }
-        service = 'com.vmware.package.mock'
         service_dict = {
             'com.vmware.package.mock': service_info_mock
         }
@@ -202,28 +201,35 @@ class TestDictionaryProcessing(unittest.TestCase):
        
         #case 2: checking for package_dict{}
         service_urls_map = { 'https://vcip/rest/vmware/com/package/mock' : 'com.vmware.package.mock'}
-        rest_navigation_url = 'https://vcip/rest'
-        element_value_mock = mock.Mock()
         element_value_mock.string_value = 'mock_string_value'
-        element_info_mock = mock.Mock()
-        element_info_mock.elements = {
-            'path' : element_value_mock
-        }
-        operation_info_mock = mock.Mock()
         operation_info_mock.metadata = { 
                             'mock_element_key' : element_info_mock
                             }
-        service_info_mock = mock.Mock()
-        service_info_mock.operations = {
-                        'mock-key-1': operation_info_mock
-                    }
-        service = 'com.vmware.package.mock'
-        service_dict = {
-            'com.vmware.package.mock': service_info_mock
-        }
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
         _, package_dict_actual = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_url)
         self.assertEqual(package_dict_expected, package_dict_actual)
+
+    def test_objectTodict(self):
+        # case 1: object is of type interger
+        obj_mock = 1
+        expected_object = dict_processing.objectTodict(obj_mock)
+        actual_object = 1
+        self.assertEqual(expected_object, actual_object)
+
+        # case 2: object is of type dict
+        obj_mock = {
+        'key-1': {
+            'key-1.1': 'value-1.1'
+            }
+        }
+        expected_object = dict_processing.objectTodict(obj_mock)
+        self.assertEqual(expected_object, obj_mock)
+
+        # case 3: object is of type list
+        obj_mock = ['item-1', { 'key': 'value'}]
+        expected_object = dict_processing.objectTodict(obj_mock)
+        self.assertEqual(expected_object, obj_mock)
+
 
 class TestUtils(unittest.TestCase):
 
@@ -254,6 +260,14 @@ class TestUtils(unittest.TestCase):
                 'Proposed' : {}
             }
         bool_value_expected = True
+        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, True)
+        self.assertEqual(bool_value_expected, bool_value_actual)
+
+        # case 5: enable filtering is True and metadata does not contain 'TechPreview', 'Changing' or 'Proposed'
+        ServiceInfoMock.metadata = { 
+                'mock metadata key' : {}
+            }
+        bool_value_expected = False
         bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, True)
         self.assertEqual(bool_value_expected, bool_value_actual)
     
@@ -301,11 +315,6 @@ class TestUtils(unittest.TestCase):
 
         #case 3: comparing placeholder with value of parameter elements
         path_param_placeholder = 'mock_string_value'
-        element_value_mock = mock.Mock()
-        element_value_mock.string_value = 'mock_string_value'
-        element_map_mock = mock.Mock()
-        element_map_mock.elements = {'value': element_value_mock}
-        field_info_mock.name = 'mock_name'
         field_info_mock.metadata = {'PathVariable' :  element_map_mock}
         bool_value_actual = True
         bool_value_expected = utils.is_param_path_variable(field_info_mock, path_param_placeholder)
@@ -477,9 +486,9 @@ class TestUtils(unittest.TestCase):
         path_obj = {
             'parameters':[]
         }
-        expected_output = utils.create_req_body_from_params_list(path_obj)
-        actual_output = None
-        self.assertEqual(expected_output, actual_output)
+        path_obj_expected = path_obj
+        utils.create_req_body_from_params_list(path_obj)
+        self.assertEqual(path_obj, path_obj_expected)
 
         # case 2: Parameters array contains dictionary with key as '$ref' and
         # value starting with '#/components/requestBodies' (only for put, post and patch operations)
@@ -665,7 +674,26 @@ class TestPathProcessing(unittest.TestCase):
         op_id_expected = 'postMockPathTest'
         op_id_actual = self.path_process.create_camelized_op_id(path, http_method, operations_dict)
         self.assertEqual(op_id_actual, op_id_expected)
-    
+
+    def test_create_unique_op_ids(self):
+        # update path dictionary with unique operation id
+        path_dict = {
+            'com/vmware/mock-path':{
+                'post': {
+                    'operationId' : 'post'
+                }
+            }
+        }
+        self.path_process.create_unique_op_ids(path_dict)
+        path_dict_expected = {
+            'com/vmware/mock-path':{
+                'post': {
+                    'operationId' : 'postMockPath'
+                }
+            }
+        }
+        self.assertEqual(path_dict, path_dict_expected)
+
     def test_merge_dictionaries(self):
         # generic test for updating a dictionary by adding keys from second dict
         dict_one = {
@@ -1034,8 +1062,15 @@ class TestTypeHandlerCommon(unittest.TestCase):
         self.assertEqual(type_dict_expected, type_dict)
    
     def test_visit_user_defined(self):
-        # case 1: check for user defined type as structure
+        # case 1: resource id of user defined type is none
         user_defined_type_mock = mock.Mock()
+        user_defined_type_mock.resource_id = None
+        new_prop = {}
+        self.type_handler.visit_user_defined(user_defined_type_mock, new_prop, {}, {}, {}, '#/definitions/', False)
+        new_prop_expected = {}
+        self.assertEqual(new_prop_expected, new_prop)
+
+        # case 2: check for user defined type as structure
         user_defined_type_mock.resource_type = 'com.vmware.vapi.structure'
         user_defined_type_mock.resource_id = 'com.vmware.package.mock'
         field_info_mock = mock.Mock()
@@ -1056,7 +1091,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
-        # case 2: check for user defined type as enumerration
+        # case 3: check for user defined type as enumerration
         # handled in test cases for check_type() function
 
 if __name__ == '__main__':

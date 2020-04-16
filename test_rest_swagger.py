@@ -107,6 +107,15 @@ class TestRestSwaggerParaHandler(unittest.TestCase):
         ]
         self.assertEqual(par_array_expected, par_array_actual)
 
+        # type reference dictionary is empty
+        type_dict = {
+            'com.vmware.package.mock' : None
+        }
+        par_array_actual = self.rest_swagger_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
+                                                                        structure_dict, self.enum_dict, False)
+        par_array_expected = None
+        self.assertEqual(par_array_expected, par_array_actual)
+
         # case 1.1.2: property value is referenced from type_dict
         type_dict = {
             'com.vmware.package.mock' : {  #type_ref

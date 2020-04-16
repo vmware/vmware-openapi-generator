@@ -1,86 +1,91 @@
 import unittest
 from unittest import mock 
 from lib import utils
-from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import RestOpenapiParaHandler
-from lib.rest_endpoint.oas3.rest_openapi_response_handler import RestOpenapiRespHandler
-from lib.rest_endpoint.oas3.rest_openapi_final_path_processing import RestOpenapiPathProcessing
-from lib.rest_endpoint.oas3.rest_metamodel2openapi import RestMetamodel2Openapi
+from lib.api_endpoint.oas3.api_openapi_parameter_handler import ApiOpenapiParaHandler
+from lib.api_endpoint.oas3.api_openapi_response_handler import ApiOpenapiRespHandler
+from lib.api_endpoint.oas3.api_openapi_final_path_processing import ApiOpenapiPathProcessing
+from lib.api_endpoint.oas3.api_metamodel2openapi import ApiMetamodel2Openapi
 
-class TestRestOpenapiParaHandler(unittest.TestCase):
+class TestApiOpenapiParaHandler(unittest.TestCase):
+
     user_defined_type_mock = mock.Mock()
     user_defined_type_mock.resource_type = 'com.vmware.vapi.structure'
-    user_defined_type_mock.resource_id = 'com.vmware.package.mock'
+    user_defined_type_mock.resource_id = 'com.vmware.package.mock-1'
+
+    generic_instantiation_element_type_mock = mock.Mock() 
+    generic_instantiation_element_type_mock.category = 'USER_DEFINED'
+    generic_instantiation_element_type_mock.user_defined_type = user_defined_type_mock
+    generic_instantiation_mock = mock.Mock()
+    generic_instantiation_mock.generic_type = 'OPTIONAL'
+    generic_instantiation_mock.element_type = generic_instantiation_element_type_mock
+
     field_info_mock = mock.Mock()
     field_info_type = mock.Mock()
-    field_info_type.category = 'USER_DEFINED'
-    field_info_type.user_defined_type = user_defined_type_mock
+    field_info_type.category = 'GENERIC'
+    field_info_type.generic_instantiation = generic_instantiation_mock
     field_info_mock.type = field_info_type
-    field_info_mock.documentation = 'fieldInfoMockDescription'
+    field_info_mock.documentation = 'Mock Description for Field Info Object'
     field_info_mock.name = 'fieldInfoMockName'
     structure_info_mock = mock.Mock()
     structure_info_mock.fields = [field_info_mock]
     structure_dict = {
-        'com.vmware.package.mock': structure_info_mock
+        'com.vmware.package.mock-1': structure_info_mock
     }
     enum_dict = {}
-    rest_openapi_parahandler = RestOpenapiParaHandler()
+    api_openapi_parahandler = ApiOpenapiParaHandler()
 
     def test_convert_field_info_to_swagger_parameter(self):
         # generic construction of parameter object (dictionary) using field info of path and query parameters
         type_dict = {
-            'com.vmware.package.mock' : { 
-                'description' : 'typeObjectMockDescription',
-                'type': 'MockType'
+            'com.vmware.package.mock-1' : { 
+                'description' : 'Mock Description for Type Object',
+                'type': 'Mock-Type'
             }
         }
-        parameter_obj_actual = self.rest_openapi_parahandler.convert_field_info_to_swagger_parameter('path', self.field_info_mock, 
+        parameter_obj_actual = self.api_openapi_parahandler.convert_field_info_to_swagger_parameter('path', self.field_info_mock, 
                                                                             type_dict, self.structure_dict, 
                                                                             self.enum_dict, False)                   
         parameter_obj_expected = {
-            'required': True,
+            'required': False,
             'in': 'path',
             'name': 'fieldInfoMockName',
-            'description': '{ 1. typeObjectMockDescription }, { 2. fieldInfoMockDescription }',
-            'schema': {'type': 'MockType'}
+            'description': '{ 1. Mock Description for Type Object }, { 2. Mock Description for Field Info Object }',
+            'schema': {'type': 'Mock-Type'}
         }                        
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
-
+    
     def test_wrap_body_params(self):
         # validate parameter object by creating json wrappers around body object
         type_dict = {
-            'com.vmware.package.mock' : {}
+            'com.vmware.package.mock-1' : {}
         }
         body_param_list = [self.field_info_mock]
-        parameter_obj_actual = self.rest_openapi_parahandler.wrap_body_params('com.vmware.package.mock', 'mockOperationName', 
+        parameter_obj_actual = self.api_openapi_parahandler.wrap_body_params('com.vmware.package.mock-1', 'mockOperationName', 
                                                                         body_param_list, type_dict, self.structure_dict, 
                                                                         self.enum_dict, False)
-        parameter_obj_expected = {'$ref': '#/components/requestBodies/com.vmware.package.mock_mockOperationName'}
+        parameter_obj_expected = {'$ref': '#/components/requestBodies/com.vmware.package.mock-1_mockOperationName'}
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
         type_dict_expected = {
-            'com.vmware.package.mock': {},
+            'com.vmware.package.mock-1': {},
             'requestBodies': {
-                'com.vmware.package.mock_mockOperationName':{
+                'com.vmware.package.mock-1_mockOperationName':{
                     'content':{
                         'application/json':{
                             'schema':{
-                                '$ref': '#/components/schemas/com.vmware.package.mock_mockOperationName'
+                                '$ref': '#/components/schemas/com.vmware.package.mock-1_mockOperationName'
                             }
                         }
                     }
                 }
             },
-            'com.vmware.package.mock_mockOperationName':{
-                'type': 'object',
-                'properties': {
-                    'fieldInfoMockName': {
-                        '$ref': '#/components/schemas/com.vmware.package.mock',
-                        'description': 'fieldInfoMockDescription'
-                    }
-                }
+            'com.vmware.package.mock-1_mockOperationName':{
+                'required': False,
+                '$ref': '#/components/schemas/com.vmware.package.mock-1',
+                'description': 'Mock Description for Field Info Object'
             }
         }
         self.assertEqual(type_dict, type_dict_expected)
-
+    
     def test_flatten_query_param_spec(self):
         # case 1: parameter object takes reference from type_dict key
         # case 1.1: type dict reference value contains properties
@@ -93,7 +98,7 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
         query_info_mock.documentation = 'QueryMockDescription'
         query_info_mock.name = 'QueryParameterMockName'
         type_dict = {
-            'com.vmware.package.mock' : {  #type_ref
+            'com.vmware.package.mock-1' : {  #type_ref
                 'properties': { 
                     'property-name': {   #property_value
                         'type': 'array',
@@ -110,12 +115,12 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
             }
         }
         structure_dict = {}
-        par_array_actual = self.rest_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
+        par_array_actual = self.api_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
                                                                         structure_dict, self.enum_dict, False)
         par_array_expected = [
             {
                 'in':'query',
-                'name': 'QueryParameterMockName.property-name',
+                'name': 'property-name',
                 'schema': {
                     'type': 'array',
                     'items': {
@@ -129,16 +134,16 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
 
         # type reference dictionary is empty
         type_dict = {
-            'com.vmware.package.mock' : None
+            'com.vmware.package.mock-1' : None
         }
-        par_array_actual = self.rest_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
+        par_array_actual = self.api_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
                                                                         structure_dict, self.enum_dict, False)
         par_array_expected = None
         self.assertEqual(par_array_expected, par_array_actual)
 
         # case 1.1.2: property value is referenced from type_dict
         type_dict = {
-            'com.vmware.package.mock' : {  #type_ref
+            'com.vmware.package.mock-1' : {  #type_ref
                 'properties': { 
                     'property-name': {   #property_value
                         '$ref': '#/components/schemas/com.vmware.package.mock.property'
@@ -154,12 +159,12 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
 
             }
         }
-        par_array_actual = self.rest_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
+        par_array_actual = self.api_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
                                                           structure_dict, self.enum_dict, False)
         par_array_expected = [
             {
                 'in':'query',
-                'name': 'QueryParameterMockName.property-name',
+                'name': 'property-name',
                 'schema':{
                     'type': 'object',
                     'enum': ['enum-value-1, enum-value-2'],
@@ -169,7 +174,7 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
             },
             {
                 'in': 'query',
-                'name': 'QueryParameterMockName.property-name-mock',
+                'name': 'property-name-mock',
                 'schema': {},
                 'required': False
             }
@@ -178,13 +183,13 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
 
         # case 1.2: type dict reference value does not contain properties
         type_dict = {
-            'com.vmware.package.mock' : {  #type_ref
+            'com.vmware.package.mock-1' : {  #type_ref
                 'description' : 'mock description',
                 'type': 'string',
                 'enum': ['enum-1', 'enum-2']
             }
         }
-        par_array_actual = self.rest_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
+        par_array_actual = self.api_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
                                                           structure_dict, self.enum_dict, False)
         par_array_expected = [
             {
@@ -199,7 +204,7 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
             }
         ]
         self.assertEqual(par_array_expected, par_array_actual)
-    
+
         # case 2: parameter object does not take reference from type dict key
         query_info_mock = mock.Mock()
         query_info_type = mock.Mock()
@@ -209,7 +214,7 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
         query_info_mock.documentation = 'QueryMockDescription'
         query_info_mock.name = 'QueryParameterMockName'
         type_dict = {}
-        par_array_actual = self.rest_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
+        par_array_actual = self.api_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
                                                           structure_dict, self.enum_dict, False)
         par_array_expected = [
             {
@@ -224,7 +229,7 @@ class TestRestOpenapiParaHandler(unittest.TestCase):
         ]
         self.assertEqual(par_array_expected, par_array_actual)
 
-class TestRestOpenapiRespHandler(unittest.TestCase):
+class TestApiOpenapiRespHandler(unittest.TestCase):
 
     def test_populate_response_map(self):
         # get response map corresponding to errors in operation information
@@ -282,35 +287,40 @@ class TestRestOpenapiRespHandler(unittest.TestCase):
             })}
         ))}
         '''
+        op_metadata = {'Response': metadata_mock}
         http_error_map = utils.HttpErrorMap(component_svc_mock)
-        rest_openapi_resphandler = RestOpenapiRespHandler()
-        response_map_actual = rest_openapi_resphandler.populate_response_map(output_mock, errors, 
+        api_openapi_resphandler = ApiOpenapiRespHandler()
+        response_map_actual = api_openapi_resphandler.populate_response_map(output_mock, errors, 
                                     http_error_map,type_dict, {}, {}, 'mock-service-id',
-                                   'mock-operation-id', False)
+                                   'mock-operation-id', op_metadata, False)
         
         response_map_expected = {
-            200: {
-                'description': 'mock output description',
-                'content': {
-                    'application/json': {
-                        'schema': {'$ref': '#/components/schemas/mock-service-id.mock-operation-id_result'}
-                    }
-                }  
-            },
             404: {
+                'description': 'mock output description',
+                'content':{
+                    'application/json':{
+                        'schema':{
+                            '$ref': '#/components/schemas/com.vmware.package.mock'
+                        }
+                    }
+                }
+            },
+            500: {
                 'description': 'mock error description',
-                'content': {
-                    'application/json': {
-                         'schema': {'$ref': '#/components/schemas/com.vmware.vapi.std.errors.not_found'}
+                'content':{
+                    'application/json':{
+                        'schema':{
+                            '$ref': '#/components/schemas/com.vmware.vapi.std.errors.not_found'
+                        }
                     }
                 }
             }
         }
         self.assertEqual(response_map_expected, response_map_actual)
 
-class TestRestOpenapiPathProcessing(unittest.TestCase):
+class TestApiOpenapiPathProcessing(unittest.TestCase):
 
-    rest_openapi_path = RestOpenapiPathProcessing()
+    api_openapi_path = ApiOpenapiPathProcessing()
 
     def test_remove_query_params(self):
         # case 1: Absolute Duplicate paths, which will remain unchanged
@@ -336,7 +346,7 @@ class TestRestOpenapiPathProcessing(unittest.TestCase):
                 }
             }
         }
-        self.rest_openapi_path.remove_query_params(path_dict)
+        self.api_openapi_path.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
 
         # case 2: Partial Duplicate, adding the Operations of the new duplicate path 
@@ -375,7 +385,7 @@ class TestRestOpenapiPathProcessing(unittest.TestCase):
                 }
             }
         }
-        self.rest_openapi_path.remove_query_params(path_dict)
+        self.api_openapi_path.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
 
         # case 2.2: both of them have query parameter
@@ -393,18 +403,6 @@ class TestRestOpenapiPathProcessing(unittest.TestCase):
         }
         path_dict_expected = {
             'mock/path1': {
-                'post': {
-                    'parameters': [{
-                        'name': 'action',
-                        'in': 'query',
-                        'description': 'action=mock_action_1',
-                        'required': True,
-                        'schema':{
-                            'type': 'string',
-                            'enum': ['mock_action_1']
-                        }
-                    }]
-                }, 
                 'get': {
                     'parameters': [{
                         'name': 'action',
@@ -416,10 +414,22 @@ class TestRestOpenapiPathProcessing(unittest.TestCase):
                             'enum': ['mock_action_2']
                         }
                     }]
+                },
+                'post': {
+                    'parameters': [{
+                        'name': 'action',
+                        'in': 'query',
+                        'description': 'action=mock_action_1',
+                        'required': True,
+                        'schema':{
+                            'type': 'string',
+                            'enum': ['mock_action_1']
+                        }
+                    }]
                 }
             }
         }
-        self.rest_openapi_path.remove_query_params(path_dict)
+        self.api_openapi_path.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
 
         # case 3: QueryParameters are fixed and method types are same
@@ -456,12 +466,12 @@ class TestRestOpenapiPathProcessing(unittest.TestCase):
                 }
             }
         }
-        self.rest_openapi_path.remove_query_params(path_dict)
+        self.api_openapi_path.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
-    
-class TestRestMetamodel2Openapi(unittest.TestCase):
 
-    rest_meta2openapi = RestMetamodel2Openapi()
+class TestApiMetamodel2Openapi(unittest.TestCase):
+
+    api_meta2openapi = ApiMetamodel2Openapi()
 
     def test_post_process_path(self):
         # case 1: adding header parameter in list of parameters 
@@ -472,7 +482,7 @@ class TestRestMetamodel2Openapi(unittest.TestCase):
             'method': 'post',
             'operationId': 'MockOperationId$task',
         }
-        self.rest_meta2openapi.post_process_path(path_obj)
+        self.api_meta2openapi.post_process_path(path_obj)
         path_obj_expected = {
             'path': '/com/vmware/cis/session?vmw-task=true',
             'method': 'post',
@@ -495,7 +505,7 @@ class TestRestMetamodel2Openapi(unittest.TestCase):
             'operationId': 'MockOperationId',
         }
         path_obj_expected = path_obj
-        self.rest_meta2openapi.post_process_path(path_obj)
+        self.api_meta2openapi.post_process_path(path_obj)
         self.assertEqual(path_obj, path_obj_expected)
 
 if __name__ == '__main__':

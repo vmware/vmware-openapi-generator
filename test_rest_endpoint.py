@@ -84,8 +84,8 @@ class TestRestTypeHandler(unittest.TestCase):
         new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
-        # case 4: when generic instantiation type is 'MAP', map key and value type is 'BUILTIN'
-        generic_instantiation_element_type_mock = mock.Mock() 
+        # case 4: when generic instantiation type is 'MAP'
+        # case 4.1: map key and value type is 'BUILTIN'
         map_key_type_mock = mock.Mock()
         map_key_type_mock.category = 'BUILTIN'
         map_key_type_mock.builtin_type = 'long'
@@ -123,6 +123,56 @@ class TestRestTypeHandler(unittest.TestCase):
                 }
             }
         self.assertEqual(new_prop_expected, new_prop)
+
+        # case 4.2: map key and value type is 'USER_DEFINED'
+        map_key_type_mock.category = 'USER_DEFINED'
+        map_key_type_mock.user_defined_type = user_defined_type_mock
+        map_value_type_mock.category = 'USER_DEFINED'
+        map_value_type_mock.user_defined_type = user_defined_type_mock
+        type_dict = {
+            'com.vmware.package.mock': {}
+        }
+        new_prop = {}
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        new_prop_expected = {
+            'type': 'array', 
+            'items': {
+                'type': 'object', 
+                'properties': {
+                    'key': {'$ref': '#/definitions/com.vmware.package.mock'}, 
+                    'value': {'$ref': '#/definitions/com.vmware.package.mock'}
+                    }
+                }
+            }
+        self.assertEqual(new_prop_expected, new_prop)
+
+        # case 4.3: map key and value type is 'GENERIC'
+        generic_instantiation_element_type_mock.category = 'BUILTIN'
+        generic_instantiation_element_type_mock.builtin_type = 'double'
+        generic_instantiation_map_value_type_mock = mock.Mock()
+        generic_instantiation_map_value_type_mock.generic_type = 'OPTIONAL'
+        generic_instantiation_map_value_type_mock.element_type = generic_instantiation_element_type_mock
+        map_key_type_mock.category = 'BUILTIN'
+        map_key_type_mock.builtin_type = 'string'
+        map_value_type_mock.category = 'GENERIC'
+        map_value_type_mock.generic_instantiation = generic_instantiation_map_value_type_mock
+        new_prop = {}
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        new_prop_expected = {
+            'type': 'array', 
+            'items': {
+                'type': 'object', 
+                'properties': {
+                    'key': {'type': 'string'}, 
+                    'value': {
+                            'required': False,
+                            'type': 'number', 'format': 'double'
+                        }
+                    }
+                }
+            }
+        self.assertEqual(new_prop_expected, new_prop)
+
 
 class TestRestUrlProcessing(unittest.TestCase):
     

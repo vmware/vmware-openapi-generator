@@ -4,7 +4,7 @@ from lib.api_endpoint.api_type_handler import ApiTypeHandler
 from lib.api_endpoint.api_url_processing import ApiUrlProcessing
 from lib.api_endpoint.api_metamodel2spec import ApiMetamodel2Spec
 from lib.api_endpoint.swagger2.api_swagger_parameter_handler import ApiSwaggerParaHandler
-# from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import RestOpenapiParaHandler
+from lib.api_endpoint.oas3.api_openapi_parameter_handler import ApiOpenapiParaHandler
 
 class TestApiTypeHandler(unittest.TestCase):
 
@@ -78,8 +78,8 @@ class TestApiTypeHandler(unittest.TestCase):
         new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
-        # case 4: when generic instantiation type is 'MAP', map key and value type is 'BUILTIN'
-        generic_instantiation_element_type_mock = mock.Mock() 
+        # case 4: when generic instantiation type is 'MAP'
+        # case 4.1 : map key and value type is 'BUILTIN'
         map_key_type_mock = mock.Mock()
         map_key_type_mock.category = 'BUILTIN'
         map_key_type_mock.builtin_type = 'long'
@@ -105,6 +105,28 @@ class TestApiTypeHandler(unittest.TestCase):
         new_prop = {}
         self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/', False )
         new_prop_expected = {'type': 'object', 'additionalProperties': {'type': 'integer'}}
+        self.assertEqual(new_prop_expected, new_prop)
+
+        # case 4.2: map key and value type is 'USER_DEFINED'
+        map_value_type_mock.category = 'USER_DEFINED'
+        map_value_type_mock.user_defined_type = user_defined_type_mock
+        type_dict = {
+        'com.vmware.package.mock': {}
+        }
+        new_prop = {}
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/', False )
+        new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/com.vmware.package.mock'}}
+        self.assertEqual(new_prop_expected, new_prop)
+
+        # case 4.3: map key and value type is 'GENERIC'
+        generic_instantiation_map_value_type_mock = mock.Mock()
+        generic_instantiation_map_value_type_mock.generic_type = 'OPTIONAL'
+        generic_instantiation_map_value_type_mock.element_type = generic_instantiation_element_type_mock
+        map_value_type_mock.category = 'GENERIC'
+        map_value_type_mock.generic_instantiation = generic_instantiation_map_value_type_mock
+        new_prop = {}
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/', False )
+        new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
 class TestApiUrlProcessing(unittest.TestCase):
@@ -245,6 +267,43 @@ class TestApiMetamodel2Spec(unittest.TestCase):
 
         # case 2: create parameter array using field information of parameters for
         # put, post, patch operations in openAPI 3.0
+        spec  = ApiOpenapiParaHandler()
+        par_array_actual, new_url_actual = self.api_meta2spec.process_put_post_patch_request(self.url, 'com.vmware.package.mock', 
+                                                                                        'mock_operation_name', params, 
+                                                                                        self.type_dict, {}, {}, False, spec)
+        par_array_expected = [{
+            'required': True,
+            'in': 'path',
+            'name': 'mock_name_1',
+            'description': '{ 1. mock description }, { 2. mock documentation for field info 1 }',
+            'enum' :['enum-1', 'enum-2'],
+            'schema': {
+                'type': 'string'
+            }
+        },
+        {'$ref': '#/components/requestBodies/com.vmware.package.mock_mock_operation_name'},
+        {
+            'required': True,
+            'in': 'query',
+            'name': 'mock_name_3',
+            'description': '{ 1. mock description }, { 2. mock documentation for field info 3 }',
+            'enum': ['enum-1', 'enum-2'],
+            'schema': {
+                'type': 'string'
+            }
+        },{
+            'in': 'query',
+            'name': 'mock_name_4',
+            'description': 'mock description',
+            'schema':{
+                'description': 'mock description',
+                'type': 'string',
+                'enum': ['enum-1', 'enum-2'],
+            }
+        }]
+        self.assertEqual(par_array_expected, par_array_actual)
+        self.assertEqual(self.new_url_expected, new_url_actual)
+
 
     def test_process_get_request(self):
         # case 1: create parameter array using field information of parameters for 
@@ -279,6 +338,38 @@ class TestApiMetamodel2Spec(unittest.TestCase):
 
         # case 2: create parameter array using field information of parameters for 
         # get operation in openAPI 3.0
+        spec = ApiOpenapiParaHandler()
+        par_array_actual, new_url_actual = self.api_meta2spec.process_get_request( self.url, params, self.type_dict, {}, {}, False, spec)
+        par_array_expected = [{
+            'required': True,
+            'in': 'path',
+            'name': 'mock_name_1',
+            'description': '{ 1. mock description }, { 2. mock documentation for field info 1 }',
+            'enum' :['enum-1', 'enum-2'],
+            'schema': {
+                'type': 'string'
+            }
+        },{
+            'required': True,
+            'in': 'query',
+            'name': 'mock_name_3',
+            'description': '{ 1. mock description }, { 2. mock documentation for field info 3 }',
+            'enum': ['enum-1', 'enum-2'],
+            'schema': {
+                'type': 'string'
+            }
+        },{
+            'in': 'query',
+            'name': 'mock_name_4',
+            'description': 'mock description',
+            'schema':{
+                'description': 'mock description',
+                'type': 'string',
+                'enum': ['enum-1', 'enum-2'],
+            }
+        }]
+        self.assertEqual(par_array_expected, par_array_actual)
+        self.assertEqual(self.new_url_expected, new_url_actual)
 
     def test_process_delete_request(self):
         # case 1: create parameter array using field information of parameters for 
@@ -306,6 +397,29 @@ class TestApiMetamodel2Spec(unittest.TestCase):
 
         # case 2: create parameter array using field information of parameters for 
         # delete operation in openAPI 3.0
+        spec = ApiOpenapiParaHandler()
+        par_array_actual, new_url_actual = self.api_meta2spec.process_delete_request( self.url, params, self.type_dict, {}, {}, False, spec)
+        par_array_expected = [{
+            'required': True,
+            'in': 'path',
+            'name': 'mock_name_1',
+            'description': '{ 1. mock description }, { 2. mock documentation for field info 1 }',
+            'enum' :['enum-1', 'enum-2'],
+            'schema':{
+                'type': 'string'
+            }
+        },{
+            'required': True,
+            'in': 'query',
+            'name': 'mock_name_4',
+            'description': '{ 1. mock description }, { 2. mock documentation for field info 4 }',
+            'enum': ['enum-1', 'enum-2'],
+            'schema':{
+                'type': 'string'
+            }
+        }]
+        self.assertEqual(par_array_expected, par_array_actual)
+        self.assertEqual(self.new_url_expected, new_url_actual)
 
 
 if __name__ == '__main__':
