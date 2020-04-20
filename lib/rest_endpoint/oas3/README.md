@@ -46,6 +46,7 @@ def get_path(
         responses=response_map,
         consumes=consumes,
         produces=produces)
+    utils.create_req_body_from_params_list(path_obj)
     self.post_process_path(path_obj)
     path = utils.add_basic_auth(path_obj)
     return path
@@ -176,7 +177,9 @@ A failed response will be generated if there occurs an error in the execution of
 # Function Call : 3 [build_path()]
 ```build_path()``` function inside ```lib/utils.py``` serializes all the data extracted till now from metamodel files to build the path objects for the oas3 specification. It takes in the service_name in order to generate tags based on the service names. Tags make it easy to refer to the operations of a resource inside a path. Other input parameters to this function include method type of the path, relative path to an individual endpoint, api documentation, input parameters for the api, api resonse and media types. All this information is wrapped in a path object and returned.
 
-After creating the path object for oas3, ```post_process_path()``` performs some additions and subtractions in the path object. If the path object contains path attribute as ```/com/vmware/cis/session``` and http method as ```post```, a header parameter is added around the parameters attribute of the path object. If the operation id of the path object terminates with **$task**, ```add_query_parameters()``` is executed to add rudimentary support of adding query parameters to the path url. The query parameter ```vm-task=true``` is added as a query parameter at the end of the path url.
+After creating the path object for openapi spec, ```create_req_body_from_params_list()``` takes in this object as input and processes its parameter list to generate a seperate requestBody section inside the open api spec path object.  
+
+```post_process_path()``` performs some additions and subtractions in the path object. If the path object contains path attribute as ```/com/vmware/cis/session``` and http method as ```post```, a header parameter is added around the parameters attribute of the path object. If the operation id of the path object terminates with **$task**, ```add_query_parameters()``` is executed to add rudimentary support of adding query parameters to the path url. The query parameter ```vm-task=true``` is added as a query parameter at the end of the path url.
 
 As a final step of processing the generated path object, security attribute in the form of Basic Authentication is added to the paths which require it using ```add_basic_auth()``` method. Finally the ```get_path()``` returns a procesed path object.
 

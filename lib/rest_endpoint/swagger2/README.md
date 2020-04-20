@@ -93,7 +93,7 @@ def process_put_post_patch_request(
 ```
 ```process_put_post_patch_request()``` handles the path and body parameters inside the http operations of put, post and patch. It uses ```extract_path_parameters()``` to get a list of field info objects that are path variables and another list of field info objects which are not path variables and also handles the urls that changed due to mismatch of the parameter names.
 
-The field info of path parameters is processed inside ```convert_field_info_to_swagger_parameters()``` which builds swagger parameter objects from metamodel field info objects. In order to achieve this it makes use of the RestTypeHandler class. This class determines the type of the field info object to be either ** built - in**, **user - defined ** or **generic ** and caters to each of them under ```visit_builtin()```, ```visit_user_defined()``` and ```visit_generic()``` respectively.
+The field info of path parameters is processed inside ```convert_field_info_to_swagger_parameters()``` which builds swagger parameter objects from metamodel field info objects. In order to achieve this it makes use of the RestTypeHandler class. This class determines the type of the field info object to be either **built-in**, **user-defined** or **generic** and caters to each of them under ```visit_builtin()```, ```visit_user_defined()``` and ```visit_generic()``` respectively.
 
 ```visit_builtin()```
 1. Handles the native metamodel field info types such as date_time, secret, any_error, dymanic_structure, uri, binary, long, double and id.

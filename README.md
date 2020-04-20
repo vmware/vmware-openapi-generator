@@ -78,7 +78,7 @@ Refer the [readme.md](https://github.com/Navneet-0101/vmware-openapi-generator/t
 ``` python
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS = ec.get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR = connection.get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -117,7 +117,7 @@ The explanation of the below part can the found in this [readme.md](https://gith
         service_urls_map = dict_processing.get_service_urls_from_rest_navigation(
             rest_navigation_url, verify)
 
-    error_map = utils.build_error_map()
+    http_error_map = utils.HttpErrorMap(component_svc)
 
     package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
         service_urls_map, service_dict, rest_navigation_url)

@@ -1,5 +1,7 @@
 # lib/api_endpoint/oas3/readme.md
 This readme provides description of the files under open api specification of the api endpoint. On a brief note, ```api_metamodel2openapi.py``` contains functions to handle request mapping paradigm of metamodel files for api endpoint. ```api_openapi_parameter_handler.py``` contains functions which deal with path and query parameters for open api specification. ```api_openapi_response_handler.py``` creates the response section for openapi files. And finally the ```api_openapi_final_path_processing.py``` will create a path object with attributes such as operations, parameters, responses, schemas etc.
+# Part : 5.1.1
+Continuing from section 5.1.1, here we look into the details of the ```get_path()```. This method takes in the operation info object as one of the parameters and extracts important information from it to build the open api path specification such as documentation, parameters, errors, output and possible http method. 
 
 ```python
   def get_path(
@@ -41,6 +43,7 @@ This readme provides description of the files under open api specification of th
             par_array,
             operation_id=operation_id,
             responses=response_map)
+        utils.create_req_body_from_params_list(path_obj)
         self.post_process_path(path_obj)
         path = utils.add_basic_auth(path_obj)
         return path
@@ -208,7 +211,9 @@ A failed response will be generated if there occurs an error in the execution of
 # Function Call : 3 [build_path()]
 ```build_path()``` function inside ```lib/utils.py``` serializes all the data extracted till now from metamodel files to build the path objects for the openapi specification. It takes in the service_name in order to generate tags based on the service names. Tags make it easy to refer to the operations of a resource inside a path. Other input parameters to this function include method type of the path, relative path to an individual endpoint, api documentation, input parameters for the api, api resonse and media types. All this information is wrapped in a path object and returned.
 
-After creating the path object for openapi spec, ```post_process_path()``` performs some additions and subtractions in the path object. If the path object contains path attribute as ```/com/vmware/cis/session``` and http method as ```post```, a header parameter is added around the parameters attribute of the path object. If the operation id of the path object terminates with **$task**, ```add_query_parameters()``` is executed to add rudimentary support of adding query parameters to the path url. The query parameter ```vm-task=true``` is added as a query parameter at the end of the path url.
+After creating the path object for openapi spec, ```create_req_body_from_params_list()``` takes in this object as input and processes its parameter list to generate a seperate requestBody section inside the open api spec path object. 
+
+```post_process_path()``` performs some additions and subtractions in the path object. If the path object contains path attribute as ```/com/vmware/cis/session``` and http method as ```post```, a header parameter is added around the parameters attribute of the path object. If the operation id of the path object terminates with **$task**, ```add_query_parameters()``` is executed to add rudimentary support of adding query parameters to the path url. The query parameter ```vm-task=true``` is added as a query parameter at the end of the path url.
 
 As a final step of processing the generated path object, security attribute in the form of Basic Authentication is added to the paths which require it using ```add_basic_auth()``` method. Finally the ```get_path()``` returns a processed path object.
 
