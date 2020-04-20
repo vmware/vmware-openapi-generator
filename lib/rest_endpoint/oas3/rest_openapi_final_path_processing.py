@@ -29,7 +29,7 @@ class RestOpenapiPathProcessing(PathProcessing):
                 sorted(type_dict['requestBodies'].items()))
         swagger_template = {'openapi': '3.0.0',
                             'info': {'description': description_map.get(output_filename, ''),
-                                     'title': output_filename,
+                                     'title': utils.remove_curly_braces(output_filename),
                                      'version': '2.0.0'},
                             'paths': collections.OrderedDict(sorted(path_dict.items())),
                             'components': {
@@ -49,7 +49,7 @@ class RestOpenapiPathProcessing(PathProcessing):
             os.path.sep +
             '/rest' +
             "_" +
-            output_filename +
+            utils.remove_curly_braces(output_filename) +
             '.json',
             swagger_template)
 

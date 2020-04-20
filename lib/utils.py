@@ -144,6 +144,12 @@ def build_path(
         path_obj['operationId'] = operation_id
     return path_obj
 
+def remove_curly_braces(string_name):
+    if '{' in string_name:
+        string_name = string_name.replace('{','')
+    if '}' in string_name:
+        string_name = string_name.replace('}','')
+    return string_name
 
 def tags_from_service_name(service_name):
     """

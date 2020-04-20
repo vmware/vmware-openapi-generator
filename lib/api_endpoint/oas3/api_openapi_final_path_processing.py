@@ -34,7 +34,7 @@ class ApiOpenapiPathProcessing(PathProcessing):
                 'description': description_map.get(
                     output_filename,
                     ''),
-                'title': output_filename,
+                'title': utils.remove_curly_braces(output_filename),
                 'version': '2.0.0'},
             'paths': collections.OrderedDict(
                 sorted(
@@ -54,7 +54,7 @@ class ApiOpenapiPathProcessing(PathProcessing):
             os.path.sep +
             '/api' +
             "_" +
-            output_filename +
+            utils.remove_curly_braces(output_filename) +
             '.json',
             swagger_template)
 
