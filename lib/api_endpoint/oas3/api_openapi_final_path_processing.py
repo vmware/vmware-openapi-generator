@@ -117,15 +117,25 @@ class ApiOpenapiPathProcessing(PathProcessing):
                 query_param = []
                 for query_parameter in paths_array[1].split('&'):
                     key_value = query_parameter.split('=')
-                    q_param = {
-                        'name': key_value[0],
-                        'in': 'query',
-                        'description': key_value[0] + '=' + key_value[1],
-                        'required': True}
-                    q_param['schema'] = {}
-                    q_param['schema']['type'] = 'string'
-                    q_param['schema']['enum'] = [key_value[1]]
-                    query_param.append(q_param)
+                    if len(key_value) == 2:
+                        q_param = {
+                            'name': key_value[0],
+                            'in': 'query',
+                            'description': key_value[0] + '=' + key_value[1],
+                            'required': True}
+                        q_param['schema'] = {}
+                        q_param['schema']['type'] = 'string'
+                        q_param['schema']['enum'] = [key_value[1]]
+                        query_param.append(q_param)
+                    else:
+                        q_param = {
+                            'name': key_value[0],
+                            'in': 'query',
+                            'description': key_value[0],
+                            'required': True}
+                        q_param['schema'] = {}
+                        q_param['schema']['type'] = 'string'
+                        query_param.append(q_param)
 
                 if new_path in path_dict:
                     new_path_operations = path_dict[new_path].keys()

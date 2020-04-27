@@ -65,6 +65,14 @@ def get_input_params():
         '--oas',
         default='3',
         help='opeanpi specification version')
+    parser.add_argument(
+        '-mixed',
+        '--mixed',
+        required=False,
+        nargs='?',
+        const=True,
+        default=False,
+        help='api and rest rendering, with rest being deprecated')
     parser.set_defaults(filtering=False)
     args = parser.parse_args()
     metadata_url = args.metadata_url
@@ -105,7 +113,11 @@ def get_input_params():
     if args.oas not in ['2', '3']:
         raise Exception(" Input Valid Specification ")
     SPECIFICATION = args.oas
-    return metadata_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR
+
+    global MIXED
+    MIXED = args.mixed
+
+    return metadata_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED
 
 
 def get_component_service(connector):

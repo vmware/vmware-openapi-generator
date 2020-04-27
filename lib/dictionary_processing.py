@@ -4,7 +4,15 @@ import requests
 import six
 from six.moves import http_client
 from lib import utils
+from enum import Enum
 
+from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
+
+
+class ServiceType:
+    REST = 1
+    API = 2
+    MIXED = 3
 
 def populate_dicts(
         component_svc,
@@ -96,14 +104,18 @@ def get_all_services_urls(components_urls, verify):
 def add_service_urls_using_metamodel(
         service_urls_map,
         service_dict,
-        rest_navigation_url):
+        rest_navigation_handler: RestNavigationHandler,
+        mixed=False):
 
     package_dict_api = {}
     package_dict = {}
-
-    all_rest_services = []
-    for i in service_urls_map:
-        all_rest_services.append(service_urls_map[i][0])
+    package_dict_deprecated = {}
+    '''
+    The replacement navigation map is used when MIXED specification is issued (@VERB + an old annotation standard)
+    It contains mappings to url paths, served as replacements. The structure of the map is the following: 
+    service -> operation -> method -> raplacement path
+    '''
+    replacement_map = {}
 
     rest_services = {}
     for k, v in service_urls_map.items():
@@ -112,9 +124,8 @@ def add_service_urls_using_metamodel(
         })
 
     for service in service_dict:
-        # if service not in all_rest_services:
-        check, path_list = get_paths_inside_metamodel(service, service_dict)
-        if check:
+        service_type, path_list = get_paths_inside_metamodel(service, service_dict, mixed, replacement_map, rest_services.get(service, None), rest_navigation_handler)
+        if service_type == ServiceType.API or service_type == ServiceType.MIXED:
             for path in path_list:
                 service_urls_map[path] = (service, '/api')
                 package_name = path.split('/')[1]
@@ -122,11 +133,11 @@ def add_service_urls_using_metamodel(
                 if pack_arr == []:
                     package_dict_api[package_name] = pack_arr
                 pack_arr.append(path)
-        else:
+        elif service_type == ServiceType.REST:
             service_url = rest_services.get(service, None)
             if service_url is not None:
                 service_path = get_service_path_from_service_url(
-                    service_url, rest_navigation_url)
+                    service_url, rest_navigation_handler.get_rest_navigation_url())
                 service_urls_map[service_path] = (service, '/rest')
                 package = service_path.split('/')[3]
                 if package in package_dict:
@@ -135,23 +146,56 @@ def add_service_urls_using_metamodel(
                 else:
                     package_dict.setdefault(package, [service_path])
             else:
-                print("Service doesnot belong to either /api or /rest ", service)
+                print("Service does not belong to either /api or /rest ", service)
+        if service_type == ServiceType.MIXED:
+            service_url = rest_services.get(service, None)
+            if service_url is not None:
+                service_path = get_service_path_from_service_url(
+                    service_url, rest_navigation_handler.get_rest_navigation_url())
+                service_urls_map[service_path] = (service, '/mixed')
+                package = service_path.split('/')[3]
+                if package in package_dict_deprecated:
+                    packages = package_dict_deprecated[package]
+                    packages.append(service_path)
+                else:
+                    package_dict_deprecated.setdefault(package, [service_path])
+            else:
+                print("Service does not belong to either /api or /rest ", service)
+    if mixed:
+        return package_dict_api, package_dict, package_dict_deprecated, replacement_map
+
     return package_dict_api, package_dict
 
 
-def get_paths_inside_metamodel(service, service_dict):
+
+def get_paths_inside_metamodel(service, service_dict, mixed=False, replacement_map={}, service_url=None, rest_navigation_handler=None):
     path_list = set()
+    is_mixed = False
     for operation_id in service_dict[service].operations.keys():
         for request in service_dict[service].operations[operation_id].metadata.keys(
         ):
             if request.lower() in ('post', 'put', 'patch', 'get', 'delete'):
-                path_list.add(
-                    service_dict[service].operations[operation_id].metadata[request].elements['path'].string_value)
+                path = service_dict[service].operations[operation_id].metadata[request].elements['path'].string_value
+                path_list.add(path)
+
+                # Check whether the service contains both @RequestMapping and @Verb annotations
+                if mixed and 'RequestMapping' in service_dict[service].operations[operation_id].metadata.keys():
+                    is_mixed = True
+                    add_replcament_path(service, operation_id, request.lower(), path, replacement_map)
+                elif mixed and service_url is not None and rest_navigation_handler is not None:
+                    # Check whether the service is apparent in the rest navigation - has 6.0
+                    service_operations = rest_navigation_handler.get_service_operations(service_url)
+                    if service_operations is not None:
+                        is_mixed = True
+                        add_replcament_path(service, operation_id, request.lower(), path, replacement_map)
 
     if path_list == set():
-        return False, []
+        return ServiceType.REST, []
 
-    return True, sorted(list(path_list))
+    if is_mixed:
+        return ServiceType.MIXED, sorted(list(path_list))
+
+    return ServiceType.API, sorted(list(path_list))
 
 
 def get_service_path_from_service_url(service_url, base_url):
@@ -159,3 +203,11 @@ def get_service_path_from_service_url(service_url, base_url):
         return service_url
 
     return service_url[len(base_url):]
+
+def add_replcament_path(service, operation_id, method, path, replacement_map):
+    if service not in replacement_map:
+        replacement_map[service] = {operation_id: {method: path}}
+    elif operation_id not in replacement_map[service]:
+        replacement_map[service][operation_id] = {method: path}
+    else:
+        replacement_map[service][operation_id][method] = path
