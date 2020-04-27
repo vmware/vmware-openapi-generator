@@ -1,4 +1,6 @@
 import os
+import threading
+
 import six
 from lib import utils
 from lib.url_processing import UrlProcessing
@@ -6,6 +8,7 @@ from .oas3.api_metamodel2openapi import ApiMetamodel2Openapi
 from .swagger2.api_metamodel2swagger import ApiMetamodel2Swagger
 from .oas3.api_openapi_final_path_processing import ApiOpenapiPathProcessing
 from .swagger2.api_swagger_final_path_processing import ApiSwaggerPathProcessing
+from ..utils import eprint
 
 api_openapi_fpp = ApiOpenapiPathProcessing()
 api_swagg_fpp = ApiSwaggerPathProcessing()
@@ -28,7 +31,6 @@ class ApiUrlProcessing(UrlProcessing):
             service_dict,
             service_url_dict,
             http_error_map,
-            rest_navigation_url,
             enable_filtering,
             spec,
             gen_unique_op_id):
@@ -45,8 +47,14 @@ class ApiUrlProcessing(UrlProcessing):
             if utils.is_filtered(service_info.metadata, enable_filtering):
                 continue
             for operation_id, operation_info in service_info.operations.items():
-                method, url = self.api_get_url_and_method(
-                    operation_info.metadata)
+
+                try:
+                    method, url = self.api_get_url_and_method(
+                        operation_info.metadata)
+                except TypeError as ex:
+                    eprint('Operation is not @VERB annotated %s - %s' % (operation_id, service_url))
+                    eprint(ex)
+                    continue
 
                 # check for query parameters
                 if 'params' in operation_info.metadata[method].elements:

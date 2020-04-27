@@ -1,10 +1,12 @@
 import unittest
-from unittest import mock 
+from unittest import mock
 import vmsgen
 from lib import utils
 from lib import establish_connection as connection
 from lib import dictionary_processing as dict_processing
+from lib.dictionary_processing import ServiceType
 from lib.path_processing import PathProcessing
+from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
 from lib.url_processing import UrlProcessing
 from lib.type_handler_common import TypeHandlerCommon
 
@@ -15,71 +17,85 @@ class TestInputs(unittest.TestCase):
         test_args = ['vmsgen', '-vc', 'v_url']
         ssl_verify_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, ssl_verify_actual, _, _, _, _, _, = connection.get_input_params()
+            _, _, _, ssl_verify_actual, _, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(ssl_verify_expected, ssl_verify_actual)
 
         # case 1.2: SSL is insecure
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         ssl_verify_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, ssl_verify_actual, _, _, _, _, _, = connection.get_input_params()
+            _, _, _, ssl_verify_actual, _, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(ssl_verify_expected, ssl_verify_actual)
 
         # case 2.1: tag separator option (default)
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         tag_separator_expected = '/'
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, tag_separator_actual = connection.get_input_params()
+            _, _, _, _, _, _, _, _, tag_separator_actual, _, = connection.get_input_params()
         self.assertEqual(tag_separator_expected, tag_separator_actual)
 
         # case 2.2: tag separator option
         expected = '_'
         test_args = ['vmsgen', '-vc', 'v_url', '-s', expected]
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, tag_separator_actual = connection.get_input_params()
+            _, _, _, _, _, _, _, _, tag_separator_actual, _, = connection.get_input_params()
         self.assertEqual(expected, tag_separator_actual)
 
         # case 3.1: operation id option is FALSE
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         generate_op_id_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, generate_op_id_actual, _, = connection.get_input_params()
+            _, _, _, _, _, _, _, generate_op_id_actual, _, _, = connection.get_input_params()
         self.assertEqual(generate_op_id_expected, generate_op_id_actual)
 
         # case 3.1: operation id option is TRUE
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '-uo']
         generate_op_id_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, generate_op_id_actual, _, = connection.get_input_params()
+            _, _, _, _, _, _, _, generate_op_id_actual, _, _, = connection.get_input_params()
         self.assertEqual(generate_op_id_expected, generate_op_id_actual)
 
         # case 4.1: generate metamodel option is FALSE
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         generate_metamodel_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, generate_metamodel_actual, _, _, _, = connection.get_input_params()
+            _, _, _, _, _, generate_metamodel_actual, _, _, _, _, = connection.get_input_params()
         self.assertEqual(generate_metamodel_expected, generate_metamodel_actual)
 
         # case 4.1: generate metamodel option is TRUE
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '-c']
         generate_metamodel_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, generate_metamodel_actual, _, _, _, = connection.get_input_params()
+            _, _, _, _, _, generate_metamodel_actual, _, _, _, _, = connection.get_input_params()
         self.assertEqual(generate_metamodel_expected, generate_metamodel_actual)
         
         # case 5.1: swagger specification is default i.e openAPI 3.0
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         swagger_specification_expected = '3'
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, swagger_specification_actual, _, _, = connection.get_input_params()
+            _, _, _, _, _, _, swagger_specification_actual, _, _, _, = connection.get_input_params()
         self.assertEqual(swagger_specification_expected, swagger_specification_actual)
 
         # case 5.2: swagger specification is swagger 2.0
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '-oas' , '2']
         swagger_specification_expected = '2'
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, swagger_specification_actual, _, _, = connection.get_input_params()
+            _, _, _, _, _, _, swagger_specification_actual, _, _, _, = connection.get_input_params()
         self.assertEqual(swagger_specification_expected, swagger_specification_actual)
+
+        # case 6.1: mixed option is TRUE
+        test_args = ['vmsgen', '-vc', 'v_url', '-k', '-mixed']
+        mixed_expected = True
+        with mock.patch('sys.argv', test_args):
+            _, _, _, _, _, _, _, _, _, mixed_actual = connection.get_input_params()
+        self.assertEqual(mixed_expected, mixed_actual)
+
+        # case 6.1: mixed option is FALSE
+        test_args = ['vmsgen', '-vc', 'v_url', '-k']
+        mixed_expected = False
+        with mock.patch('sys.argv', test_args):
+            _, _, _, _, _, _, _, _, _, mixed_actual = connection.get_input_params()
+        self.assertEqual(mixed_expected, mixed_actual)
 
 
 class TestDictionaryProcessing(unittest.TestCase):
@@ -131,10 +147,9 @@ class TestDictionaryProcessing(unittest.TestCase):
                 })
             }
         '''
-        bool_value_expected = False
         path_list_expected = []
-        bool_value_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
-        self.assertEqual(bool_value_expected, bool_value_actual)
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
+        self.assertEqual(ServiceType.REST, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
         #case 2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys
@@ -168,16 +183,143 @@ class TestDictionaryProcessing(unittest.TestCase):
                 })
             }
         '''
-        bool_value_expected = True
         path_list_expected = ['mock_string_value']
-        bool_value_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
-        self.assertEqual(bool_value_expected, bool_value_actual)
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
+        self.assertEqual(ServiceType.API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
+
+        # case 3: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with mixed applied
+        element_value_mock = mock.Mock()
+        element_value_mock.string_value = 'mock_string_value'
+        element_info_mock = mock.Mock()
+        element_info_mock.elements = {
+            'path': element_value_mock
+        }
+        operation_info_mock.metadata = {
+            'put': element_info_mock
+        }
+        service_info_mock.operations = {
+            'mock-key-1': operation_info_mock
+        }
+        service = 'com.vmware.package-mock-1.mock.mock'
+        service_dict = {
+            'com.vmware.package-mock-1.mock.mock': service_info_mock
+        }
+        '''
+        Structure of key-value pair in service_dict
+        service_dict = {
+            'com.vmware.package-mock-1.mock.mock':  
+                ServiceInfo(
+                operations = {
+                    'mock-key-1': OperationInfo(metadata = {
+                                        'put' : ElementInfo(elemets = {
+                                            'path' : ElementValue(string_value = 'mock_string_value')
+                                        })
+                    })
+                })
+            }
+        '''
+        path_list_expected = ['mock_string_value']
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True)
+        self.assertEqual(ServiceType.API, service_type_actual)
+        self.assertEqual(path_list_expected, path_list_actual)
+
+        # case 3.1: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with mixed applied
+        # and RequestMapping apparent in the metadata
+        element_value_mock = mock.Mock()
+        element_value_mock.string_value = 'mock_string_value'
+        element_info_mock = mock.Mock()
+        element_info_mock.elements = {
+            'path': element_value_mock
+        }
+        operation_info_mock.metadata = {
+            'put': element_info_mock,
+            'RequestMapping': {}
+        }
+        service_info_mock.operations = {
+            'mock-key-1': operation_info_mock
+        }
+        service = 'com.vmware.package-mock-1.mock.mock'
+        service_dict = {
+            'com.vmware.package-mock-1.mock.mock': service_info_mock
+        }
+        '''
+        Structure of key-value pair in service_dict
+        service_dict = {
+            'com.vmware.package-mock-1.mock.mock':  
+                ServiceInfo(
+                operations = {
+                    'mock-key-1': OperationInfo(metadata = {
+                                        'put' : ElementInfo(elemets = {
+                                            'path' : ElementValue(string_value = 'mock_string_value')
+                                        }),
+                                        'RequestMapping' : {})
+                    })
+                })
+            }
+        '''
+        path_list_expected = ['mock_string_value']
+        replacement_map_expected = {service: {"mock-key-1": {"put": "mock_string_value"}}}
+        replacement_map_actual = {}
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True, replacement_map_actual)
+        self.assertEqual(ServiceType.MIXED, service_type_actual)
+        self.assertEqual(path_list_expected, path_list_actual)
+        self.assertEqual(replacement_map_expected, replacement_map_actual)
+
+        # case 3.2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with mixed applied
+        # and apparent in navigation service
+        rest_navigation_handler = RestNavigationHandler("")
+        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
+        element_value_mock = mock.Mock()
+        element_value_mock.string_value = 'mock_string_value'
+        element_info_mock = mock.Mock()
+        element_info_mock.elements = {
+            'path': element_value_mock
+        }
+        operation_info_mock.metadata = {
+            'put': element_info_mock,
+        }
+        service_info_mock.operations = {
+            'mock-key-1': operation_info_mock
+        }
+        service = 'com.vmware.package-mock-1.mock.mock'
+        service_dict = {
+            'com.vmware.package-mock-1.mock.mock': service_info_mock
+        }
+        '''
+        Structure of key-value pair in service_dict
+        service_dict = {
+            'com.vmware.package-mock-1.mock.mock':  
+                ServiceInfo(
+                operations = {
+                    'mock-key-1': OperationInfo(metadata = {
+                                        'put' : ElementInfo(elemets = {
+                                            'path' : ElementValue(string_value = 'mock_string_value')
+                                        }))
+                    })
+                })
+            }
+        '''
+        path_list_expected = ['mock_string_value']
+        replacement_map_expected = {service: {"mock-key-1": {"put": "mock_string_value"}}}
+        replacement_map_actual = {}
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
+                                                                                           service_dict,
+                                                                                           True,
+                                                                                           replacement_map_actual,
+                                                                                           "sample_service_url",
+                                                                                           rest_navigation_handler)
+        self.assertEqual(ServiceType.MIXED, service_type_actual)
+        self.assertEqual(path_list_expected, path_list_actual)
+        self.assertEqual(replacement_map_expected, replacement_map_actual)
+
 
     def test_add_service_urls_using_metamodel(self):
         #case 1: checking for package_dict_api{}
         service_urls_map = { 'https://vcip/rest/com/vmware/package/mock' : 'com.vmware.package.mock'}
         rest_navigation_url = 'https://vcip/rest'
+        rest_navigation_handler = RestNavigationHandler(rest_navigation_url)
+        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
         element_value_mock = mock.Mock()
         element_value_mock.string_value = '/package/mock'
         element_info_mock = mock.Mock()
@@ -196,7 +338,7 @@ class TestDictionaryProcessing(unittest.TestCase):
             'com.vmware.package.mock': service_info_mock
         }
         package_dict_api_expected = { 'package': ['/package/mock'] }
-        package_dict_api_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_url)
+        package_dict_api_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
        
         #case 2: checking for package_dict{}
@@ -206,8 +348,24 @@ class TestDictionaryProcessing(unittest.TestCase):
                             'mock_element_key' : element_info_mock
                             }
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
-        _, package_dict_actual = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_url)
+        _, package_dict_actual = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler)
         self.assertEqual(package_dict_expected, package_dict_actual)
+
+        #case 3: checking for package_dict_deprecated{}
+        service_urls_map = { 'https://vcip/rest/vmware/com/package/mock' : 'com.vmware.package.mock'}
+        element_value_mock.string_value = '/package/mock'
+        operation_info_mock.metadata = {
+                            'put' : element_info_mock,
+                            'RequestMapping': {}
+                            }
+        package_dict_deprecated_expected = {'package': ['/vmware/com/package/mock']}
+        package_dict_api_expected = {'package': ['/package/mock']}
+        package_dict_api_actual, package_dict_actual, package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler, True)
+
+        self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
+        self.assertEqual(package_dict_api_expected, package_dict_api_actual)
+
+
 
     def test_objectTodict(self):
         # case 1: object is of type interger

@@ -59,6 +59,16 @@ def is_filtered(metadata, enable_filtering):
     return False
 
 
+def combine_dicts_with_list_values(extended, added):
+    for k, v in added.items():
+        list_to_extend = extended.get(k, None)
+        if list_to_extend is None:
+            extended[k] = v
+        else:
+            list_to_extend.extend(v)
+            extended[k] = list(set(list_to_extend))
+
+
 def extract_path_parameters(params, url):
     """
     Return list of field_infos which are path variables, another list of

@@ -341,8 +341,42 @@ class TestApiSwaggerFinalPath(unittest.TestCase):
         }
         self.api_swagger_path.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
+
+        # case 2.2: only one of them as query parameter without specified enum value
+        path_dict = {
+            'mock/path1?action':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1':{
+                'get':{
+                    'parameters' : []
+                }
+            }
+        }
+        path_dict_expected = {
+            'mock/path1': {
+                'post': {
+                    'parameters': [
+                        {
+                            'name': 'action',
+                            'in': 'query',
+                            'description':'action',
+                            'required': True,
+                            'type': 'string'
+                        }
+                    ]
+                },
+                'get': {
+                    'parameters' : []
+                }
+            }
+        }
+        self.api_swagger_path.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
     
-        # case 2.2: both of them have query parameter
+        # case 2.3: both of them have query parameter
         path_dict = {
             'mock/path1?action=mock_action_1':{
                 'post':{
