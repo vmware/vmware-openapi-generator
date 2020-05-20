@@ -1,11 +1,7 @@
-import json
 import os
-import requests
-import six
-from six.moves import http_client
-from lib import utils
-from enum import Enum
 
+from lib import utils
+from lib import blacklist_utils
 from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
 
 
@@ -125,7 +121,7 @@ def add_service_urls_using_metamodel(
 
     for service in service_dict:
         service_type, path_list = get_paths_inside_metamodel(service, service_dict, mixed, replacement_map, rest_services.get(service, None), rest_navigation_handler)
-        if service_type == ServiceType.API or service_type == ServiceType.MIXED:
+        if (service_type == ServiceType.API or service_type == ServiceType.MIXED) and not blacklist_utils.isBlacklistedForApi(service):
             for path in path_list:
                 service_urls_map[path] = (service, '/api')
                 package_name = path.split('/')[1]
@@ -133,7 +129,7 @@ def add_service_urls_using_metamodel(
                 if pack_arr == []:
                     package_dict_api[package_name] = pack_arr
                 pack_arr.append(path)
-        elif service_type == ServiceType.REST:
+        elif service_type == ServiceType.REST and not blacklist_utils.isBlacklistedForRest(service):
             service_url = rest_services.get(service, None)
             if service_url is not None:
                 service_path = get_service_path_from_service_url(
@@ -147,7 +143,7 @@ def add_service_urls_using_metamodel(
                     package_dict.setdefault(package, [service_path])
             else:
                 print("Service does not belong to either /api or /rest ", service)
-        if service_type == ServiceType.MIXED:
+        if service_type == ServiceType.MIXED and not blacklist_utils.isBlacklistedForRest(service):
             service_url = rest_services.get(service, None)
             if service_url is not None:
                 service_path = get_service_path_from_service_url(

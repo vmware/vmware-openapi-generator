@@ -365,6 +365,17 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
 
+        #case 4: checking for deprecated
+        service_dict = {
+            'com.vmware.vcenter.compute.policies.VM': service_info_mock
+        }
+        package_dict_deprecated_expected = {}
+        package_dict_api_expected = {'package': ['/package/mock']}
+        package_dict_api_actual, package_dict_actual, package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler, True)
+
+        self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
+        self.assertEqual(package_dict_api_expected, package_dict_api_actual)
+
 
 
     def test_objectTodict(self):
