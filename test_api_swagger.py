@@ -435,19 +435,6 @@ class TestApiMetamodel2Swagger(unittest.TestCase):
 
     api_meta2swagger = ApiMetamodel2Swagger()
 
-    def test_find_consumes(self):
-        # case 1: operation is get or delete
-        mock_method_type = 'get'
-        media_type_actual = self.api_meta2swagger.find_consumes(mock_method_type)
-        media_type_expected = None
-        self.assertEqual(media_type_expected, media_type_actual)
-
-        # case 2: operation is other than get or delete
-        mock_method_type = 'mock_operation'
-        media_type_actual = self.api_meta2swagger.find_consumes(mock_method_type)
-        media_type_expected = ['application/json']
-        self.assertEqual(media_type_expected, media_type_actual)
-
     def test_post_process_path(self):
         # case 1: adding header parameter in list of parameters 
         # if path equals '/com/vmware/cis/session' and method is 'post

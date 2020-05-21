@@ -35,6 +35,12 @@ class RestSwaggerPathProcessing(PathProcessing):
                 'basic_auth': {
                     'type': 'basic'}},
             'basePath': '/rest',
+            'produces': [
+                'application/json'
+            ],
+            "consumes": [
+                "application/json"
+            ],
             'tags': [],
             'schemes': [
                 'https',

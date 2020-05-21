@@ -35,6 +35,12 @@ class ApiSwaggerPathProcessing(PathProcessing):
                 'basic_auth': {
                     'type': 'basic'}},
             'basePath': '/api',
+            'produces': [
+                'application/json'
+            ],
+            "consumes": [
+                "application/json"
+            ],
             'tags': [],
             'schemes': [
                 'https',

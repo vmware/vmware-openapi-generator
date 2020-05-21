@@ -146,10 +146,14 @@ def build_path(
         path_obj['parameters'] = parameters
     if responses is not None:
         path_obj['responses'] = responses
+
+    # TODO - currently 'consumes' and 'produces are global and hardcoded;
+    # Create a finer-grained approach, utilizing the checks below
     if consumes is not None:
         path_obj['consumes'] = consumes
     if produces is not None:
         path_obj['produces'] = produces
+
     if operation_id is not None:
         path_obj['operationId'] = operation_id
     return path_obj
