@@ -20,7 +20,7 @@ class RestMetamodel2Swagger(RestMetamodel2Spec):
             enum_dict,
             operation_id,
             error_map,
-            enable_filtering):
+            show_unreleased_apis):
         documentation = operation_info.documentation
         params = operation_info.params
         errors = operation_info.errors
@@ -28,7 +28,7 @@ class RestMetamodel2Swagger(RestMetamodel2Spec):
         http_method = http_method.lower()
         par_array, url = self.handle_request_mapping(url, http_method, service_name,
                                                      operation_id, params, type_dict,
-                                                     structure_dict, enum_dict, enable_filtering, rest_swagg_ph)
+                                                     structure_dict, enum_dict, show_unreleased_apis, rest_swagg_ph)
         response_map = rest_swagg_rh.populate_response_map(
             output,
             errors,
@@ -38,7 +38,7 @@ class RestMetamodel2Swagger(RestMetamodel2Spec):
             enum_dict,
             service_name,
             operation_id,
-            enable_filtering)
+            show_unreleased_apis)
 
         path_obj = utils.build_path(
             service_name,

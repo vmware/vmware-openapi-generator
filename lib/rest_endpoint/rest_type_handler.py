@@ -4,6 +4,9 @@ from lib.type_handler_common import TypeHandlerCommon
 
 class RestTypeHandler(TypeHandlerCommon):
 
+    def __init__(self, show_unreleased_apis):
+        TypeHandlerCommon.__init__(self, show_unreleased_apis)
+
     def visit_generic(
             self,
             generic_instantiation,
@@ -11,8 +14,7 @@ class RestTypeHandler(TypeHandlerCommon):
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         if generic_instantiation.generic_type == 'OPTIONAL':
             new_prop['required'] = False
             self.visit_type_category(
@@ -21,8 +23,7 @@ class RestTypeHandler(TypeHandlerCommon):
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif generic_instantiation.generic_type == 'LIST':
             new_prop['type'] = 'array'
             self.visit_type_category(
@@ -31,8 +32,7 @@ class RestTypeHandler(TypeHandlerCommon):
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif generic_instantiation.generic_type == 'SET':
             new_prop['type'] = 'array'
             new_prop['uniqueItems'] = True
@@ -42,8 +42,7 @@ class RestTypeHandler(TypeHandlerCommon):
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif generic_instantiation.generic_type == 'MAP':
             # Have static key/value pair object maping for /rest paths
             # while use additionalProperties for /api paths
@@ -58,8 +57,7 @@ class RestTypeHandler(TypeHandlerCommon):
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
             else:
                 new_type['properties']['key'] = {
                     'type': utils.metamodel_to_swagger_type_converter(
@@ -76,8 +74,7 @@ class RestTypeHandler(TypeHandlerCommon):
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
 
             elif generic_instantiation.map_value_type.category == 'BUILTIN':
                 new_type['properties']['value'] = {
@@ -92,8 +89,7 @@ class RestTypeHandler(TypeHandlerCommon):
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
                 new_type['properties']['value'] = temp_new_type
 
             new_prop['type'] = 'array'

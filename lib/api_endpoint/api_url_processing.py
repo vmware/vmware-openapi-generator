@@ -31,7 +31,7 @@ class ApiUrlProcessing(UrlProcessing):
             service_dict,
             service_url_dict,
             http_error_map,
-            enable_filtering,
+            show_unreleased_apis,
             spec,
             gen_unique_op_id):
 
@@ -44,7 +44,7 @@ class ApiUrlProcessing(UrlProcessing):
             service_info = service_dict.get(service_name, None)
             if service_info is None:
                 continue
-            if utils.is_filtered(service_info.metadata, enable_filtering):
+            if (not show_unreleased_apis) and utils.is_filtered(service_info.metadata):
                 continue
             for operation_id, operation_info in service_info.operations.items():
 
@@ -73,7 +73,7 @@ class ApiUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
                 if spec == '3':
                     path = openapi.get_path(
                         operation_info,
@@ -85,7 +85,7 @@ class ApiUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
 
                 path_list.append(path)
             continue

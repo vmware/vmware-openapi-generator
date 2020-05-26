@@ -13,21 +13,20 @@ class RestOpenapiParaHandler():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering):
+            show_unreleased_apis):
         """
         Converts metamodel fieldinfo to swagger parameter.
         """
         parameter_obj = {}
         ref_path = "#/components/schemas/"
-        tpHandler = RestTypeHandler()
+        tpHandler = RestTypeHandler(show_unreleased_apis)
         tpHandler.visit_type_category(
             input_parameter_obj.type,
             parameter_obj,
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering)
+            ref_path)
         if 'required' not in parameter_obj:
             parameter_obj['required'] = True
         parameter_obj['in'] = param_type
@@ -62,7 +61,7 @@ class RestOpenapiParaHandler():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering):
+            show_unreleased_apis):
         """
         Creates a  json object wrapper around request body parameters. parameter names are used as keys and the
         parameters as values.
@@ -81,7 +80,7 @@ class RestOpenapiParaHandler():
         body_obj['properties'] = properties_obj
         required = []
         ref_path = "#/components/schemas/"
-        tpHandler = RestTypeHandler()
+        tpHandler = RestTypeHandler(show_unreleased_apis)
         for param in body_param_list:
             parameter_obj = {}
             tpHandler.visit_type_category(
@@ -90,8 +89,7 @@ class RestOpenapiParaHandler():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
             parameter_obj['description'] = param.documentation
             properties_obj[param.name] = parameter_obj
             if 'required' not in parameter_obj:
@@ -121,7 +119,7 @@ class RestOpenapiParaHandler():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering):
+            show_unreleased_apis):
         """
         Flattens query parameters specs.
         1. Create a query parameter for every field in spec.
@@ -158,15 +156,14 @@ class RestOpenapiParaHandler():
         prop_array = []
         parameter_obj = {}
         ref_path = "#/components/schemas/"
-        tpHandler = RestTypeHandler()
+        tpHandler = RestTypeHandler(show_unreleased_apis)
         tpHandler.visit_type_category(
             query_param_info.type,
             parameter_obj,
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering)
+            ref_path)
         if '$ref' in parameter_obj:
             reference = parameter_obj['$ref'].replace(ref_path, '')
             type_ref = type_dict.get(reference, None)

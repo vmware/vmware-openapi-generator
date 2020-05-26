@@ -407,37 +407,32 @@ class TestUtils(unittest.TestCase):
         ServiceInfoMock = mock.Mock()
         ServiceInfoMock.metadata = { 'TechPreview' : {} }
         
-        #case 1: enable filtering is False
+        #case 1: non-empty metadata
         bool_value_expected = False
-        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, False)
+        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata)
         self.assertEqual(bool_value_expected, bool_value_actual)
 
-        #case 2: enable filtering True
-        bool_value_expected = False
-        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, True)
-        self.assertEqual(bool_value_expected, bool_value_actual)
-
-        #case 3: metadata is empty
+        #case 2: metadata is empty
         ServiceInfoMock.metadata = {}
         bool_value_expected = False
-        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, True)
+        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata)
         self.assertEqual(bool_value_expected, bool_value_actual)
        
-        #case 4: enable filtering is True and metadata contains changing 
+        #case 3: metadata contains changing
         ServiceInfoMock.metadata = { 
                 'Changing' : {},
                 'Proposed' : {}
             }
         bool_value_expected = True
-        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, True)
+        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata)
         self.assertEqual(bool_value_expected, bool_value_actual)
 
-        # case 5: enable filtering is True and metadata does not contain 'TechPreview', 'Changing' or 'Proposed'
+        # case 4: metadata does not contain 'TechPreview', 'Changing' or 'Proposed'
         ServiceInfoMock.metadata = { 
                 'mock metadata key' : {}
             }
         bool_value_expected = False
-        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata, True)
+        bool_value_actual = utils.is_filtered(ServiceInfoMock.metadata)
         self.assertEqual(bool_value_expected, bool_value_actual)
     
     def test_tags_from_service_name(self):
@@ -1007,8 +1002,10 @@ class TestUrlProcessing(unittest.TestCase):
         self.assertEqual(type_dict, type_dict_expected)
 
 class TestTypeHandlerCommon(unittest.TestCase):
-
-    type_handler = TypeHandlerCommon()
+    # Showing unreleased apis (disabled filtering)
+    type_handler = TypeHandlerCommon(True)
+    # Not showing unreleased apis (enabled filtering)
+    type_handler_with_filtering = TypeHandlerCommon(False)
 
     def test_visit_builtin(self):
         # create property object with builtin type as 'Boolean'
@@ -1056,16 +1053,16 @@ class TestTypeHandlerCommon(unittest.TestCase):
         }
         '''
         enum_info_expected = enum_info_mock
-        enum_info_actual = self.type_handler.get_enum_info('com.vmware.package.mock', enum_dict, True)
+        enum_info_actual = self.type_handler_with_filtering.get_enum_info('com.vmware.package.mock', enum_dict)
         self.assertEqual(enum_info_expected, enum_info_actual)
         
         # case 1.2: metadata of enum info object is filtered
         enum_info_mock.metadata = {'Changing': {} }
-        enum_info_actual = self.type_handler.get_enum_info('com.vmware.package.mock', enum_dict, True)
+        enum_info_actual = self.type_handler_with_filtering.get_enum_info('com.vmware.package.mock', enum_dict)
         self.assertEqual(enum_info_actual, None)
 
         # case 2: type_name is not present in enum_dict
-        enum_info_actual = self.type_handler.get_enum_info('com.vmware.package.mock-1', enum_dict, True)
+        enum_info_actual = self.type_handler_with_filtering.get_enum_info('com.vmware.package.mock-1', enum_dict)
         self.assertEqual(enum_info_actual, None)
         
     def test_process_enum_info(self):
@@ -1096,7 +1093,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
                 'enum': ['enumMockValue-1']
             }
         }
-        self.type_handler.process_enum_info('com.vmware.package.mock', enum_info_mock, type_dict, True)
+        self.type_handler_with_filtering.process_enum_info('com.vmware.package.mock', enum_info_mock, type_dict)
         self.assertEqual(type_dict_expected, type_dict)
     
     def test_get_structure_info(self):
@@ -1123,17 +1120,17 @@ class TestTypeHandlerCommon(unittest.TestCase):
             )
         }
         '''
-        structure_info_actual = self.type_handler.get_structure_info('com.vmware.package.mock', structure_dict, True)
+        structure_info_actual = self.type_handler_with_filtering.get_structure_info('com.vmware.package.mock', structure_dict)
         structure_info_mock.fields = [field_info_mock_1] # modification after processing field info objects 
         self.assertEqual(structure_info_mock, structure_info_actual)
 
         # case 1.2: metadata of structure info object is filtered
         structure_info_mock.metadata = {'Changing' : {} }
-        structure_info_actual = self.type_handler.get_structure_info('com.vmware.package.mock', structure_dict, True)
+        structure_info_actual = self.type_handler_with_filtering.get_structure_info('com.vmware.package.mock', structure_dict)
         self.assertEqual(structure_info_actual, None)
 
         # case 2: type_name is not present in structure dict
-        structure_info_actual = self.type_handler.get_structure_info('com.vmware.package.mock-1', structure_dict, True)
+        structure_info_actual = self.type_handler_with_filtering.get_structure_info('com.vmware.package.mock-1', structure_dict)
         self.assertEqual(structure_info_actual, None)
     
     def test_process_structure_info(self):
@@ -1152,8 +1149,8 @@ class TestTypeHandlerCommon(unittest.TestCase):
         }
         enum_dict = {}
         type_dict = {}
-        self.type_handler.process_structure_info('com.vmware.package.mock', structure_info_mock, 
-                                             type_dict, structure_dict, enum_dict, '#/definitions/', True)
+        self.type_handler_with_filtering.process_structure_info('com.vmware.package.mock', structure_info_mock,
+                                             type_dict, structure_dict, enum_dict, '#/definitions/')
         type_dict_expected = {
             'com.vmware.package.mock': {
                 'type': 'object',
@@ -1190,7 +1187,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         }
         enum_dict = {}
         type_dict = {}
-        self.type_handler.check_type('com.vmware.vapi.structure', 'com.vmware.package.mock', type_dict, structure_dict, enum_dict, '#/definitions/', False)
+        self.type_handler.check_type('com.vmware.vapi.structure', 'com.vmware.package.mock', type_dict, structure_dict, enum_dict, '#/definitions/')
         type_dict_expected = {
             'com.vmware.package.mock': {
                 'type': 'object',
@@ -1220,7 +1217,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         }
         structure_dict = {}
         type_dict = {}
-        self.type_handler.check_type('com.vmware.vapi.enum-mock', 'com.vmware.package.mock', type_dict, structure_dict, enum_dict, '#/definitions/', False)
+        self.type_handler.check_type('com.vmware.vapi.enum-mock', 'com.vmware.package.mock', type_dict, structure_dict, enum_dict, '#/definitions/')
         type_dict_expected = {
             'com.vmware.package.mock': {
                 'type': 'string',
@@ -1235,7 +1232,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         user_defined_type_mock = mock.Mock()
         user_defined_type_mock.resource_id = None
         new_prop = {}
-        self.type_handler.visit_user_defined(user_defined_type_mock, new_prop, {}, {}, {}, '#/definitions/', False)
+        self.type_handler.visit_user_defined(user_defined_type_mock, new_prop, {}, {}, {}, '#/definitions/')
         new_prop_expected = {}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -1256,7 +1253,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
             'com.vmware.package.mock': structure_info_mock
         }
         new_prop = {'type': 'array'}
-        self.type_handler.visit_user_defined(user_defined_type_mock, new_prop, {}, structure_dict, {}, '#/definitions/', False)
+        self.type_handler.visit_user_defined(user_defined_type_mock, new_prop, {}, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 

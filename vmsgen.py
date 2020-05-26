@@ -35,7 +35,7 @@ MIXED = False
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED = connection.get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED = connection.get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -52,7 +52,7 @@ def main():
     session = requests.session()
     session.verify = False
     connector = get_requests_connector(session, url=metadata_api_url)
-    if not enable_filtering:
+    if show_unreleased_apis:
         connector.set_application_context(
             ApplicationContext({SHOW_UNRELEASED_APIS: "True"}))
     print('Connected to ' + metadata_api_url)
@@ -65,9 +65,10 @@ def main():
         service_urls_map,
         rest_navigation_url,
         GENERATE_METAMODEL)
-    if enable_filtering:
-        service_urls_map = dict_processing.get_service_urls_from_rest_navigation(
-            rest_navigation_url, verify)
+
+    # if show_unreleased_apis:
+    #     service_urls_map = dict_processing.get_service_urls_from_rest_navigation(
+    #         rest_navigation_url, verify)
 
     http_error_map = utils.HttpErrorMap(component_svc)
 
@@ -105,7 +106,7 @@ def main():
                 service_urls_map,
                 http_error_map,
                 rest_navigation_handler,
-                enable_filtering,
+                show_unreleased_apis,
                 SPECIFICATION,
                 GENERATE_UNIQUE_OP_IDS,
                 deprecation_handler))
@@ -125,7 +126,7 @@ def main():
                 service_dict,
                 service_urls_map,
                 http_error_map,
-                enable_filtering,
+                show_unreleased_apis,
                 SPECIFICATION,
                 GENERATE_UNIQUE_OP_IDS))
         worker.daemon = True

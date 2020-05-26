@@ -14,7 +14,7 @@ class RestMetamodel2Spec():
             enum_dict,
             operation_id,
             error_map,
-            enable_filtering):
+            show_unreleased_apis):
         pass
 
     def handle_request_mapping(
@@ -27,7 +27,7 @@ class RestMetamodel2Spec():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering,
+            show_unreleased_apis,
             spec):
         if method_type in ('post', 'put', 'patch'):
             return self.process_put_post_patch_request(
@@ -38,7 +38,7 @@ class RestMetamodel2Spec():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                enable_filtering,
+                show_unreleased_apis,
                 spec)
         if method_type == 'get':
             return self.process_get_request(
@@ -47,7 +47,7 @@ class RestMetamodel2Spec():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                enable_filtering,
+                show_unreleased_apis,
                 spec)
         if method_type == 'delete':
             return self.process_delete_request(
@@ -56,7 +56,7 @@ class RestMetamodel2Spec():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                enable_filtering,
+                show_unreleased_apis,
                 spec)
 
     def process_put_post_patch_request(
@@ -68,7 +68,7 @@ class RestMetamodel2Spec():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering,
+            show_unreleased_apis,
             spec):
         """
         Handles http post/put/patch request.
@@ -80,7 +80,7 @@ class RestMetamodel2Spec():
         par_array = []
         for field_info in path_param_list:
             parx = spec.convert_field_info_to_swagger_parameter(
-                'path', field_info, type_dict, structure_svc, enum_svc, enable_filtering)
+                'path', field_info, type_dict, structure_svc, enum_svc, show_unreleased_apis)
             par_array.append(parx)
 
         # Body
@@ -94,7 +94,7 @@ class RestMetamodel2Spec():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                enable_filtering)
+                show_unreleased_apis)
             if parx is not None:
                 par_array.append(parx)
 
@@ -107,7 +107,7 @@ class RestMetamodel2Spec():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering,
+            show_unreleased_apis,
             spec):
         param_array = []
         path_param_list, other_params_list, new_url = utils.extract_path_parameters(
@@ -115,7 +115,7 @@ class RestMetamodel2Spec():
 
         for field_info in path_param_list:
             parameter_obj = spec.convert_field_info_to_swagger_parameter(
-                'path', field_info, type_dict, structure_svc, enum_svc, enable_filtering)
+                'path', field_info, type_dict, structure_svc, enum_svc, show_unreleased_apis)
             param_array.append(parameter_obj)
 
         # process query parameters
@@ -124,7 +124,7 @@ class RestMetamodel2Spec():
             # handling of all the query parameters; filter as well as non
             # filter
             flattened_params = spec.flatten_query_param_spec(
-                field_info, type_dict, structure_svc, enum_svc, enable_filtering)
+                field_info, type_dict, structure_svc, enum_svc, show_unreleased_apis)
             if flattened_params is not None:
                 param_array = param_array + flattened_params
         return param_array, new_url
@@ -136,18 +136,18 @@ class RestMetamodel2Spec():
             type_dict,
             structure_svc,
             enum_svc,
-            enable_filtering,
+            show_unreleased_apis,
             spec):
         path_param_list, other_params, new_url = utils.extract_path_parameters(
             params, url)
         param_array = []
         for field_info in path_param_list:
             parx = spec.convert_field_info_to_swagger_parameter(
-                'path', field_info, type_dict, structure_svc, enum_svc, enable_filtering)
+                'path', field_info, type_dict, structure_svc, enum_svc, show_unreleased_apis)
             param_array.append(parx)
         for field_info in other_params:
             parx = spec.convert_field_info_to_swagger_parameter(
-                'query', field_info, type_dict, structure_svc, enum_svc, enable_filtering)
+                'query', field_info, type_dict, structure_svc, enum_svc, show_unreleased_apis)
             param_array.append(parx)
         return param_array, new_url
 

@@ -55,11 +55,14 @@ def get_input_params():
         help='Domain name or IP address (IPv4) of the host that serves the API. '
         'Default value is "<vcenter>"')
     parser.add_argument(
-        '-ef',
-        '--enablefiltering',
-        dest='filtering',
-        help='Filters internal and unreleased apis',
-        action='store_true')
+        '-su',
+        '--show-unreleased',
+        required=False,
+        nargs='?',
+        const=True,
+        default=False,
+        dest='show_unreleased_apis',
+        help='Includes internal and unreleased apis')
     parser.add_argument(
         '-oas',
         '--oas',
@@ -73,7 +76,6 @@ def get_input_params():
         const=True,
         default=False,
         help='api and rest rendering, with rest being deprecated')
-    parser.set_defaults(filtering=False)
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -103,8 +105,8 @@ def get_input_params():
     global TAG_SEPARATOR
     TAG_SEPARATOR = args.tag_separator
 
-    global enable_filtering
-    enable_filtering = args.filtering
+    global show_unreleased_apis
+    show_unreleased_apis = args.show_unreleased_apis
 
     global GENERATE_METAMODEL
     GENERATE_METAMODEL = args.metamodel_components
@@ -117,7 +119,7 @@ def get_input_params():
     global MIXED
     MIXED = args.mixed
 
-    return metadata_url, rest_navigation_url, output_dir, verify, enable_filtering, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED
+    return metadata_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED
 
 
 def get_component_service(connector):

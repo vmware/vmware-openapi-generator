@@ -47,9 +47,7 @@ def load_description():
     return desc
 
 
-def is_filtered(metadata, enable_filtering):
-    if not enable_filtering:
-        return False
+def is_filtered(metadata):
     if len(metadata) == 0:
         return False
     if 'TechPreview' in metadata:

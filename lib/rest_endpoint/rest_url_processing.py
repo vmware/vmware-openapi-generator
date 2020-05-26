@@ -29,7 +29,7 @@ class RestUrlProcessing(UrlProcessing):
             service_url_dict,
             http_error_map,
             rest_navigation_handler,
-            enable_filtering,
+            show_unreleased_apis,
             spec,
             gen_unique_op_id,
             deprecation_handler=None):
@@ -44,14 +44,14 @@ class RestUrlProcessing(UrlProcessing):
             service_info = service_dict.get(service_name, None)
             if service_info is None:
                 continue
-            if utils.is_filtered(service_info.metadata, enable_filtering):
+            if (not show_unreleased_apis) and utils.is_filtered(service_info.metadata):
                 continue
             if self.contains_rm_annotation(service_info):
                 for operation in service_info.operations.values():
                     url, method = self.find_url_method(operation)
                     operation_id = operation.name
                     op_metadata = service_info.operations[operation_id].metadata
-                    if utils.is_filtered(op_metadata, enable_filtering):
+                    if (not show_unreleased_apis) and utils.is_filtered(op_metadata):
                         continue
                     operation_info = service_info.operations.get(operation_id)
 
@@ -66,7 +66,7 @@ class RestUrlProcessing(UrlProcessing):
                             enum_dict,
                             operation_id,
                             http_error_map,
-                            enable_filtering)
+                            show_unreleased_apis)
                     if spec == '3':
                         path = openapi.get_path(
                             operation_info,
@@ -78,7 +78,7 @@ class RestUrlProcessing(UrlProcessing):
                             enum_dict,
                             operation_id,
                             http_error_map,
-                            enable_filtering)
+                            show_unreleased_apis)
 
                     if deprecation_handler is not None and service_end_point == "/mixed":
                         deprecation_handler.add_deprecation_information(path, package_name, service_name)
@@ -109,7 +109,7 @@ class RestUrlProcessing(UrlProcessing):
                 if operation_id not in service_info.operations:
                     continue
                 op_metadata = service_info.operations[operation_id].metadata
-                if utils.is_filtered(op_metadata, enable_filtering):
+                if (not show_unreleased_apis) and utils.is_filtered(op_metadata):
                     continue
                 url, method = self.find_url(service_operation['links'])
                 url = self.get_service_path_from_service_url(
@@ -127,7 +127,7 @@ class RestUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
                 if spec == '3':
                     path = openapi.get_path(
                         operation_info,
@@ -139,7 +139,7 @@ class RestUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
 
                 if deprecation_handler is not None and service_end_point == "/mixed":
                     deprecation_handler.add_deprecation_information(path, package_name, service_name)
