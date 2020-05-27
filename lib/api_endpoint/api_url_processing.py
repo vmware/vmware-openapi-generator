@@ -48,12 +48,9 @@ class ApiUrlProcessing(UrlProcessing):
                 continue
             for operation_id, operation_info in service_info.operations.items():
 
-                try:
-                    method, url = self.api_get_url_and_method(
-                        operation_info.metadata)
-                except TypeError as ex:
-                    eprint('Operation is not @VERB annotated %s - %s' % (operation_id, service_url))
-                    eprint(ex)
+                method, url = self.api_get_url_and_method(
+                    operation_info.metadata)
+                if method is None or url is None:
                     continue
 
                 # check for query parameters
@@ -113,3 +110,4 @@ class ApiUrlProcessing(UrlProcessing):
             if method in ['POST', 'GET', 'DELETE', 'PUT', 'PATCH']:
                 url_path = metadata[method].elements["path"].string_value
                 return method, url_path
+        return None, None

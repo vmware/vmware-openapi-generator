@@ -146,6 +146,16 @@ class TestApiUrlProcessing(unittest.TestCase):
         self.assertEqual(method_expected, method_actual)
         self.assertEqual(url_path_expected, url_path_actual)
 
+        # http operation inside metadata does not belong to put, post, patch, get or delete
+        metadata = {'RequestMapping': element_info_mock}
+        method_expected = None
+        url_path_expected = None
+        api_url_process = ApiUrlProcessing()
+        method_actual, url_path_actual = api_url_process.api_get_url_and_method(metadata)
+        self.assertEqual(method_expected, method_actual)
+        self.assertEqual(url_path_expected, url_path_actual)
+
+
 class TestApiMetamodel2Spec(unittest.TestCase):
 
     element_value_mock = mock.Mock()
