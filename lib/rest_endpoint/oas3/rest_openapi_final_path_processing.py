@@ -44,12 +44,10 @@ class RestOpenapiPathProcessing(PathProcessing):
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-        file_prefix = '/rest'
-
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            file_prefix +
+            'rest' +
             "_" +
             utils.remove_curly_braces(output_filename) +
             '.json',

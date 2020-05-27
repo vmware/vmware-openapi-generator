@@ -149,7 +149,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         '''
         path_list_expected = []
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
-        self.assertEqual(ServiceType.REST, service_type_actual)
+        self.assertEqual(ServiceType.SLASH_REST, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
         #case 2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys
@@ -185,7 +185,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         '''
         path_list_expected = ['mock_string_value']
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
-        self.assertEqual(ServiceType.API, service_type_actual)
+        self.assertEqual(ServiceType.SLASH_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
         # case 3: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
@@ -221,7 +221,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         '''
         path_list_expected = ['mock_string_value']
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True)
-        self.assertEqual(ServiceType.API, service_type_actual)
+        self.assertEqual(ServiceType.SLASH_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
         # case 3.1: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
@@ -259,12 +259,12 @@ class TestDictionaryProcessing(unittest.TestCase):
             }
         '''
         path_list_expected = ['mock_string_value']
-        replacement_map_expected = {service: {"mock-key-1": {"put": "mock_string_value"}}}
-        replacement_map_actual = {}
-        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True, replacement_map_actual)
-        self.assertEqual(ServiceType.DEPRECATED, service_type_actual)
+        replacement_dict_expected = {service: {"mock-key-1": ("put", "mock_string_value")}}
+        replacement_dict_actual = {}
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True, replacement_dict_actual)
+        self.assertEqual(ServiceType.SLASH_REST_AND_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
-        self.assertEqual(replacement_map_expected, replacement_map_actual)
+        self.assertEqual(replacement_dict_expected, replacement_dict_actual)
 
         # case 3.2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
         # and apparent in navigation service
@@ -301,17 +301,17 @@ class TestDictionaryProcessing(unittest.TestCase):
             }
         '''
         path_list_expected = ['mock_string_value']
-        replacement_map_expected = {service: {"mock-key-1": {"put": "mock_string_value"}}}
-        replacement_map_actual = {}
+        replacement_dict_expected = {service: {"mock-key-1": ("put", "mock_string_value")}}
+        replacement_dict_actual = {}
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
                                                                                            service_dict,
                                                                                            True,
-                                                                                           replacement_map_actual,
+                                                                                           replacement_dict_actual,
                                                                                            "sample_service_url",
                                                                                            rest_navigation_handler)
-        self.assertEqual(ServiceType.DEPRECATED, service_type_actual)
+        self.assertEqual(ServiceType.SLASH_REST_AND_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
-        self.assertEqual(replacement_map_expected, replacement_map_actual)
+        self.assertEqual(replacement_dict_expected, replacement_dict_actual)
 
 
     def test_add_service_urls_using_metamodel(self):

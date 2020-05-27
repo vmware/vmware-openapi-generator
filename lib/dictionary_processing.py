@@ -6,9 +6,9 @@ from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
 
 
 class ServiceType:
-    REST = 1
-    API = 2
-    DEPRECATED = 3
+    SLASH_REST = 1
+    SLASH_API = 2
+    SLASH_REST_AND_API = 3
 
 def populate_dicts(
         component_svc,
@@ -111,7 +111,7 @@ def add_service_urls_using_metamodel(
     It contains mappings to url paths, served as replacements. The structure of the map is the following: 
     service -> operation -> method -> raplacement path
     '''
-    replacement_map = {}
+    replacement_dict = {}
 
     rest_services = {}
     for k, v in service_urls_map.items():
@@ -120,8 +120,8 @@ def add_service_urls_using_metamodel(
         })
 
     for service in service_dict:
-        service_type, path_list = get_paths_inside_metamodel(service, service_dict, deprecate_rest, replacement_map, rest_services.get(service, None), rest_navigation_handler)
-        if (service_type == ServiceType.API or service_type == ServiceType.DEPRECATED) and not blacklist_utils.isBlacklistedForApi(service):
+        service_type, path_list = get_paths_inside_metamodel(service, service_dict, deprecate_rest, replacement_dict, rest_services.get(service, None), rest_navigation_handler)
+        if (service_type == ServiceType.SLASH_API or service_type == ServiceType.SLASH_REST_AND_API) and not blacklist_utils.isBlacklistedForApi(service):
             for path in path_list:
                 service_urls_map[path] = (service, '/api')
                 package_name = path.split('/')[1]
@@ -129,7 +129,7 @@ def add_service_urls_using_metamodel(
                 if pack_arr == []:
                     package_dict_api[package_name] = pack_arr
                 pack_arr.append(path)
-        elif service_type == ServiceType.REST and not blacklist_utils.isBlacklistedForRest(service):
+        elif service_type == ServiceType.SLASH_REST and not blacklist_utils.isBlacklistedForRest(service):
             service_url = rest_services.get(service, None)
             if service_url is not None:
                 service_path = get_service_path_from_service_url(
@@ -143,7 +143,7 @@ def add_service_urls_using_metamodel(
                     package_dict.setdefault(package, [service_path])
             else:
                 print("Service does not belong to either /api or /rest ", service)
-        if service_type == ServiceType.DEPRECATED and not blacklist_utils.isBlacklistedForRest(service):
+        if service_type == ServiceType.SLASH_REST_AND_API and not blacklist_utils.isBlacklistedForRest(service):
             service_url = rest_services.get(service, None)
             if service_url is not None:
                 service_path = get_service_path_from_service_url(
@@ -158,14 +158,14 @@ def add_service_urls_using_metamodel(
             else:
                 print("Service does not belong to either /api or /rest ", service)
     if deprecate_rest:
-        return package_dict_api, package_dict, package_dict_deprecated, replacement_map
+        return package_dict_api, package_dict, package_dict_deprecated, replacement_dict
 
     return package_dict_api, package_dict
 
 
 #TODO the overly complicated method below along with add_service_urls_using_metamodel should be refactored
 # They should be separated in different strategies, for each api type - /rest, /api and deprecated (/rest and /api)
-def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, replacement_map={}, service_url=None, rest_navigation_handler=None):
+def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, replacement_dict={}, service_url=None, rest_navigation_handler=None):
     path_list = set()
     is_rest_api_existing = False
     is_in_rest_navigation = False
@@ -188,21 +188,23 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
                     is_rest_navigation_checked = True
 
                 if is_rest_api_existing:
-                    add_replacement_path(service, operation_id, request.lower(), path, replacement_map)
+                    add_replacement_path(service, operation_id, request.lower(), path, replacement_dict)
 
     if path_list == set():
-        return ServiceType.REST, []
+        return ServiceType.SLASH_REST, []
 
     if is_rest_api_existing:
-        return ServiceType.DEPRECATED, sorted(list(path_list))
+        return ServiceType.SLASH_REST_AND_API, sorted(list(path_list))
 
-    return ServiceType.API, sorted(list(path_list))
+    return ServiceType.SLASH_API, sorted(list(path_list))
+
 
 def check_for_request_mapping_replacement(service, operation_id):
     # Check whether the service contains both @RequestMapping and @Verb annotations
     if 'RequestMapping' in service.operations[operation_id].metadata.keys():
         return True
     return False
+
 
 def check_for_rest_navigation_replacement(service_url, rest_navigation_handler):
     if service_url is not None and rest_navigation_handler is not None:
@@ -212,16 +214,16 @@ def check_for_rest_navigation_replacement(service_url, rest_navigation_handler):
             return True
     return False
 
+
 def get_service_path_from_service_url(service_url, base_url):
     if not service_url.startswith(base_url):
         return service_url
 
     return service_url[len(base_url):]
 
-def add_replacement_path(service, operation_id, method, path, replacement_map):
-    if service not in replacement_map:
-        replacement_map[service] = {operation_id: {method: path}}
-    elif operation_id not in replacement_map[service]:
-        replacement_map[service][operation_id] = {method: path}
+
+def add_replacement_path(service, operation_id, method, path, replacement_dict):
+    if service not in replacement_dict:
+        replacement_dict[service] = {operation_id: (method, path)}
     else:
-        replacement_map[service][operation_id][method] = path
+        replacement_dict[service][operation_id] = (method, path)

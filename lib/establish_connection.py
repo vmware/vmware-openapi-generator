@@ -76,7 +76,7 @@ def get_input_params():
         const=True,
         default=False,
         dest='deprecate_rest',
-        help='api and rest rendering, with rest being deprecated')
+        help='/api and /rest rendering - with /rest being deprecated')
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url

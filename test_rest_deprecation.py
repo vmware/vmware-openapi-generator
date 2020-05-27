@@ -11,8 +11,8 @@ class TestRestDeprecationHandler(unittest.TestCase):
     sample_operation = "list"
     sample_method = "get"
     sample_path = "/com/test/sample/list"
-    replacement_map = {sample_service: {sample_operation: {sample_method: sample_path}}}
-    rest_deprecation_handler = RestDeprecationHandler(replacement_map)
+    replacement_dict = {sample_service: {sample_operation: (sample_method, sample_path)}}
+    rest_deprecation_handler = RestDeprecationHandler(replacement_dict)
 
     def test_rest_deprecation(self):
         path_obj = {"operationId": self.sample_operation, "method": self.sample_method}

@@ -35,7 +35,16 @@ DEPRECATE_REST = False
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, DEPRECATE_REST = connection.get_input_params()
+    metadata_api_url, \
+    rest_navigation_url, \
+    output_dir, \
+    verify, \
+    show_unreleased_apis, \
+    GENERATE_METAMODEL, \
+    SPECIFICATION, \
+    GENERATE_UNIQUE_OP_IDS, \
+    TAG_SEPARATOR, \
+    DEPRECATE_REST = connection.get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -73,13 +82,13 @@ def main():
         # package_dict_api holds list of all service urls which come under /api
         # package_dict_deprecated holds a list of all service urls which come under /rest, but are
         # deprecated with /api
-        # replacement_map contains information about the deprecated /rest to /api mappings
-        package_dict_api, package_dict, package_dict_deprecated, replacement_map = dict_processing.add_service_urls_using_metamodel(
+        # replacement_dict contains information about the deprecated /rest to /api mappings
+        package_dict_api, package_dict, package_dict_deprecated, replacement_dict = dict_processing.add_service_urls_using_metamodel(
             service_urls_map, service_dict, rest_navigation_handler, DEPRECATE_REST)
 
         utils.combine_dicts_with_list_values(package_dict, package_dict_deprecated)
 
-        deprecation_handler = RestDeprecationHandler(replacement_map)
+        deprecation_handler = RestDeprecationHandler(replacement_dict)
     else:
         # package_dict_api holds list of all service urls which come under /api
         package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
