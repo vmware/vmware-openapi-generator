@@ -6,9 +6,9 @@ blacklist = {"rest": ['com.vmware.vcenter.vm.compute.policies',
              "api": []}
 
 
-def isBlacklistedForRest(service):
+def is_blacklisted_for_rest(service):
     return service in blacklist["rest"]
 
 
-def isBlacklistedForApi(service):
+def is_blacklisted_for_api(service):
     return service in blacklist["api"]
