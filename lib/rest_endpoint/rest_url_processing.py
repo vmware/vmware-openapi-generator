@@ -80,7 +80,7 @@ class RestUrlProcessing(UrlProcessing):
                             http_error_map,
                             show_unreleased_apis)
 
-                    if deprecation_handler is not None and service_end_point == "/mixed":
+                    if deprecation_handler is not None and service_end_point == "/deprecated":
                         deprecation_handler.add_deprecation_information(path, package_name, service_name)
                     path_list.append(path)
                 continue
@@ -141,7 +141,7 @@ class RestUrlProcessing(UrlProcessing):
                         http_error_map,
                         show_unreleased_apis)
 
-                if deprecation_handler is not None and service_end_point == "/mixed":
+                if deprecation_handler is not None and service_end_point == "/deprecated":
                     deprecation_handler.add_deprecation_information(path, package_name, service_name)
                 path_list.append(path)
         path_dict = self.convert_path_list_to_path_map(path_list)

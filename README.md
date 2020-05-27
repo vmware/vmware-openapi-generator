@@ -41,7 +41,7 @@ The description of the input parameters that can go in the run command is as fol
 8. **metamodel-components**: If this parameter is passed, then each metamodel component retreived from the vCenter server is saved in a different .json file under the metamodel directory.
 9. **host**: It is the IP Address of the host that serves the API. By default the value is < vcenter >
 10. **oas** : This parameter is used to specify as to which version of swagger file the user wants to generate. By default the generated files are of version 3 i.e openapi. If the user wants to generate the version 2 files, the parameter needs to be passed explicitly.
-11. **mixed** : This parameter is used to specify whether deprecated APIs are going to be generated. By default the generated files do not contain information regarding the deprecated "/rest" APIs. If the user wants that information to be apparent in the generated files, then the parameter needs to be passed.
+11. **deprecate-slash-rest** : This parameter is used to deprecate the /rest APIs in the generated OpenAPI specification, only when the API to deprecate has an /api counterpart.
 
 ## Contributing
 

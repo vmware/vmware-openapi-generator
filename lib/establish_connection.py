@@ -69,12 +69,13 @@ def get_input_params():
         default='3',
         help='opeanpi specification version')
     parser.add_argument(
-        '-mixed',
-        '--mixed',
+        '-dsr',
+        '--deprecate-slash-rest',
         required=False,
         nargs='?',
         const=True,
         default=False,
+        dest='deprecate_rest',
         help='api and rest rendering, with rest being deprecated')
     args = parser.parse_args()
     metadata_url = args.metadata_url
@@ -116,10 +117,10 @@ def get_input_params():
         raise Exception(" Input Valid Specification ")
     SPECIFICATION = args.oas
 
-    global MIXED
-    MIXED = args.mixed
+    global DEPRECATE_REST
+    DEPRECATE_REST = args.deprecate_rest
 
-    return metadata_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED
+    return metadata_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, DEPRECATE_REST
 
 
 def get_component_service(connector):

@@ -2,9 +2,7 @@ class RestDeprecationHandler:
 
     def __init__(self, replacement_map):
         '''
-        The replacement navigation map is used when MIXED specification is issued (@VERB + an old annotation standard)
-        It contains mappings to url paths, served as replacements. The structure of the map is the following:
-        service -> operation -> method -> raplacement path
+        service -> operation -> method -> raplacement path ; for deprecated /rest
         '''
         self.replacement_map = replacement_map
 

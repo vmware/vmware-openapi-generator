@@ -83,19 +83,19 @@ class TestInputs(unittest.TestCase):
             _, _, _, _, _, _, swagger_specification_actual, _, _, _, = connection.get_input_params()
         self.assertEqual(swagger_specification_expected, swagger_specification_actual)
 
-        # case 6.1: mixed option is TRUE
-        test_args = ['vmsgen', '-vc', 'v_url', '-k', '-mixed']
-        mixed_expected = True
+        # case 6.1: deprecated option is TRUE
+        test_args = ['vmsgen', '-vc', 'v_url', '-k', '-dsr']
+        deprecated_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, _, mixed_actual = connection.get_input_params()
-        self.assertEqual(mixed_expected, mixed_actual)
+            _, _, _, _, _, _, _, _, _, deprecated_actual = connection.get_input_params()
+        self.assertEqual(deprecated_expected, deprecated_actual)
 
-        # case 6.1: mixed option is FALSE
+        # case 6.1: deprecated option is FALSE
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
-        mixed_expected = False
+        deprecated_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, _, mixed_actual = connection.get_input_params()
-        self.assertEqual(mixed_expected, mixed_actual)
+            _, _, _, _, _, _, _, _, _, deprecated_actual = connection.get_input_params()
+        self.assertEqual(deprecated_expected, deprecated_actual)
 
 
 class TestDictionaryProcessing(unittest.TestCase):
@@ -188,7 +188,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual(ServiceType.API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
-        # case 3: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with mixed applied
+        # case 3: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
         element_value_mock = mock.Mock()
         element_value_mock.string_value = 'mock_string_value'
         element_info_mock = mock.Mock()
@@ -224,7 +224,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual(ServiceType.API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
-        # case 3.1: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with mixed applied
+        # case 3.1: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
         # and RequestMapping apparent in the metadata
         element_value_mock = mock.Mock()
         element_value_mock.string_value = 'mock_string_value'
@@ -262,11 +262,11 @@ class TestDictionaryProcessing(unittest.TestCase):
         replacement_map_expected = {service: {"mock-key-1": {"put": "mock_string_value"}}}
         replacement_map_actual = {}
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True, replacement_map_actual)
-        self.assertEqual(ServiceType.MIXED, service_type_actual)
+        self.assertEqual(ServiceType.DEPRECATED, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
         self.assertEqual(replacement_map_expected, replacement_map_actual)
 
-        # case 3.2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with mixed applied
+        # case 3.2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
         # and apparent in navigation service
         rest_navigation_handler = RestNavigationHandler("")
         rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
@@ -309,7 +309,7 @@ class TestDictionaryProcessing(unittest.TestCase):
                                                                                            replacement_map_actual,
                                                                                            "sample_service_url",
                                                                                            rest_navigation_handler)
-        self.assertEqual(ServiceType.MIXED, service_type_actual)
+        self.assertEqual(ServiceType.DEPRECATED, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
         self.assertEqual(replacement_map_expected, replacement_map_actual)
 
@@ -365,7 +365,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
 
-        #case 4: checking for deprecated
+        #case 4: checking for package_dict_deprecated{} and package_dict_api{}
         service_dict = {
             'com.vmware.vcenter.compute.policies.VM': service_info_mock
         }

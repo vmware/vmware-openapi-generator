@@ -27,15 +27,15 @@ warnings.filterwarnings("ignore")
 
 GENERATE_UNIQUE_OP_IDS = False
 GENERATE_METAMODEL = False
-API_SERVER_HOST = '<vcenter>'
+API_SERVER_HOST = ''
 TAG_SEPARATOR = '/'
 SPECIFICATION = '3'
-MIXED = False
+DEPRECATE_REST = False
 
 
 def main():
     # Get user input.
-    metadata_api_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, MIXED = connection.get_input_params()
+    metadata_api_url, rest_navigation_url, output_dir, verify, show_unreleased_apis, GENERATE_METAMODEL, SPECIFICATION, GENERATE_UNIQUE_OP_IDS, TAG_SEPARATOR, DEPRECATE_REST = connection.get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -66,20 +66,16 @@ def main():
         rest_navigation_url,
         GENERATE_METAMODEL)
 
-    # if show_unreleased_apis:
-    #     service_urls_map = dict_processing.get_service_urls_from_rest_navigation(
-    #         rest_navigation_url, verify)
-
     http_error_map = utils.HttpErrorMap(component_svc)
 
     deprecation_handler = None
-    if MIXED:
+    if DEPRECATE_REST:
         # package_dict_api holds list of all service urls which come under /api
         # package_dict_deprecated holds a list of all service urls which come under /rest, but are
         # deprecated with /api
         # replacement_map contains information about the deprecated /rest to /api mappings
         package_dict_api, package_dict, package_dict_deprecated, replacement_map = dict_processing.add_service_urls_using_metamodel(
-            service_urls_map, service_dict, rest_navigation_handler, MIXED)
+            service_urls_map, service_dict, rest_navigation_handler, DEPRECATE_REST)
 
         utils.combine_dicts_with_list_values(package_dict, package_dict_deprecated)
 
@@ -87,7 +83,7 @@ def main():
     else:
         # package_dict_api holds list of all service urls which come under /api
         package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
-            service_urls_map, service_dict, rest_navigation_handler, MIXED)
+            service_urls_map, service_dict, rest_navigation_handler, DEPRECATE_REST)
 
     rest = RestUrlProcessing()
     api = ApiUrlProcessing()
