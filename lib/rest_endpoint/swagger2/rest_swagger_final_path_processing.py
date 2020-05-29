@@ -35,6 +35,12 @@ class RestSwaggerPathProcessing(PathProcessing):
                 'basic_auth': {
                     'type': 'basic'}},
             'basePath': '/rest',
+            'produces': [
+                'application/json'
+            ],
+            "consumes": [
+                "application/json"
+            ],
             'tags': [],
             'schemes': [
                 'https',
@@ -52,7 +58,7 @@ class RestSwaggerPathProcessing(PathProcessing):
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            '/rest' +
+            'rest' +
             "_" +
             utils.remove_curly_braces(output_filename) +
             '.json',

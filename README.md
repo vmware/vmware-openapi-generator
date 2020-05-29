@@ -40,8 +40,8 @@ The description of the input parameters that can go in the run command is as fol
 7. **unique-operation-ids**: This parameter is passed to generate unique ids for all operation/functions. Default value of this parameter is false. A required semantic rule of the open api specification is that the operations should have a unique operation name even if they are under different paths. If this parameter is ignored the generated swagger file may throw semantic error if it fails the openapi validation.
 8. **metamodel-components**: If this parameter is passed, then each metamodel component retreived from the vCenter server is saved in a different .json file under the metamodel directory.
 9. **host**: It is the IP Address of the host that serves the API. By default the value is < vcenter >
-10. **enable-filtering**: It is used to filter out internal and unrealeased API's so that if service info of the API is still under modification, it is skipped for processing.
-11. **oas** : This parameter is used to specify as to which version of swagger file the user wants to generate. By default the generated files are of version 3 i.e openapi. If the user wants to generate the version 2 files, the parameter needs to be passed explicitly.
+10. **oas** : This parameter is used to specify as to which version of swagger file the user wants to generate. By default the generated files are of version 3 i.e openapi. If the user wants to generate the version 2 files, the parameter needs to be passed explicitly.
+11. **deprecate-slash-rest** : This parameter is used to deprecate the /rest APIs in the generated OpenAPI specification, only when the API to deprecate has an /api counterpart.
 
 ## Contributing
 

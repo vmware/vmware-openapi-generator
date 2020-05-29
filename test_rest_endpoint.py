@@ -7,8 +7,8 @@ from lib.rest_endpoint.swagger2.rest_swagger_parameter_handler import RestSwagge
 from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import RestOpenapiParaHandler
 
 class TestRestTypeHandler(unittest.TestCase):
-
-    rest_tphandler = RestTypeHandler()
+    # Showing unreleased apis (disabled filtering)
+    rest_tphandler = RestTypeHandler(True)
 
     def test_visit_generic(self):
         # case 1: when generic instantiation type is 'SET' and category is 'BUILT-IN'
@@ -45,7 +45,7 @@ class TestRestTypeHandler(unittest.TestCase):
         enum_dict = {}
         type_dict = {}
         new_prop = {}
-        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/')
         new_prop_expected = {'type': 'array', 'uniqueItems': True, 'items': {'type': 'date-time'}}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -54,7 +54,7 @@ class TestRestTypeHandler(unittest.TestCase):
         enum_dict = {}
         type_dict = {}
         new_prop = {}
-        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/')
         new_prop_expected = {'required': False, 'type': 'date-time'}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -80,7 +80,7 @@ class TestRestTypeHandler(unittest.TestCase):
         enum_dict = {}
         type_dict = {}
         new_prop = {}
-        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/')
         new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -111,7 +111,7 @@ class TestRestTypeHandler(unittest.TestCase):
         enum_dict = {}
         type_dict = {}
         new_prop = {}
-        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/')
         new_prop_expected = {
             'type': 'array', 
             'items': {
@@ -133,7 +133,7 @@ class TestRestTypeHandler(unittest.TestCase):
             'com.vmware.package.mock': {}
         }
         new_prop = {}
-        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/')
         new_prop_expected = {
             'type': 'array', 
             'items': {
@@ -157,7 +157,7 @@ class TestRestTypeHandler(unittest.TestCase):
         map_value_type_mock.category = 'GENERIC'
         map_value_type_mock.generic_instantiation = generic_instantiation_map_value_type_mock
         new_prop = {}
-        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/', False )
+        self.rest_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, enum_dict, '#/definitions/')
         new_prop_expected = {
             'type': 'array', 
             'items': {

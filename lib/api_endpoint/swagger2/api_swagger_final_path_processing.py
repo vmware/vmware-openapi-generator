@@ -35,6 +35,12 @@ class ApiSwaggerPathProcessing(PathProcessing):
                 'basic_auth': {
                     'type': 'basic'}},
             'basePath': '/api',
+            'produces': [
+                'application/json'
+            ],
+            "consumes": [
+                "application/json"
+            ],
             'tags': [],
             'schemes': [
                 'https',
@@ -52,7 +58,7 @@ class ApiSwaggerPathProcessing(PathProcessing):
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            '/api' +
+            'api' +
             "_" +
             utils.remove_curly_braces(output_filename) +
             '.json',
@@ -120,11 +126,13 @@ class ApiSwaggerPathProcessing(PathProcessing):
                     q_param = {
                         'name': key_value[0],
                         'in': 'query',
-                        'description': key_value[0] + '=' + key_value[1],
+                        'description': key_value[0],
                         'required': True,
-                        'type': 'string',
-                        'enum': [
-                            key_value[1]]}
+                        'type': 'string'}
+                    if len(key_value) == 2:
+                        q_param['description'] = key_value[0] + '=' + key_value[1]
+                        q_param['enum'] = [key_value[1]]
+
                     query_param.append(q_param)
 
                 if new_path in path_dict:

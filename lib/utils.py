@@ -47,9 +47,7 @@ def load_description():
     return desc
 
 
-def is_filtered(metadata, enable_filtering):
-    if not enable_filtering:
-        return False
+def is_filtered(metadata):
     if len(metadata) == 0:
         return False
     if 'TechPreview' in metadata:
@@ -57,6 +55,16 @@ def is_filtered(metadata, enable_filtering):
     if 'Changing' in metadata or 'Proposed' in metadata:
         return True
     return False
+
+
+def combine_dicts_with_list_values(extended, added):
+    for k, v in added.items():
+        list_to_extend = extended.get(k, None)
+        if list_to_extend is None:
+            extended[k] = v
+        else:
+            list_to_extend.extend(v)
+            extended[k] = list(set(list_to_extend))
 
 
 def extract_path_parameters(params, url):
@@ -136,10 +144,14 @@ def build_path(
         path_obj['parameters'] = parameters
     if responses is not None:
         path_obj['responses'] = responses
+
+    # TODO - currently 'consumes' and 'produces are global and hardcoded;
+    # Create a finer-grained approach, utilizing the checks below
     if consumes is not None:
         path_obj['consumes'] = consumes
     if produces is not None:
         path_obj['produces'] = produces
+
     if operation_id is not None:
         path_obj['operationId'] = operation_id
     return path_obj

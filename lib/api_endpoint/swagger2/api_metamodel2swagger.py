@@ -19,18 +19,16 @@ class ApiMetamodel2Swagger(ApiMetamodel2Spec):
             enum_dict,
             operation_id,
             http_error_map,
-            enable_filtering):
+            show_unreleased_apis):
         documentation = operation_info.documentation
         op_metadata = operation_info.metadata
         params = operation_info.params
         errors = operation_info.errors
         output = operation_info.output
         http_method = http_method.lower()
-        consumes_json = self.find_consumes(http_method)
-        produces = None
         par_array, url = self.handle_request_mapping(url, http_method, service_name,
                                                      operation_id, params, type_dict,
-                                                     structure_dict, enum_dict, enable_filtering, api_swagg_ph)
+                                                     structure_dict, enum_dict, show_unreleased_apis, api_swagg_ph)
         response_map = api_swagg_rh.populate_response_map(
             output,
             errors,
@@ -41,7 +39,7 @@ class ApiMetamodel2Swagger(ApiMetamodel2Spec):
             service_name,
             operation_id,
             op_metadata,
-            enable_filtering)
+            show_unreleased_apis)
 
         path_obj = utils.build_path(
             service_name,
@@ -50,20 +48,10 @@ class ApiMetamodel2Swagger(ApiMetamodel2Spec):
             documentation,
             par_array,
             operation_id=operation_id,
-            responses=response_map,
-            consumes=consumes_json,
-            produces=produces)
+            responses=response_map)
         self.post_process_path(path_obj)
         path = utils.add_basic_auth(path_obj)
         return path
-
-    def find_consumes(self, method_type):
-        """
-        Determine mediaType for input parameters in request body.
-        """
-        if method_type in ('get', 'delete'):
-            return None
-        return ['application/json']
 
     def post_process_path(self, path_obj):
         # Temporary fixes necessary for generated spec files.

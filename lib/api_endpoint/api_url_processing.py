@@ -1,4 +1,6 @@
 import os
+import threading
+
 import six
 from lib import utils
 from lib.url_processing import UrlProcessing
@@ -6,6 +8,7 @@ from .oas3.api_metamodel2openapi import ApiMetamodel2Openapi
 from .swagger2.api_metamodel2swagger import ApiMetamodel2Swagger
 from .oas3.api_openapi_final_path_processing import ApiOpenapiPathProcessing
 from .swagger2.api_swagger_final_path_processing import ApiSwaggerPathProcessing
+from ..utils import eprint
 
 api_openapi_fpp = ApiOpenapiPathProcessing()
 api_swagg_fpp = ApiSwaggerPathProcessing()
@@ -28,8 +31,7 @@ class ApiUrlProcessing(UrlProcessing):
             service_dict,
             service_url_dict,
             http_error_map,
-            rest_navigation_url,
-            enable_filtering,
+            show_unreleased_apis,
             spec,
             gen_unique_op_id):
 
@@ -42,11 +44,14 @@ class ApiUrlProcessing(UrlProcessing):
             service_info = service_dict.get(service_name, None)
             if service_info is None:
                 continue
-            if utils.is_filtered(service_info.metadata, enable_filtering):
+            if (not show_unreleased_apis) and utils.is_filtered(service_info.metadata):
                 continue
             for operation_id, operation_info in service_info.operations.items():
+
                 method, url = self.api_get_url_and_method(
                     operation_info.metadata)
+                if method is None or url is None:
+                    continue
 
                 # check for query parameters
                 if 'params' in operation_info.metadata[method].elements:
@@ -65,7 +70,7 @@ class ApiUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
                 if spec == '3':
                     path = openapi.get_path(
                         operation_info,
@@ -77,7 +82,7 @@ class ApiUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
 
                 path_list.append(path)
             continue
@@ -105,3 +110,4 @@ class ApiUrlProcessing(UrlProcessing):
             if method in ['POST', 'GET', 'DELETE', 'PUT', 'PATCH']:
                 url_path = metadata[method].elements["path"].string_value
                 return method, url_path
+        return None, None

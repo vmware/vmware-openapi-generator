@@ -2,6 +2,7 @@ import os
 import six
 from lib import utils
 from lib.url_processing import UrlProcessing
+from . import rest_deprecation_handler
 from .oas3.rest_metamodel2openapi import RestMetamodel2Openapi
 from .swagger2.rest_metamodel2swagger import RestMetamodel2Swagger
 from .oas3.rest_openapi_final_path_processing import RestOpenapiPathProcessing
@@ -27,28 +28,30 @@ class RestUrlProcessing(UrlProcessing):
             service_dict,
             service_url_dict,
             http_error_map,
-            rest_navigation_url,
-            enable_filtering,
+            rest_navigation_handler,
+            show_unreleased_apis,
             spec,
-            gen_unique_op_id):
+            gen_unique_op_id,
+            deprecation_handler=None):
 
         print('processing package ' + package_name + os.linesep)
         type_dict = {}
         path_list = []
+
         for service_url in service_urls:
             service_name, service_end_point = service_url_dict.get(
                 service_url, None)
             service_info = service_dict.get(service_name, None)
             if service_info is None:
                 continue
-            if utils.is_filtered(service_info.metadata, enable_filtering):
+            if (not show_unreleased_apis) and utils.is_filtered(service_info.metadata):
                 continue
             if self.contains_rm_annotation(service_info):
                 for operation in service_info.operations.values():
                     url, method = self.find_url_method(operation)
                     operation_id = operation.name
                     op_metadata = service_info.operations[operation_id].metadata
-                    if utils.is_filtered(op_metadata, enable_filtering):
+                    if (not show_unreleased_apis) and utils.is_filtered(op_metadata):
                         continue
                     operation_info = service_info.operations.get(operation_id)
 
@@ -63,7 +66,7 @@ class RestUrlProcessing(UrlProcessing):
                             enum_dict,
                             operation_id,
                             http_error_map,
-                            enable_filtering)
+                            show_unreleased_apis)
                     if spec == '3':
                         path = openapi.get_path(
                             operation_info,
@@ -75,14 +78,15 @@ class RestUrlProcessing(UrlProcessing):
                             enum_dict,
                             operation_id,
                             http_error_map,
-                            enable_filtering)
+                            show_unreleased_apis)
 
+                    if deprecation_handler is not None and service_end_point == "/deprecated":
+                        deprecation_handler.add_deprecation_information(path, package_name, service_name)
                     path_list.append(path)
                 continue
             # use rest navigation service to get the REST mappings for a
             # service.
-            service_operations = utils.get_json(
-                rest_navigation_url + service_url + '?~method=OPTIONS', False)
+            service_operations = rest_navigation_handler.get_service_operations(service_url)
             if service_operations is None:
                 continue
 
@@ -105,11 +109,11 @@ class RestUrlProcessing(UrlProcessing):
                 if operation_id not in service_info.operations:
                     continue
                 op_metadata = service_info.operations[operation_id].metadata
-                if utils.is_filtered(op_metadata, enable_filtering):
+                if (not show_unreleased_apis) and utils.is_filtered(op_metadata):
                     continue
                 url, method = self.find_url(service_operation['links'])
                 url = self.get_service_path_from_service_url(
-                    url, rest_navigation_url)
+                    url, rest_navigation_handler.get_rest_navigation_url())
                 operation_info = service_info.operations.get(operation_id)
 
                 if spec == '2':
@@ -123,7 +127,7 @@ class RestUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
                 if spec == '3':
                     path = openapi.get_path(
                         operation_info,
@@ -135,8 +139,10 @@ class RestUrlProcessing(UrlProcessing):
                         enum_dict,
                         operation_id,
                         http_error_map,
-                        enable_filtering)
+                        show_unreleased_apis)
 
+                if deprecation_handler is not None and service_end_point == "/deprecated":
+                    deprecation_handler.add_deprecation_information(path, package_name, service_name)
                 path_list.append(path)
         path_dict = self.convert_path_list_to_path_map(path_list)
         self.cleanup(path_dict=path_dict, type_dict=type_dict)

@@ -341,8 +341,42 @@ class TestApiSwaggerFinalPath(unittest.TestCase):
         }
         self.api_swagger_path.remove_query_params(path_dict)
         self.assertEqual(path_dict, path_dict_expected)
+
+        # case 2.2: only one of them as query parameter without specified enum value
+        path_dict = {
+            'mock/path1?action':{
+                'post':{
+                    'parameters' : []
+                }
+            },
+            'mock/path1':{
+                'get':{
+                    'parameters' : []
+                }
+            }
+        }
+        path_dict_expected = {
+            'mock/path1': {
+                'post': {
+                    'parameters': [
+                        {
+                            'name': 'action',
+                            'in': 'query',
+                            'description':'action',
+                            'required': True,
+                            'type': 'string'
+                        }
+                    ]
+                },
+                'get': {
+                    'parameters' : []
+                }
+            }
+        }
+        self.api_swagger_path.remove_query_params(path_dict)
+        self.assertEqual(path_dict, path_dict_expected)
     
-        # case 2.2: both of them have query parameter
+        # case 2.3: both of them have query parameter
         path_dict = {
             'mock/path1?action=mock_action_1':{
                 'post':{
@@ -400,19 +434,6 @@ class TestApiSwaggerFinalPath(unittest.TestCase):
 class TestApiMetamodel2Swagger(unittest.TestCase):
 
     api_meta2swagger = ApiMetamodel2Swagger()
-
-    def test_find_consumes(self):
-        # case 1: operation is get or delete
-        mock_method_type = 'get'
-        media_type_actual = self.api_meta2swagger.find_consumes(mock_method_type)
-        media_type_expected = None
-        self.assertEqual(media_type_expected, media_type_actual)
-
-        # case 2: operation is other than get or delete
-        mock_method_type = 'mock_operation'
-        media_type_actual = self.api_meta2swagger.find_consumes(mock_method_type)
-        media_type_expected = ['application/json']
-        self.assertEqual(media_type_expected, media_type_actual)
 
     def test_post_process_path(self):
         # case 1: adding header parameter in list of parameters 

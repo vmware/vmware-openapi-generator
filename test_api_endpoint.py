@@ -8,7 +8,8 @@ from lib.api_endpoint.oas3.api_openapi_parameter_handler import ApiOpenapiParaHa
 
 class TestApiTypeHandler(unittest.TestCase):
 
-    api_tphandler = ApiTypeHandler()
+    # Showing unreleased apis (disabled filtering)
+    api_tphandler = ApiTypeHandler(True)
 
     def test_visit_generic(self):
         # case 1: when generic instantiation type is 'SET' and category is 'BUILT-IN'
@@ -43,14 +44,14 @@ class TestApiTypeHandler(unittest.TestCase):
         }
         '''
         new_prop = {}
-        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/', False )
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'type': 'array', 'uniqueItems': True, 'items': {'type': 'date-time'}}
         self.assertEqual(new_prop_expected, new_prop)
 
         # case 2: when generic instantiation type is 'OPTIONAL' and category is 'BUILT-IN'
         generic_instantiation_mock.generic_type = 'OPTIONAL'
         new_prop = {}
-        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/', False )
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'required': False, 'type': 'date-time'}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -74,7 +75,7 @@ class TestApiTypeHandler(unittest.TestCase):
         }
         '''
         new_prop = {}
-        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/', False )
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -103,7 +104,7 @@ class TestApiTypeHandler(unittest.TestCase):
         }
         '''
         new_prop = {}
-        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/', False )
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'type': 'object', 'additionalProperties': {'type': 'integer'}}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -114,7 +115,7 @@ class TestApiTypeHandler(unittest.TestCase):
         'com.vmware.package.mock': {}
         }
         new_prop = {}
-        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/', False )
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -125,7 +126,7 @@ class TestApiTypeHandler(unittest.TestCase):
         map_value_type_mock.category = 'GENERIC'
         map_value_type_mock.generic_instantiation = generic_instantiation_map_value_type_mock
         new_prop = {}
-        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/', False )
+        self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/')
         new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/com.vmware.package.mock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
@@ -144,6 +145,16 @@ class TestApiUrlProcessing(unittest.TestCase):
         method_actual, url_path_actual = api_url_process.api_get_url_and_method(metadata)
         self.assertEqual(method_expected, method_actual)
         self.assertEqual(url_path_expected, url_path_actual)
+
+        # http operation inside metadata does not belong to put, post, patch, get or delete
+        metadata = {'RequestMapping': element_info_mock}
+        method_expected = None
+        url_path_expected = None
+        api_url_process = ApiUrlProcessing()
+        method_actual, url_path_actual = api_url_process.api_get_url_and_method(metadata)
+        self.assertEqual(method_expected, method_actual)
+        self.assertEqual(url_path_expected, url_path_actual)
+
 
 class TestApiMetamodel2Spec(unittest.TestCase):
 

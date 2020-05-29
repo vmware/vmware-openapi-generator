@@ -47,7 +47,7 @@ class RestOpenapiPathProcessing(PathProcessing):
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            '/rest' +
+            'rest' +
             "_" +
             utils.remove_curly_braces(output_filename) +
             '.json',

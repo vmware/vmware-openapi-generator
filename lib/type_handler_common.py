@@ -4,6 +4,9 @@ from lib import utils
 
 class TypeHandlerCommon():
 
+    def __init__(self, show_unreleased_apis):
+        self.show_unreleased_apis = show_unreleased_apis
+
     def visit_type_category(
             self,
             struct_type,
@@ -11,8 +14,7 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         if isinstance(struct_type, dict):
             return self.visit_type_category_dict(
                 struct_type,
@@ -20,8 +22,7 @@ class TypeHandlerCommon():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         if struct_type.category == 'BUILTIN':
             self.visit_builtin(struct_type.builtin_type, new_prop)
         elif struct_type.category == 'GENERIC':
@@ -31,8 +32,7 @@ class TypeHandlerCommon():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif struct_type.category == 'USER_DEFINED':
             self.visit_user_defined(
                 struct_type.user_defined_type,
@@ -40,8 +40,7 @@ class TypeHandlerCommon():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
 
     def visit_type_category_dict(
             self,
@@ -50,8 +49,7 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         new_prop['required'] = True
         if struct_type['category'] == 'BUILTIN':
             self.visit_builtin(struct_type['builtin_type'], new_prop)
@@ -62,8 +60,7 @@ class TypeHandlerCommon():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif struct_type['category'] == 'USER_DEFINED':
             self.visit_user_defined(
                 struct_type['user_defined_type'],
@@ -71,8 +68,7 @@ class TypeHandlerCommon():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
 
     def visit_builtin(self, builtin_type, new_prop):
         data_type, format_ = utils.metamodel_to_swagger_type_converter(
@@ -94,31 +90,34 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         pass
 
-    def get_structure_info(self, struct_type, structure_svc, enable_filtering):
-        """
-        Given a type, return its structure info, if the type is a structure.
-        """
+    def get_structure_info(self, struct_type, structure_svc):
+        if self.show_unreleased_apis:
+            return self.__get_structure_info(struct_type, structure_svc)
+        else:
+            return self.__get_structure_info_filtered(struct_type, structure_svc)
+
+    def __get_structure_info(self, struct_type, structure_svc):
         try:
             structure_info = structure_svc.get(struct_type)
             if structure_info is None:
                 utils.eprint(
                     "Could not fetch structure info for " +
                     struct_type)
-            elif utils.is_filtered(structure_info.metadata, enable_filtering):
-                return None
-            else:
-                structure_info.fields = [
-                    field for field in structure_info.fields if not utils.is_filtered(
-                        field.metadata, enable_filtering)]
-                return structure_info
+            return structure_info
         except Exception as ex:
             utils.eprint("Error fetching structure info for " + struct_type)
             utils.eprint(ex)
             return None
+
+    def __get_structure_info_filtered(self, struct_type, structure_svc):
+        structure_info = self.__get_structure_info(struct_type, structure_svc)
+        if structure_info is None or utils.is_filtered(structure_info.metadata):
+            return None
+        structure_info.fields = [field for field in structure_info.fields if not utils.is_filtered(field.metadata)]
+        return structure_info
 
     def process_structure_info(
             self,
@@ -127,8 +126,7 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         new_type = {'type': 'object', 'properties': {}}
         for field in structure_info.fields:
             newprop = {'description': field.documentation}
@@ -141,8 +139,7 @@ class TypeHandlerCommon():
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
             elif field.type.category == 'USER_DEFINED':
                 self.visit_user_defined(
                     field.type.user_defined_type,
@@ -150,8 +147,7 @@ class TypeHandlerCommon():
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
             new_type['properties'].setdefault(field.name, newprop)
         required = []
         for property_name, property_value in six.iteritems(
@@ -164,34 +160,40 @@ class TypeHandlerCommon():
             new_type['required'] = required
         type_dict[type_name] = new_type
 
-    def get_enum_info(self, type_name, enum_svc, enable_filtering):
-        """
-        Given a type, return its enum info, if the type is enum.
-        """
+    def get_enum_info(self, type_name, enum_svc):
+        if self.show_unreleased_apis:
+            return self.__get_enum_info(type_name, enum_svc)
+        else:
+            return self.__get_enum_info_filtered(type_name, enum_svc)
+
+    def __get_enum_info(self, type_name, enum_svc):
         try:
             enum_info = enum_svc.get(type_name)
             if enum_info is None:
                 utils.eprint("Could not fetch enum info for " + type_name)
-            elif utils.is_filtered(enum_info.metadata, enable_filtering):
-                return None
-            else:
-                return enum_info
+            return enum_info
         except Exception as exception:
             utils.eprint("Error fetching enum info for " + type_name)
             utils.eprint(exception)
             return None
 
+    def __get_enum_info_filtered(self, type_name, enum_svc):
+        enum_info = self.__get_enum_info(type_name, enum_svc)
+        if enum_info is None or utils.is_filtered(enum_info.metadata):
+            return None
+        return enum_info
+
     def process_enum_info(
             self,
             type_name,
             enum_info,
-            type_dict,
-            enable_filtering):
+            type_dict):
         enum_type = {'type': 'string', 'description': enum_info.documentation}
-        enum_type.setdefault(
-            'enum', [
-                value.value for value in enum_info.values if not utils.is_filtered(
-                    value.metadata, enable_filtering)])
+        if self.show_unreleased_apis:
+            enum_type.setdefault('enum',  [value.value for value in enum_info.values])
+        else:
+            enum_type.setdefault(
+                'enum', [value.value for value in enum_info.values if not utils.is_filtered(value.metadata)])
         type_dict[type_name] = enum_type
 
     def check_type(
@@ -201,13 +203,11 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         if type_name in type_dict or utils.is_type_builtin(type_name):
             return
         if resource_type == 'com.vmware.vapi.structure':
-            structure_info = self.get_structure_info(
-                type_name, structure_svc, enable_filtering)
+            structure_info = self.get_structure_info(type_name, structure_svc)
             if structure_info is not None:
                 # Mark it as visited to handle recursive definitions. (Type A
                 # referring to Type A in one of the fields).
@@ -218,17 +218,15 @@ class TypeHandlerCommon():
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
         else:
-            enum_info = self.get_enum_info(
-                type_name, enum_svc, enable_filtering)
+            enum_info = self.get_enum_info(type_name, enum_svc)
             if enum_info is not None:
                 # Mark it as visited to handle recursive definitions. (Type A
                 # referring to Type A in one of the fields).
                 type_dict[type_name] = {}
                 self.process_enum_info(
-                    type_name, enum_info, type_dict, enable_filtering)
+                    type_name, enum_info, type_dict)
 
     def visit_user_defined(
             self,
@@ -237,8 +235,7 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         if user_defined_type.resource_id is None:
             return
         if 'type' in newprop and newprop['type'] == 'array':
@@ -254,5 +251,4 @@ class TypeHandlerCommon():
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering)
+            ref_path)

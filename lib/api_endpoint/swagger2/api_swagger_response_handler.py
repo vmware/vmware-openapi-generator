@@ -16,21 +16,20 @@ class ApiSwaggerRespHandler():
             service_id,
             operation_id,
             op_metadata,
-            enable_filtering):
+            show_unreleased_apis):
 
         response_map = {}
         ref_path = "#/definitions/"
         success_response = {'description': output.documentation}
         schema = {}
-        tpHandler = ApiTypeHandler()
+        tpHandler = ApiTypeHandler(show_unreleased_apis)
         tpHandler.visit_type_category(
             output.type,
             schema,
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering)
+            ref_path)
         # if type of schema is void, don't include it.
         # this prevents showing response as void in swagger-ui
         if schema is not None:
@@ -54,8 +53,7 @@ class ApiSwaggerRespHandler():
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
             response_obj = {
                 'description': error.documentation, 'schema': {
                     '$ref': ref_path + error.structure_id}}

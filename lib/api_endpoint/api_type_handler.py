@@ -4,6 +4,9 @@ from lib.type_handler_common import TypeHandlerCommon
 
 class ApiTypeHandler(TypeHandlerCommon):
 
+    def __init__(self, show_unreleased_apis):
+        TypeHandlerCommon.__init__(self, show_unreleased_apis)
+
     def visit_generic(
             self,
             generic_instantiation,
@@ -11,8 +14,7 @@ class ApiTypeHandler(TypeHandlerCommon):
             type_dict,
             structure_svc,
             enum_svc,
-            ref_path,
-            enable_filtering):
+            ref_path):
         if generic_instantiation.generic_type == 'OPTIONAL':
             new_prop['required'] = False
             self.visit_type_category(
@@ -21,8 +23,7 @@ class ApiTypeHandler(TypeHandlerCommon):
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif generic_instantiation.generic_type == 'LIST':
             new_prop['type'] = 'array'
             self.visit_type_category(
@@ -31,8 +32,7 @@ class ApiTypeHandler(TypeHandlerCommon):
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif generic_instantiation.generic_type == 'SET':
             new_prop['type'] = 'array'
             new_prop['uniqueItems'] = True
@@ -42,8 +42,7 @@ class ApiTypeHandler(TypeHandlerCommon):
                 type_dict,
                 structure_svc,
                 enum_svc,
-                ref_path,
-                enable_filtering)
+                ref_path)
         elif generic_instantiation.generic_type == 'MAP':
             # Have static key/value pair object maping for /rest paths
             # while use additionalProperties for /api paths
@@ -60,8 +59,7 @@ class ApiTypeHandler(TypeHandlerCommon):
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
 
             elif generic_instantiation.map_value_type.category == 'BUILTIN':
                 new_type['additionalProperties'] = {
@@ -76,8 +74,7 @@ class ApiTypeHandler(TypeHandlerCommon):
                     type_dict,
                     structure_svc,
                     enum_svc,
-                    ref_path,
-                    enable_filtering)
+                    ref_path)
                 new_type['additionalProperties'] = temp_new_type
 
             new_prop.update(new_type)
