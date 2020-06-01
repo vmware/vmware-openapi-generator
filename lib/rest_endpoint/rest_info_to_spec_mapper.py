@@ -168,6 +168,8 @@ class RestInfoToSpecMapper(InfoToSpecMapper):
                 params = self.find_string_element_value(element_value)
         if params is not None:
             url = url + '?' + params
+
+        url = "/rest" + url
         return url, method
 
     def find_string_element_value(self, element_value):

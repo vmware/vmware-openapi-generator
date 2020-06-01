@@ -3,8 +3,9 @@ from unittest import mock
 from lib import utils
 from lib.api_endpoint.swagger2.api_swagger_parameter_handler import ApiSwaggerParaHandler
 from lib.api_endpoint.swagger2.api_swagger_response_handler import ApiSwaggerRespHandler
-from lib.api_endpoint.swagger2.api_swagger_final_path_processing import ApiSwaggerPathProcessing
 from lib.api_endpoint.swagger2.api_metamodel2swagger import ApiMetamodel2Swagger
+from lib.swagger_final_path_processing import SwaggerPathProcessing
+
 
 class TestApiSwaggerParaHandler(unittest.TestCase):
 
@@ -276,7 +277,7 @@ class TestApiSwaggerRespHandler(unittest.TestCase):
 
 class TestApiSwaggerFinalPath(unittest.TestCase):
     
-    api_swagger_path = ApiSwaggerPathProcessing()
+    api_swagger_path = SwaggerPathProcessing()
 
     def test_remove_query_params(self):
         # case 1: Absolute Duplicate paths, which will remain unchanged

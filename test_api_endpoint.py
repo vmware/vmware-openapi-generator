@@ -136,11 +136,11 @@ class TestApiUrlProcessing(unittest.TestCase):
         # http operation inside metadata belongs to put, post, patch, get or delete
         element_info_mock =  mock.Mock()
         element_value_mock = mock.Mock()
-        element_value_mock.string_value = 'some-url-path'
+        element_value_mock.string_value = '/some-url-path'
         element_info_mock.elements = { 'path': element_value_mock}
         metadata = {'POST': element_info_mock}
         method_expected = 'POST'
-        url_path_expected = 'some-url-path'
+        url_path_expected = '/api/some-url-path'
         api_url_process = ApiInfoToSpecMapper()
         method_actual, url_path_actual = api_url_process.api_get_url_and_method(metadata)
         self.assertEqual(method_expected, method_actual)

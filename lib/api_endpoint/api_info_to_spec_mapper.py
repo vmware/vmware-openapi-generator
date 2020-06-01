@@ -89,5 +89,6 @@ class ApiInfoToSpecMapper(InfoToSpecMapper):
         for method in metadata.keys():
             if method in ['POST', 'GET', 'DELETE', 'PUT', 'PATCH']:
                 url_path = metadata[method].elements["path"].string_value
+                url_path = "/api" + url_path
                 return method, url_path
         return None, None

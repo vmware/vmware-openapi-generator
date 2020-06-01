@@ -3,8 +3,9 @@ from unittest import mock
 from lib import utils
 from lib.api_endpoint.oas3.api_openapi_parameter_handler import ApiOpenapiParaHandler
 from lib.api_endpoint.oas3.api_openapi_response_handler import ApiOpenapiRespHandler
-from lib.api_endpoint.oas3.api_openapi_final_path_processing import ApiOpenapiPathProcessing
 from lib.api_endpoint.oas3.api_metamodel2openapi import ApiMetamodel2Openapi
+from lib.openapi_final_path_processing import OpenapiPathProcessing
+
 
 class TestApiOpenapiParaHandler(unittest.TestCase):
 
@@ -320,7 +321,7 @@ class TestApiOpenapiRespHandler(unittest.TestCase):
 
 class TestApiOpenapiPathProcessing(unittest.TestCase):
 
-    api_openapi_path = ApiOpenapiPathProcessing()
+    api_openapi_path = OpenapiPathProcessing()
 
     def test_remove_query_params(self):
         # case 1: Absolute Duplicate paths, which will remain unchanged

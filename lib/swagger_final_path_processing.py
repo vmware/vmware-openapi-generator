@@ -27,7 +27,7 @@ class SwaggerPathProcessing(PathProcessing):
         base_path = ''
         file_prefix = ''
         if prefix != '':
-            base_path = "/" + prefix
+            # base_path = "/" + prefix
             file_prefix = prefix + "_"
 
         swagger_template = {
