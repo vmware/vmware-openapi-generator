@@ -5,7 +5,7 @@ from lib import utils
 from lib.path_processing import PathProcessing
 
 
-class ApiOpenapiPathProcessing(PathProcessing):
+class OpenapiPathProcessing(PathProcessing):
 
     def __init__(self):
         pass
@@ -16,7 +16,8 @@ class ApiOpenapiPathProcessing(PathProcessing):
             type_dict,
             output_dir,
             output_filename,
-            gen_unique_op_id):
+            gen_unique_op_id,
+            prefix=''):
         reqBody = {}
         description_map = utils.load_description()
         self.remove_com_vmware_from_dict(path_dict)
@@ -28,17 +29,18 @@ class ApiOpenapiPathProcessing(PathProcessing):
             self.remove_com_vmware_from_dict(type_dict['requestBodies'])
             reqBody = collections.OrderedDict(
                 sorted(type_dict['requestBodies'].items()))
+
+        file_prefix = ''
+        if prefix != '':
+            file_prefix = prefix + "_"
+
         swagger_template = {
             'openapi': '3.0.0',
             'info': {
-                'description': description_map.get(
-                    output_filename,
-                    ''),
+                'description': description_map.get(output_filename, ''),
                 'title': utils.remove_curly_braces(output_filename),
                 'version': '2.0.0'},
-            'paths': collections.OrderedDict(
-                sorted(
-                    path_dict.items())),
+            'paths': collections.OrderedDict(sorted(path_dict.items())),
             'components': {
                 'requestBodies': reqBody}}
         if 'requestBodies' in type_dict:
@@ -52,8 +54,7 @@ class ApiOpenapiPathProcessing(PathProcessing):
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            'api' +
-            "_" +
+            file_prefix +
             utils.remove_curly_braces(output_filename) +
             '.json',
             swagger_template)

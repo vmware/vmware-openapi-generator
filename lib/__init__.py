@@ -1,2 +1,2 @@
-from .api_endpoint.api_url_processing import ApiUrlProcessing
-from .rest_endpoint.rest_url_processing import RestUrlProcessing
+from .api_endpoint.api_info_to_spec_mapper import ApiInfoToSpecMapper
+from .rest_endpoint.rest_info_to_spec_mapper import RestInfoToSpecMapper

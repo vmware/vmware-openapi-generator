@@ -7,7 +7,7 @@ from lib import dictionary_processing as dict_processing
 from lib.dictionary_processing import ServiceType
 from lib.path_processing import PathProcessing
 from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
-from lib.url_processing import UrlProcessing
+from lib.info_to_spec_mapper import InfoToSpecMapper
 from lib.type_handler_common import TypeHandlerCommon
 
 class TestInputs(unittest.TestCase):
@@ -879,7 +879,7 @@ class TestPathProcessing(unittest.TestCase):
         
 class TestUrlProcessing(unittest.TestCase):
 
-    url_process = UrlProcessing()
+    url_process = InfoToSpecMapper()
 
     def test_find_url(self):
         # case 1: if only one element is in the list return it

@@ -5,7 +5,7 @@ from lib import utils
 from lib.path_processing import PathProcessing
 
 
-class ApiSwaggerPathProcessing(PathProcessing):
+class SwaggerPathProcessing(PathProcessing):
     def __init__(self):
         pass
 
@@ -15,13 +15,21 @@ class ApiSwaggerPathProcessing(PathProcessing):
             type_dict,
             output_dir,
             output_filename,
-            gen_unique_op_id):
+            gen_unique_op_id,
+            prefix=''):
         description_map = utils.load_description()
         self.remove_com_vmware_from_dict(path_dict)
         if gen_unique_op_id:
             self.create_unique_op_ids(path_dict)
         self.remove_query_params(path_dict)
         self.remove_com_vmware_from_dict(type_dict)
+
+        base_path = ''
+        file_prefix = ''
+        if prefix != '':
+            base_path = "/" + prefix
+            file_prefix = prefix + "_"
+
         swagger_template = {
             'swagger': '2.0',
             'info': {
@@ -34,7 +42,7 @@ class ApiSwaggerPathProcessing(PathProcessing):
             'securityDefinitions': {
                 'basic_auth': {
                     'type': 'basic'}},
-            'basePath': '/api',
+            'basePath': base_path,
             'produces': [
                 'application/json'
             ],
@@ -58,8 +66,7 @@ class ApiSwaggerPathProcessing(PathProcessing):
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            'api' +
-            "_" +
+            file_prefix +
             utils.remove_curly_braces(output_filename) +
             '.json',
             swagger_template)

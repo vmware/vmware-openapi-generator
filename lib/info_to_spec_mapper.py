@@ -1,7 +1,7 @@
 import six
 import re
 
-class UrlProcessing():
+class InfoToSpecMapper():
 
     def __init__(self):
         pass

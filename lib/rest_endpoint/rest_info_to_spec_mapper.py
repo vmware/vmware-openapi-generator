@@ -1,28 +1,21 @@
 import os
-import six
 from lib import utils
-from lib.url_processing import UrlProcessing
-from . import rest_deprecation_handler
+from lib.info_to_spec_mapper import InfoToSpecMapper
 from .oas3.rest_metamodel2openapi import RestMetamodel2Openapi
 from .swagger2.rest_metamodel2swagger import RestMetamodel2Swagger
-from .oas3.rest_openapi_final_path_processing import RestOpenapiPathProcessing
-from .swagger2.rest_swagger_final_path_processing import RestSwaggerPathProcessing
 
 swagg = RestMetamodel2Swagger()
 openapi = RestMetamodel2Openapi()
-rest_openapi_fpp = RestOpenapiPathProcessing()
-rest_swagg_fpp = RestSwaggerPathProcessing()
 
 
-class RestUrlProcessing(UrlProcessing):
+class RestInfoToSpecMapper(InfoToSpecMapper):
     def __init__(self):
         pass
 
-    def process_service_urls(
+    def get_path_and_type_dicts(
             self,
             package_name,
             service_urls,
-            output_dir,
             structure_dict,
             enum_dict,
             service_dict,
@@ -31,7 +24,6 @@ class RestUrlProcessing(UrlProcessing):
             rest_navigation_handler,
             show_unreleased_apis,
             spec,
-            gen_unique_op_id,
             deprecation_handler=None):
 
         print('processing package ' + package_name + os.linesep)
@@ -146,20 +138,7 @@ class RestUrlProcessing(UrlProcessing):
                 path_list.append(path)
         path_dict = self.convert_path_list_to_path_map(path_list)
         self.cleanup(path_dict=path_dict, type_dict=type_dict)
-        if spec == '2':
-            rest_swagg_fpp.process_output(
-                path_dict,
-                type_dict,
-                output_dir,
-                package_name,
-                gen_unique_op_id)
-        if spec == '3':
-            rest_openapi_fpp.process_output(
-                path_dict,
-                type_dict,
-                output_dir,
-                package_name,
-                gen_unique_op_id)
+        return path_dict, type_dict
 
     def contains_rm_annotation(self, service_info):
         for operation in service_info.operations.values():
