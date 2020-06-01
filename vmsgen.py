@@ -14,13 +14,12 @@ from lib import utils
 from vmware.vapi.core import ApplicationContext
 from vmware.vapi.lib.constants import SHOW_UNRELEASED_APIS
 from vmware.vapi.lib.connect import get_requests_connector
-import os
 import timeit
 import warnings
 import requests
 import six
 
-from lib.find_output_handler import FileOutputHandler
+from lib.file_output_handler import FileOutputHandler
 from lib.rest_endpoint.rest_deprecation_handler import RestDeprecationHandler
 from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
 
@@ -139,27 +138,12 @@ def main():
                                   six.iteritems(api_package_future_dict)}
 
     file_handler = FileOutputHandler(rest_package_spec_dict,
-                                            api_package_spec_dict,
-                                            output_dir,
-                                            GENERATE_UNIQUE_OP_IDS,
-                                            SPECIFICATION)
+                                     api_package_spec_dict,
+                                     output_dir,
+                                     GENERATE_UNIQUE_OP_IDS,
+                                     SPECIFICATION)
     file_handler.output_files()
 
-    # api.json contains list of packages which is used by UI to dynamically
-    # populate dropdown.
-    api_files_list = []
-    for name in list(package_dict.keys()):
-        api_files_list.append("rest_" + name)
-
-    for name in list(package_dict_api.keys()):
-        api_files_list.append("api_" + name)
-
-    api_files = {'files': api_files_list}
-    utils.write_json_data_to_file(
-        output_dir +
-        os.path.sep +
-        'api.json',
-        api_files)
     stop = timeit.default_timer()
     print('Generated swagger files at ' + output_dir + ' for ' +
           metadata_api_url + ' in ' + str(stop - start) + ' seconds')
