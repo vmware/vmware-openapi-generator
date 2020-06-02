@@ -293,7 +293,7 @@ class TestRestOpenapiRespHandler(unittest.TestCase):
                 'description': 'mock output description',
                 'content': {
                     'application/json': {
-                        'schema': {'$ref': '#/components/schemas/mock-service-id.mock-operation-id_result'}
+                        'schema': {'$ref': '#/components/schemas/mock-service-id.mock-operation-id_resp'}
                     }
                 }  
             },

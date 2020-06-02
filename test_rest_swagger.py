@@ -266,7 +266,7 @@ class TestRestSwaggerRespHandler(unittest.TestCase):
         response_map_expected = {
             200: {
                 'description': 'mock output description',
-                'schema': {'$ref': '#/definitions/mock-service-id.mock-operation-id_result'}
+                'schema': {'$ref': '#/definitions/mock-service-id.mock-operation-id_resp'}
             },
             404: {
                 'description': 'mock error description',

@@ -50,7 +50,7 @@ class RestOpenapiRespHandler():
                 else:
                     type_name = service_id + '.' + operation_id
 
-                type_name = type_name + '_result'
+                type_name = type_name + '_resp'
 
                 if type_name not in type_dict:
                     type_dict[type_name] = resp
