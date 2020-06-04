@@ -164,48 +164,31 @@ class TestSpecificationDictsMerger(unittest.TestCase):
             },
             "/api/com/vmware/vcenter/ovf/export_flag": {}
         }
-        api_type_dict = dict(rest_type_dict)
+        api_type_dict = {"ComVmwareVcenterOvfImportFlag": {
+            "type": "object",
+            "properties": {
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/com.vmware.vcenter.ovf.import_flag.info"
+                    }
+                }
+            },
+            "required": [
+                "value"
+            ]
+        }}
 
         rest_spec = {"vcenter": (dict(rest_path_dict), dict(rest_type_dict)),
                      "appliance": ({}, {})}
         api_spec = {"vcenter": (dict(api_path_dict), dict(api_type_dict)),
                     "cis": ({}, {})}
-        deprecate_rest = False
 
-        # Use copies rather than references to the same dict
-        merger = SpecificationDictsMerger(dict(rest_spec), dict(api_spec), deprecate_rest)
+        merger = SpecificationDictsMerger(dict(rest_spec), dict(api_spec))
         merged = merger.merge_api_rest_dicts()
         self.assertTrue("vcenter" in merged and "cis" in merged and "appliance" in merged)
-        # 5 Paths should be apparent
         self.assertEqual(len(merged["vcenter"][0]), 5)
-        # Since deprecation is disabled, 1 type definition should be apparent
-        self.assertEqual(len(merged["vcenter"][1]), 1)
-
-        rest_spec = {"vcenter": (dict(rest_path_dict), dict(rest_type_dict)),
-                     "appliance": ({}, {})}
-        api_spec = {"vcenter": (dict(api_path_dict), dict(api_type_dict)),
-                    "cis": ({}, {})}
-        deprecate_rest = True
-        merger = SpecificationDictsMerger(dict(rest_spec), dict(api_spec), deprecate_rest)
-        merged = merger.merge_api_rest_dicts()
-        self.assertTrue("vcenter" in merged and "cis" in merged and "appliance" in merged)
-        # 5 Paths should be apparent
-        self.assertEqual(len(merged["vcenter"][0]), 5)
-        # Since deprecation is enabled, 2 type definition should be apparent
-        # TODO since deinitions are equal, they should NOT be duplicated
         self.assertEqual(len(merged["vcenter"][1]), 2)
-        self.assertTrue("com.vmware.vcenter.ovf.import_flag.list_resp" in merged["vcenter"][1]
-                        and "com.vmware.vcenter.ovf.import_flag.list_resp_deprecated" in merged["vcenter"][1])
-        # Assert all references to the deprecated definition are updated
-        resp_def_type = merged["vcenter"][0] \
-            .get("/rest/com/vmware/vcenter/ovf/import_flag") \
-            .get("get") \
-            .get("responses") \
-            .get(200) \
-            .get("schema") \
-            .get("$ref")
-        self.assertEqual(resp_def_type, "#/definitions/com.vmware.vcenter.ovf.import_flag.list_resp_deprecated")
-        # Assert reference to definition introduced from /api is not deprecated
         api_def_type = merged["vcenter"][0] \
             .get("/api/com/vmware/vcenter/ovf/import_flag") \
             .get("get") \

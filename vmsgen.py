@@ -141,8 +141,7 @@ def main():
                                      api_package_spec_dict,
                                      output_dir,
                                      GENERATE_UNIQUE_OP_IDS,
-                                     SPECIFICATION,
-                                     DEPRECATE_REST)
+                                     SPECIFICATION)
     file_handler.output_files()
 
     stop = timeit.default_timer()

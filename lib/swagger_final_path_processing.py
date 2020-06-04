@@ -18,11 +18,6 @@ class SwaggerPathProcessing(PathProcessing):
             gen_unique_op_id,
             prefix=''):
         description_map = utils.load_description()
-        self.remove_com_vmware_from_dict(path_dict)
-        if gen_unique_op_id:
-            self.create_unique_op_ids(path_dict)
-        self.remove_query_params(path_dict)
-        self.remove_com_vmware_from_dict(type_dict)
 
         base_path = ''
         file_prefix = ''

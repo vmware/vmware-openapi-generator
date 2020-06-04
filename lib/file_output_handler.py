@@ -9,47 +9,49 @@ from lib.swagger_final_path_processing import SwaggerPathProcessing
 
 class FileOutputHandler:
 
-    swagg = SwaggerPathProcessing()
-    openapi = OpenapiPathProcessing()
-
     def __init__(self,
                  rest_package_spec_dict,
                  api_package_spec_dict,
                  output_dir,
                  gen_unique_op_id,
                  spec,
-                 deprecate_rest,
                  split_api_rest=False):
         self.rest_package_spec_dict = rest_package_spec_dict
         self.api_package_spec_dict = api_package_spec_dict
         self.output_dir = output_dir
         self.gen_unique_op_id = gen_unique_op_id
-        self.spec = spec
-        self.deprecate_rest = deprecate_rest
         self.split_api_rest = split_api_rest
 
+        if spec == '2':
+            self.processor = SwaggerPathProcessing()
+        else:
+            self.processor = OpenapiPathProcessing()
+
+        for package, path_type_tuple in six.iteritems(self.rest_package_spec_dict):
+            self.__preprocess_dict(path_type_tuple[0], path_type_tuple[1])
+        for package, path_type_tuple in six.iteritems(self.api_package_spec_dict):
+            self.__preprocess_dict(path_type_tuple[0], path_type_tuple[1], True)
+
+    def __preprocess_dict(self, path_dict, type_dict, add_camel_case=False):
+        processor = self.processor
+        processor.remove_com_vmware_from_dict(path_dict, 0, [], add_camel_case)
+        if self.gen_unique_op_id:
+            processor.create_unique_op_ids(path_dict)
+        processor.remove_query_params(path_dict)
+        processor.remove_com_vmware_from_dict(type_dict, 0, [], add_camel_case)
+
     def __output_spec(self, package_name, path_dict, type_dict, file_prefix=''):
-        if self.spec == '2':
-            self.swagg.process_output(
-                path_dict,
-                type_dict,
-                self.output_dir,
-                package_name,
-                self.gen_unique_op_id,
-                file_prefix)
-        if self.spec == '3':
-            self.openapi.process_output(
-                path_dict,
-                type_dict,
-                self.output_dir,
-                package_name,
-                self.gen_unique_op_id,
-                file_prefix)
+        self.processor.process_output(
+            path_dict,
+            type_dict,
+            self.output_dir,
+            package_name,
+            self.gen_unique_op_id,
+            file_prefix)
 
     def __produce_merged(self):
         merger = SpecificationDictsMerger(self.rest_package_spec_dict.copy(),
-                                          self.api_package_spec_dict.copy(),
-                                          self.deprecate_rest)
+                                          self.api_package_spec_dict.copy())
         merged_dict = merger.merge_api_rest_dicts()
         for package, path_type_tuple in six.iteritems(merged_dict):
             self.__output_spec(package, path_type_tuple[0], path_type_tuple[1])
@@ -95,17 +97,15 @@ class SpecificationDictsMerger:
 
     def __init__(self,
                  rest_package_spec_dict,
-                 api_package_spec_dict,
-                 deprecate_rest):
+                 api_package_spec_dict):
         self.rest_package_spec_dict = rest_package_spec_dict
         self.api_package_spec_dict = api_package_spec_dict
-        self.deprecate_rest = deprecate_rest
 
     def merge_api_rest_dicts(self):
         for package, path_type_tuple in six.iteritems(self.api_package_spec_dict):
             if package in self.rest_package_spec_dict:
                 # Transitive dependency between function calls
-                self.__merge_type_dicts(self.rest_package_spec_dict[package][1], path_type_tuple[1], package)
+                self.__merge_type_dicts(self.rest_package_spec_dict[package][1], path_type_tuple[1])
                 self.__merge_path_dicts(self.rest_package_spec_dict[package][0], path_type_tuple[0])
             else:
                 self.rest_package_spec_dict[package] = path_type_tuple
@@ -115,19 +115,9 @@ class SpecificationDictsMerger:
         # Since paths begin either with /api or /rest, no collisions are expected
         path_dict_extended.update(path_dict_added)
 
-    def __merge_type_dicts(self, type_dict_extended, type_dict_added, package):
-        for type_name, type_def in six.iteritems(type_dict_added):
-            if type_name in type_dict_extended and self.deprecate_rest:
-                if not self.__equal_types(type_dict_extended[type_name], type_def):
-                    # If there are discrepancies, preserve old def
-                    type_dict_extended[type_name + "_deprecated"] = type_dict_extended[type_name]
-                    # Substitute old refs with deprecated
-                    self.__update_rest_references(type_name + "_deprecated", type_name, package)
-            type_dict_extended[type_name] = type_def
-
-    def __equal_types(self, old_type, new_type):
-        #TODO deep compare dicts
-        return False
+    def __merge_type_dicts(self, type_dict_extended, type_dict_added):
+        # Since /api definitions are CamelCased, no collisions are expected
+        type_dict_extended.update(type_dict_added)
 
     def __update_rest_references(self, new_ref, old_ref, package):
         path_dict, type_dict = self.rest_package_spec_dict[package]
