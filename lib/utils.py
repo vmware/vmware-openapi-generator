@@ -3,6 +3,7 @@ import json
 import sys
 import re
 import six
+import re
 from six.moves import http_client
 TAG_SEPARATOR = '/'
 
@@ -46,6 +47,13 @@ def load_description():
         'appliance': 'The vCenter Server Appliance is a preconfigured Linux-based virtual machine'
         ' optimized for running vCenter Server and associated services.'}
     return desc
+
+
+def get_str_camel_case(string, *delimiters):
+    delimiter_regex = '\\' + '|\\'.join(delimiters)
+    words = [word[:1].upper() + word[1:] for word in re.split(delimiter_regex, string)]
+    return ''.join(words)
+
 
 
 def is_filtered(metadata):

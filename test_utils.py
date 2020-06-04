@@ -55,5 +55,18 @@ class TestUtils(unittest.TestCase):
         utils.recursive_ref_update(sample_dict, old, updated)
         self.assertEqual(sample_dict.get('get').get('parameters')[1].get('description'), updated)
 
+    def test_get_str_camel_case(self):
+        string = "vapi.std-localizable_message"
+        expected = "VapiStdLocalizableMessage"
+        self.assertEqual(expected, utils.get_str_camel_case(string, ".", "_", "-"))
+
+        string = 'com.vmware.package.mock-1'
+        expected = "ComVmwarePackageMock1"
+        self.assertEqual(expected, utils.get_str_camel_case(string, ".", "-", "_"))
+
+        string = "ComVmwarePackageMock1"
+        expected = "ComVmwarePackageMock1"
+        self.assertEqual(expected, utils.get_str_camel_case(string, ".", "-", "_"))
+
 if __name__ == '__main__':
     unittest.main()

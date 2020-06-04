@@ -1,4 +1,6 @@
 import six
+
+from lib import utils
 from lib.api_endpoint.api_type_handler import ApiTypeHandler
 
 
@@ -71,7 +73,7 @@ class ApiOpenapiParaHandler():
         """
         # todo:
         # not unique enough. make it unique
-        wrapper_name = service_name + '_' + operation_name
+        wrapper_name = utils.get_str_camel_case(service_name + '_' + operation_name,  ".", "-", "_")
         body_obj = {}
         properties_obj = {}
         required = []

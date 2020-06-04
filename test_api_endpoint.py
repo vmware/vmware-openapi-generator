@@ -69,14 +69,14 @@ class TestApiTypeHandler(unittest.TestCase):
                 name = 'fieldInfoMockName', documentation =  'fieldInfoMockDescription',
                 generic_instantiation = GenericInstantiation( generic_type = 'LIST',
                 element_type = Type( category = 'USER_DEFINED', user_defined_type = UserDefinedType(
-                    resource_type = 'com.vmware.vapi.structure', resource_id = 'com.vmware.package.mock'
+                    resource_type = 'com.vmware.vapi.structure', resource_id = 'ComVmwarePackageMock'
                 )))
             )])
         }
         '''
         new_prop = {}
         self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, {}, structure_dict, {}, '#/definitions/')
-        new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/com.vmware.package.mock'}}
+        new_prop_expected = {'type': 'array', 'items': {'$ref': '#/definitions/ComVmwarePackageMock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
         # case 4: when generic instantiation type is 'MAP'
@@ -116,7 +116,7 @@ class TestApiTypeHandler(unittest.TestCase):
         }
         new_prop = {}
         self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/')
-        new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/com.vmware.package.mock'}}
+        new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/ComVmwarePackageMock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
         # case 4.3: map key and value type is 'GENERIC'
@@ -127,7 +127,7 @@ class TestApiTypeHandler(unittest.TestCase):
         map_value_type_mock.generic_instantiation = generic_instantiation_map_value_type_mock
         new_prop = {}
         self.api_tphandler.visit_generic(generic_instantiation_mock, new_prop, type_dict, structure_dict, {}, '#/definitions/')
-        new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/com.vmware.package.mock'}}
+        new_prop_expected = {'type': 'object', 'additionalProperties': {'$ref': '#/definitions/ComVmwarePackageMock'}}
         self.assertEqual(new_prop_expected, new_prop)
 
 class TestApiUrlProcessing(unittest.TestCase):
@@ -195,6 +195,11 @@ class TestApiMetamodel2Spec(unittest.TestCase):
             'description' : 'mock description',
             'type': 'string',
             'enum' :['enum-1', 'enum-2']
+        },
+        'ComVmwarePackageMock': {
+            'description': 'mock description',
+            'type': 'string',
+            'enum': ['enum-1', 'enum-2']
         }
     }
     new_url_expected = '/package/mock-1/{mock_name_1}'
@@ -256,7 +261,7 @@ class TestApiMetamodel2Spec(unittest.TestCase):
             'in': 'body',
             'name': 'request_body',
             'schema': {
-                '$ref': '#/definitions/com.vmware.package.mock_mock_operation_name'
+                '$ref': '#/definitions/ComVmwarePackageMockMockOperationName'
             }
         },{
             'required': True,
@@ -292,7 +297,7 @@ class TestApiMetamodel2Spec(unittest.TestCase):
                 'type': 'string'
             }
         },
-        {'$ref': '#/components/requestBodies/com.vmware.package.mock_mock_operation_name'},
+        {'$ref': '#/components/requestBodies/ComVmwarePackageMockMockOperationName'},
         {
             'required': True,
             'in': 'query',

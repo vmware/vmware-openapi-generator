@@ -33,6 +33,10 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
             'com.vmware.package.mock' : { 
                 'description' : 'typeObjectMockDescription',
                 'type': 'MockType'
+            },
+            'ComVmwarePackageMock': {
+                'description': 'typeObjectMockDescription',
+                'type': 'MockType'
             }
         }
         
@@ -51,7 +55,8 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
     def test_wrap_body_params(self):
         # validate parameter object by creating json wrappers around body object 
         type_dict = {
-            'com.vmware.package.mock' : {}
+            'com.vmware.package.mock': {},
+            'ComVmwarePackageMock': {}
         }
         body_param_list = [self.field_info_mock]
         parameter_obj_actual = self.api_swagger_parahandler.wrap_body_params('com.vmware.package.mock', 'mockOperationName', 
@@ -60,7 +65,7 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
         parameter_obj_expected = {
             'in': 'body',
             'name': 'request_body',
-            'schema': {'$ref': '#/definitions/com.vmware.package.mock_mockOperationName'}
+            'schema': {'$ref': '#/definitions/ComVmwarePackageMockMockOperationName'}
         }
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
     
@@ -90,6 +95,21 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
             'com.vmware.package.mock.items': {
                 'type': 'string',
                 'description': 'some mock description'
+            },
+            'ComVmwarePackageMock': {  # type_ref
+                'properties': {
+                    'property-name': {  # property_value
+                        'type': 'array',
+                        'items': {
+                            '$ref': '#/definitions/com.vmware.package.mock.items'
+                        },
+                        'description': 'mock property description'
+                    }
+                }
+            },
+            'ComVmwarePackageMockItems': {
+                'type': 'string',
+                'description': 'some mock description'
             }
         }
         structure_dict = {}
@@ -109,7 +129,8 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
 
         # type reference dictionary is empty
         type_dict = {
-            'com.vmware.package.mock' : None
+            'com.vmware.package.mock' : None,
+            'ComVmwarePackageMock': None
         }
         par_array_actual = self.api_swagger_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
                                                                         structure_dict, self.enum_dict, False)
@@ -128,6 +149,21 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
                 'required': ['property-name-mock']
             },
             'com.vmware.package.mock.property': { #prop_obj
+                'type': 'object',
+                'enum': ['enum-value-1, enum-value-2'],
+                'description': 'mock property description'
+
+            },
+            'ComVmwarePackageMock': {  # type_ref
+                'properties': {
+                    'property-name': {  # property_value
+                        '$ref': '#/definitions/com.vmware.package.mock.property'
+                    },
+                    'property-name-mock': {}
+                },
+                'required': ['property-name-mock']
+            },
+            'ComVmwarePackageMockProperty': {  # prop_obj
                 'type': 'object',
                 'enum': ['enum-value-1, enum-value-2'],
                 'description': 'mock property description'
@@ -157,6 +193,11 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
         type_dict = {
             'com.vmware.package.mock' : {  #type_ref
                 'description' : 'mock description',
+                'type': 'string',
+                'enum': ['enum-1', 'enum-2']
+            },
+            'ComVmwarePackageMock': {  # type_ref
+                'description': 'mock description',
                 'type': 'string',
                 'enum': ['enum-1', 'enum-2']
             }
@@ -265,11 +306,11 @@ class TestApiSwaggerRespHandler(unittest.TestCase):
         response_map_expected = {
             404: {
                 'description': 'mock output description',
-                'schema': {'$ref': '#/definitions/com.vmware.package.mock'}
+                'schema': {'$ref': '#/definitions/ComVmwarePackageMock'}
             },
             500: {
                 'description': 'mock error description',
-                'schema': {'$ref': '#/definitions/com.vmware.vapi.std.errors.not_found'}
+                'schema': {'$ref': '#/definitions/ComVmwareVapiStdErrorsNotFound'}
             }
         }
         self.assertEqual(response_map_expected, response_map_actual)
