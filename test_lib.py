@@ -315,11 +315,11 @@ class TestDictionaryProcessing(unittest.TestCase):
 
 
     def test_add_service_urls_using_metamodel(self):
-        #case 1: checking for package_dict_api{}
-        service_urls_map = { 'https://vcip/rest/com/vmware/package/mock' : 'com.vmware.package.mock'}
+        # case 1: /api operation only
+        service_urls_map = {'https://vcip/rest/com/vmware/package/mock' : 'com.vmware.package.mock'}
         rest_navigation_url = 'https://vcip/rest'
         rest_navigation_handler = RestNavigationHandler(rest_navigation_url)
-        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
+        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value=None)
         element_value_mock = mock.Mock()
         element_value_mock.string_value = '/package/mock'
         element_info_mock = mock.Mock()
@@ -337,44 +337,129 @@ class TestDictionaryProcessing(unittest.TestCase):
         service_dict = {
             'com.vmware.package.mock': service_info_mock
         }
-        package_dict_api_expected = { 'package': ['/package/mock'] }
-        package_dict_api_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler)
+        # case 1.1: -dsr off
+        package_dict_api_expected = {'package': ['/package/mock']}
+        package_dict_api_actual, \
+        package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                      service_dict,
+                                                                                      rest_navigation_handler)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
-       
-        #case 2: checking for package_dict{}
-        service_urls_map = { 'https://vcip/rest/vmware/com/package/mock' : 'com.vmware.package.mock'}
-        element_value_mock.string_value = 'mock_string_value'
-        operation_info_mock.metadata = { 
-                            'mock_element_key' : element_info_mock
-                            }
-        package_dict_expected = {'package': ['/vmware/com/package/mock']}
-        _, package_dict_actual = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler)
+        self.assertEqual({}, package_dict_actual)
+
+        # case 1.2: -dsr on
+        package_dict_api_actual, \
+        package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                      service_dict,
+                                                                                      rest_navigation_handler,
+                                                                                      True)
+        self.assertEqual(package_dict_api_expected, package_dict_api_actual)
+        self.assertEqual({}, package_dict_actual)
+
+        # case 2: /api operation and /rest equivalent (RestNavigation)
+        # Rest navigation returns not None
+        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
+        # case 2.1: -dsr off
+        package_dict_api_actual, \
+        package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                      service_dict,
+                                                                                      rest_navigation_handler)
+        package_dict_expected = {'package': ['/com/vmware/package/mock']}
+        self.assertEqual({}, package_dict_api_actual)
         self.assertEqual(package_dict_expected, package_dict_actual)
 
-        #case 3: checking for package_dict_deprecated{}
-        service_urls_map = { 'https://vcip/rest/vmware/com/package/mock' : 'com.vmware.package.mock'}
+        # case 2.2 -dsr on
+        package_dict_api_actual, \
+        package_dict_actual, \
+        package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                              service_dict,
+                                                                                              rest_navigation_handler,
+                                                                                              True)
+        package_dict_expected = {'package': ['/com/vmware/package/mock']}
+        package_dict_api_expected = {'package': ['/package/mock']}
+        self.assertEqual(package_dict_api_expected, package_dict_api_actual)
+        self.assertEqual(package_dict_expected, package_dict_deprecated_actual)
+        self.assertEqual({}, package_dict_actual)
+
+        # case 3: /rest operation only
+        service_urls_map = {'https://vcip/rest/vmware/com/package/mock': 'com.vmware.package.mock'}
+        element_value_mock.string_value = 'mock_string_value'
+        operation_info_mock.metadata = {
+            'mock_element_key': element_info_mock
+        }
+        # case 3.1: -dsr off
+        package_dict_expected = {'package': ['/vmware/com/package/mock']}
+        _, package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                         service_dict,
+                                                                                         rest_navigation_handler)
+        # case 3.2: -dsr on
+        self.assertEqual(package_dict_expected, package_dict_actual)
+        _, package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                         service_dict,
+                                                                                         rest_navigation_handler,
+                                                                                         True)
+        self.assertEqual(package_dict_expected, package_dict_actual)
+
+        # case 4: /api operation and /rest equivalent (RequestMapping)
+        service_urls_map = {'https://vcip/rest/vmware/com/package/mock': 'com.vmware.package.mock'}
         element_value_mock.string_value = '/package/mock'
         operation_info_mock.metadata = {
-                            'put' : element_info_mock,
-                            'RequestMapping': {}
-                            }
+            'put': element_info_mock,
+            'RequestMapping': {}
+        }
+        package_dict_expected = {'package': ['/vmware/com/package/mock']}
+        # case 4.1: -dsr off
+        package_dict_api_actual, \
+        package_dict_actual, \
+        package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                              service_dict,
+                                                                                              rest_navigation_handler)
+
+        self.assertEqual({}, package_dict_deprecated_actual)
+        self.assertEqual({}, package_dict_api_actual)
+        self.assertEqual(package_dict_expected, package_dict_actual)
+
+        # case 4.2: -dsr on
         package_dict_deprecated_expected = {'package': ['/vmware/com/package/mock']}
         package_dict_api_expected = {'package': ['/package/mock']}
-        package_dict_api_actual, package_dict_actual, package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler, True)
+        package_dict_api_actual, \
+        package_dict_actual, \
+        package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                              service_dict,
+                                                                                              rest_navigation_handler,
+                                                                                              True)
 
         self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
+        self.assertEqual({}, package_dict_actual)
 
-        #case 4: checking for package_dict_deprecated{} and package_dict_api{}
-        service_dict = {
-            'com.vmware.vcenter.compute.policies.VM': service_info_mock
+        #case 5: checking for two operation - one with /api and /rest equivalet, other only /rest
+        operation_info_mock_second = mock.Mock()
+        operation_info_mock_second.metadata = {
+            'RequestMapping': {}
         }
-        package_dict_deprecated_expected = {}
-        package_dict_api_expected = {'package': ['/package/mock']}
-        package_dict_api_actual, package_dict_actual, package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,service_dict,rest_navigation_handler, True)
+        service_info_mock.operations['mock-key-2'] = operation_info_mock_second
 
+        # case 5.1: -dsr off
+        package_dict_api_actual, \
+        package_dict_actual, \
+        package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                              service_dict,
+                                                                                              rest_navigation_handler)
+        package_dict_expected = {'package': ['/vmware/com/package/mock']}
+        self.assertEqual(package_dict_expected, package_dict_actual)
+
+        # case 5.2: -dsr on
+        package_dict_deprecated_expected = {'package': ['/vmware/com/package/mock']}
+        package_dict_api_expected = {'package': ['/package/mock']}
+        package_dict_api_actual, \
+        package_dict_actual, \
+        package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                              service_dict,
+                                                                                              rest_navigation_handler,
+                                                                                              True)
         self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
+        self.assertEqual({}, package_dict_actual)
 
 
 

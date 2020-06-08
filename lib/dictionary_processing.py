@@ -162,10 +162,8 @@ def add_service_urls_using_metamodel(
                     package_dict_deprecated.setdefault(package, [service_path])
             else:
                 print("Service does not belong to either /api or /rest ", service)
-    if deprecate_rest:
-        return package_dict_api, package_dict, package_dict_deprecated, replacement_dict
 
-    return package_dict_api, package_dict
+    return package_dict_api, package_dict, package_dict_deprecated, replacement_dict
 
 
 #TODO the overly complicated method below along with add_service_urls_using_metamodel should be refactored
@@ -183,10 +181,11 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
                 path = service_dict[service].operations[operation_id].metadata[request].elements['path'].string_value
                 path_list.add(path)
 
-                if deprecate_rest and not is_in_rest_navigation:
+                # If already found in navigation, no need to check for request mapping
+                if not is_in_rest_navigation:
                     is_rest_api_existing = check_for_request_mapping_replacement(service_dict[service], operation_id)
 
-                if deprecate_rest and not is_rest_api_existing and not is_rest_navigation_checked:
+                if not is_rest_api_existing and not is_rest_navigation_checked:
                     is_rest_api_existing = check_for_rest_navigation_replacement(service_url, rest_navigation_handler)
                     # Add all operations and methods to replacements if it is apparent in rest_navigation
                     is_in_rest_navigation = is_rest_api_existing
@@ -194,6 +193,9 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
 
                 if is_rest_api_existing:
                     add_replacement_path(service, operation_id, request.lower(), path, replacement_dict)
+                    # If a newer version of the api is included - remove it unless deprecation is on
+                    if not deprecate_rest:
+                        path_list.remove(path)
 
     if path_list == set():
         return ServiceType.SLASH_REST, []
