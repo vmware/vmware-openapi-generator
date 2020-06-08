@@ -1,5 +1,7 @@
 import requests
 from six.moves import http_client
+
+from lib import utils
 from lib.api_endpoint.api_type_handler import ApiTypeHandler
 
 
@@ -56,7 +58,8 @@ class ApiSwaggerRespHandler():
                 ref_path)
             response_obj = {
                 'description': error.documentation, 'schema': {
-                    '$ref': ref_path + error.structure_id}}
+                    '$ref': ref_path + utils.get_str_camel_case(
+                      error.structure_id, *utils.CAMELCASE_SEPARATOR_LIST)}}
 
             response_map[status_code] = response_obj
         return response_map

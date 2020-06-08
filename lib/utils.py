@@ -1,10 +1,11 @@
 import requests
 import json
 import sys
+import six
 import re
 from six.moves import http_client
 TAG_SEPARATOR = '/'
-
+CAMELCASE_SEPARATOR_LIST = [".", "_"]
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -47,6 +48,13 @@ def load_description():
     return desc
 
 
+def get_str_camel_case(string, *delimiters):
+    delimiter_regex = '\\' + '|\\'.join(delimiters)
+    words = [word[:1].upper() + word[1:] for word in re.split(delimiter_regex, string)]
+    return ''.join(words)
+
+
+
 def is_filtered(metadata):
     if len(metadata) == 0:
         return False
@@ -55,6 +63,18 @@ def is_filtered(metadata):
     if 'Changing' in metadata or 'Proposed' in metadata:
         return True
     return False
+
+
+def recursive_ref_update(dict_obj, old, updated):
+    for k, v in six.iteritems(dict_obj):
+        if type(v) is str and v.endswith(old):
+            dict_obj[k] = v.replace(old, updated)
+        if type(v) is list:
+            for element in v:
+                if type(element) is dict:
+                    recursive_ref_update(element, old, updated)
+        if type(v) is dict:
+            recursive_ref_update(v, old, updated)
 
 
 def combine_dicts_with_list_values(extended, added):

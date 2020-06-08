@@ -1,7 +1,7 @@
 import six
 import re
 
-class UrlProcessing():
+class MetadataProcessor():
 
     def __init__(self):
         pass
@@ -40,8 +40,8 @@ class UrlProcessing():
 
     def get_service_path_from_service_url(self, service_url, base_url):
         if not service_url.startswith(base_url):
-            return service_url
-        return service_url[len(base_url):]
+            return "/rest" + service_url
+        return "/rest" + service_url[len(base_url):]
 
     def convert_path_list_to_path_map(self, path_list):
         """

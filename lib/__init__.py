@@ -1,2 +1,2 @@
-from .api_endpoint.api_url_processing import ApiUrlProcessing
-from .rest_endpoint.rest_url_processing import RestUrlProcessing
+from .api_endpoint.api_metadata_processor import ApiMetadataProcessor
+from .rest_endpoint.rest_metadata_processor import RestMetadataProcessor

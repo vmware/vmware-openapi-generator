@@ -3,8 +3,9 @@ from unittest import mock
 from lib import utils
 from lib.api_endpoint.oas3.api_openapi_parameter_handler import ApiOpenapiParaHandler
 from lib.api_endpoint.oas3.api_openapi_response_handler import ApiOpenapiRespHandler
-from lib.api_endpoint.oas3.api_openapi_final_path_processing import ApiOpenapiPathProcessing
 from lib.api_endpoint.oas3.api_metamodel2openapi import ApiMetamodel2Openapi
+from lib.openapi_final_path_processing import OpenapiPathProcessing
+
 
 class TestApiOpenapiParaHandler(unittest.TestCase):
 
@@ -37,8 +38,12 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
     def test_convert_field_info_to_swagger_parameter(self):
         # generic construction of parameter object (dictionary) using field info of path and query parameters
         type_dict = {
-            'com.vmware.package.mock-1' : { 
+            'com.vmware.package.mock-1' : {
                 'description' : 'Mock Description for Type Object',
+                'type': 'Mock-Type'
+            },
+            'ComVmwarePackageMock-1': {
+                'description': 'Mock Description for Type Object',
                 'type': 'Mock-Type'
             }
         }
@@ -57,30 +62,30 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
     def test_wrap_body_params(self):
         # validate parameter object by creating json wrappers around body object
         type_dict = {
-            'com.vmware.package.mock-1' : {}
+            'ComVmwarePackageMock-1' : {}
         }
         body_param_list = [self.field_info_mock]
         parameter_obj_actual = self.api_openapi_parahandler.wrap_body_params('com.vmware.package.mock-1', 'mockOperationName', 
                                                                         body_param_list, type_dict, self.structure_dict, 
                                                                         self.enum_dict, False)
-        parameter_obj_expected = {'$ref': '#/components/requestBodies/com.vmware.package.mock-1_mockOperationName'}
+        parameter_obj_expected = {'$ref': '#/components/requestBodies/ComVmwarePackageMock-1MockOperationName'}
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
         type_dict_expected = {
-            'com.vmware.package.mock-1': {},
+            'ComVmwarePackageMock-1': {},
             'requestBodies': {
-                'com.vmware.package.mock-1_mockOperationName':{
+                'ComVmwarePackageMock-1MockOperationName':{
                     'content':{
                         'application/json':{
                             'schema':{
-                                '$ref': '#/components/schemas/com.vmware.package.mock-1_mockOperationName'
+                                '$ref': '#/components/schemas/ComVmwarePackageMock-1MockOperationName'
                             }
                         }
                     }
                 }
             },
-            'com.vmware.package.mock-1_mockOperationName':{
+            'ComVmwarePackageMock-1MockOperationName':{
                 'required': False,
-                '$ref': '#/components/schemas/com.vmware.package.mock-1',
+                '$ref': '#/components/schemas/ComVmwarePackageMock-1',
                 'description': 'Mock Description for Field Info Object'
             }
         }
@@ -110,6 +115,21 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
                 }
             },
             'com.vmware.package.mock.items': {
+                'type': 'string',
+                'description': 'some mock description'
+            },
+            'ComVmwarePackageMock-1': {  # type_ref
+                'properties': {
+                    'property-name': {  # property_value
+                        'type': 'array',
+                        'items': {
+                            '$ref': '#/components/schemas/com.vmware.package.mock.items'
+                        },
+                        'description': 'mock property description'
+                    }
+                }
+            },
+            'ComVmwarePackageItems': {
                 'type': 'string',
                 'description': 'some mock description'
             }
@@ -157,6 +177,21 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
                 'enum': ['enum-value-1, enum-value-2'],
                 'description': 'mock property description'
 
+            },
+            'ComVmwarePackageMock-1' : {  #type_ref
+                'properties': {
+                    'property-name': {   #property_value
+                        '$ref': '#/components/schemas/com.vmware.package.mock.property'
+                    },
+                    'property-name-mock': {}
+                },
+                'required': ['property-name']
+            },
+            'ComVmwarePackageMockProperty': { #prop_obj
+                'type': 'object',
+                'enum': ['enum-value-1, enum-value-2'],
+                'description': 'mock property description'
+
             }
         }
         par_array_actual = self.api_openapi_parahandler.flatten_query_param_spec(query_info_mock, type_dict, 
@@ -185,6 +220,11 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
         type_dict = {
             'com.vmware.package.mock-1' : {  #type_ref
                 'description' : 'mock description',
+                'type': 'string',
+                'enum': ['enum-1', 'enum-2']
+            },
+            'ComVmwarePackageMock-1': {  # type_ref
+                'description': 'mock description',
                 'type': 'string',
                 'enum': ['enum-1', 'enum-2']
             }
@@ -247,13 +287,19 @@ class TestApiOpenapiRespHandler(unittest.TestCase):
         error_mock.documentation = 'mock error description'
         errors = [error_mock]
         type_dict = {
-                'com.vmware.vapi.std.errors.not_found' : {},
-                'com.vmware.package.mock' : { 
-                    'description' : 'mock description',
-                    'type': 'string',
-                    'enum': ['enum-1', 'enum-2']
-                }
+            'com.vmware.vapi.std.errors.not_found': {},
+            'com.vmware.package.mock': {
+                'description': 'mock description',
+                'type': 'string',
+                'enum': ['enum-1', 'enum-2']
+            },
+            'ComVmwareVapiStdErrorsNotFound': {},
+            'ComVmwarePackageMock': {
+                'description': 'mock description',
+                'type': 'string',
+                'enum': ['enum-1', 'enum-2']
             }
+        }
         '''
         Mock parameters : output and errors
         output( documentation = 'mock output description', 
@@ -300,7 +346,7 @@ class TestApiOpenapiRespHandler(unittest.TestCase):
                 'content':{
                     'application/json':{
                         'schema':{
-                            '$ref': '#/components/schemas/com.vmware.package.mock'
+                            '$ref': '#/components/schemas/ComVmwarePackageMock'
                         }
                     }
                 }
@@ -310,7 +356,7 @@ class TestApiOpenapiRespHandler(unittest.TestCase):
                 'content':{
                     'application/json':{
                         'schema':{
-                            '$ref': '#/components/schemas/com.vmware.vapi.std.errors.not_found'
+                            '$ref': '#/components/schemas/ComVmwareVapiStdErrorsNotFound'
                         }
                     }
                 }
@@ -320,7 +366,7 @@ class TestApiOpenapiRespHandler(unittest.TestCase):
 
 class TestApiOpenapiPathProcessing(unittest.TestCase):
 
-    api_openapi_path = ApiOpenapiPathProcessing()
+    api_openapi_path = OpenapiPathProcessing()
 
     def test_remove_query_params(self):
         # case 1: Absolute Duplicate paths, which will remain unchanged

@@ -3,37 +3,31 @@ import threading
 
 import six
 from lib import utils
-from lib.url_processing import UrlProcessing
+from lib.metadata_processor import MetadataProcessor
 from .oas3.api_metamodel2openapi import ApiMetamodel2Openapi
 from .swagger2.api_metamodel2swagger import ApiMetamodel2Swagger
-from .oas3.api_openapi_final_path_processing import ApiOpenapiPathProcessing
-from .swagger2.api_swagger_final_path_processing import ApiSwaggerPathProcessing
-from ..utils import eprint
 
-api_openapi_fpp = ApiOpenapiPathProcessing()
-api_swagg_fpp = ApiSwaggerPathProcessing()
+
 openapi = ApiMetamodel2Openapi()
 swagg = ApiMetamodel2Swagger()
 
 
-class ApiUrlProcessing(UrlProcessing):
+class ApiMetadataProcessor(MetadataProcessor):
 
     def __init__(self):
         pass
 
-    def process_service_urls(
+    def get_path_and_type_dicts(
             self,
             package_name,
             service_urls,
-            output_dir,
             structure_dict,
             enum_dict,
             service_dict,
             service_url_dict,
             http_error_map,
             show_unreleased_apis,
-            spec,
-            gen_unique_op_id):
+            spec):
 
         print('processing package ' + package_name + os.linesep)
         type_dict = {}
@@ -89,25 +83,12 @@ class ApiUrlProcessing(UrlProcessing):
 
         path_dict = self.convert_path_list_to_path_map(path_list)
         self.cleanup(path_dict=path_dict, type_dict=type_dict)
-
-        if spec == '2':
-            api_swagg_fpp.process_output(
-                path_dict,
-                type_dict,
-                output_dir,
-                package_name,
-                gen_unique_op_id)
-        if spec == '3':
-            api_openapi_fpp.process_output(
-                path_dict,
-                type_dict,
-                output_dir,
-                package_name,
-                gen_unique_op_id)
+        return path_dict, type_dict
 
     def api_get_url_and_method(self, metadata):
         for method in metadata.keys():
             if method in ['POST', 'GET', 'DELETE', 'PUT', 'PATCH']:
                 url_path = metadata[method].elements["path"].string_value
+                url_path = "/api" + url_path
                 return method, url_path
         return None, None

@@ -3,8 +3,9 @@ from unittest import mock
 from lib import utils
 from lib.rest_endpoint.swagger2.rest_swagger_parameter_handler import RestSwaggerParaHandler
 from lib.rest_endpoint.swagger2.rest_swagger_response_handler import RestSwaggerRespHandler
-from lib.rest_endpoint.swagger2.rest_swagger_final_path_processing import RestSwaggerPathProcessing
 from lib.rest_endpoint.swagger2.rest_metamodel2swagger import RestMetamodel2Swagger
+from lib.swagger_final_path_processing import SwaggerPathProcessing
+
 
 class TestRestSwaggerParaHandler(unittest.TestCase):
 
@@ -265,7 +266,7 @@ class TestRestSwaggerRespHandler(unittest.TestCase):
         response_map_expected = {
             200: {
                 'description': 'mock output description',
-                'schema': {'$ref': '#/definitions/mock-service-id.mock-operation-id_result'}
+                'schema': {'$ref': '#/definitions/mock-service-id.mock-operation-id_resp'}
             },
             404: {
                 'description': 'mock error description',
@@ -276,7 +277,7 @@ class TestRestSwaggerRespHandler(unittest.TestCase):
 
 class TestRestSwaggerFinalPath(unittest.TestCase):
     
-    rest_swagger_path = RestSwaggerPathProcessing()
+    rest_swagger_path = SwaggerPathProcessing()
 
     def test_remove_query_params(self):
         # case 1: Absolute Duplicate paths, which will remain unchanged

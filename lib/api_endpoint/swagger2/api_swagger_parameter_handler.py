@@ -67,7 +67,7 @@ class ApiSwaggerParaHandler():
         """
         # todo:
         # not unique enough. make it unique
-        wrapper_name = service_name + '_' + operation_name
+        wrapper_name = utils.get_str_camel_case(service_name + '_' + operation_name,  *utils.CAMELCASE_SEPARATOR_LIST)
         body_obj = {}
         properties_obj = {}
         required = []

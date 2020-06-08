@@ -5,8 +5,7 @@ from lib import utils
 from lib.path_processing import PathProcessing
 
 
-class ApiOpenapiPathProcessing(PathProcessing):
-
+class SwaggerPathProcessing(PathProcessing):
     def __init__(self):
         pass
 
@@ -16,35 +15,43 @@ class ApiOpenapiPathProcessing(PathProcessing):
             type_dict,
             output_dir,
             output_filename,
-            gen_unique_op_id):
-        reqBody = {}
+            gen_unique_op_id,
+            prefix=''):
         description_map = utils.load_description()
-        self.remove_com_vmware_from_dict(path_dict)
-        if gen_unique_op_id:
-            self.create_unique_op_ids(path_dict)
-        self.remove_query_params(path_dict)
-        self.remove_com_vmware_from_dict(type_dict)
-        if 'requestBodies' in type_dict:
-            self.remove_com_vmware_from_dict(type_dict['requestBodies'])
-            reqBody = collections.OrderedDict(
-                sorted(type_dict['requestBodies'].items()))
+
+        file_prefix = ''
+        if prefix != '':
+            file_prefix = prefix + "_"
+
         swagger_template = {
-            'openapi': '3.0.0',
+            'swagger': '2.0',
             'info': {
                 'description': description_map.get(
                     output_filename,
                     ''),
                 'title': utils.remove_curly_braces(output_filename),
                 'version': '2.0.0'},
+            'host': '<vcenter>',
+            'securityDefinitions': {
+                'basic_auth': {
+                    'type': 'basic'}},
+            'basePath': '',
+            'produces': [
+                'application/json'
+            ],
+            "consumes": [
+                "application/json"
+            ],
+            'tags': [],
+            'schemes': [
+                'https',
+                'http'],
             'paths': collections.OrderedDict(
                 sorted(
                     path_dict.items())),
-            'components': {
-                'requestBodies': reqBody}}
-        if 'requestBodies' in type_dict:
-            del type_dict['requestBodies']
-        swagger_template['components']['schemas'] = collections.OrderedDict(
-            sorted(type_dict.items()))
+            'definitions': collections.OrderedDict(
+                sorted(
+                    type_dict.items()))}
 
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
@@ -52,8 +59,7 @@ class ApiOpenapiPathProcessing(PathProcessing):
         utils.write_json_data_to_file(
             output_dir +
             os.path.sep +
-            'api' +
-            "_" +
+            file_prefix +
             utils.remove_curly_braces(output_filename) +
             '.json',
             swagger_template)
@@ -117,15 +123,16 @@ class ApiOpenapiPathProcessing(PathProcessing):
                 query_param = []
                 for query_parameter in paths_array[1].split('&'):
                     key_value = query_parameter.split('=')
-                    q_param = {'name': key_value[0],
-                               'in': 'query',
-                               'description': key_value[0],
-                               'required': True,
-                               'schema': {'type': 'string'}
-                               }
+                    q_param = {
+                        'name': key_value[0],
+                        'in': 'query',
+                        'description': key_value[0],
+                        'required': True,
+                        'type': 'string'}
                     if len(key_value) == 2:
                         q_param['description'] = key_value[0] + '=' + key_value[1]
-                        q_param['schema']['enum'] = [key_value[1]]
+                        q_param['enum'] = [key_value[1]]
+
                     query_param.append(q_param)
 
                 if new_path in path_dict:

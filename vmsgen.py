@@ -3,22 +3,23 @@ This script uses metamodel apis and rest navigation to generate openapi json fil
 for apis available on vcenter.
 '''
 from __future__ import print_function
-from lib import RestUrlProcessing
-from lib import ApiUrlProcessing
+
+from concurrent import futures
+
+from lib import RestMetadataProcessor
+from lib import ApiMetadataProcessor
 from lib import dictionary_processing as dict_processing
 from lib import establish_connection as connection
 from lib import utils
 from vmware.vapi.core import ApplicationContext
 from vmware.vapi.lib.constants import SHOW_UNRELEASED_APIS
 from vmware.vapi.lib.connect import get_requests_connector
-import os
-import sys
-import threading
 import timeit
 import warnings
 import requests
 import six
 
+from lib.file_output_handler import FileOutputHandler
 from lib.rest_endpoint.rest_deprecation_handler import RestDeprecationHandler
 from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
 
@@ -94,67 +95,55 @@ def main():
         package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
             service_urls_map, service_dict, rest_navigation_handler, DEPRECATE_REST)
 
-    rest = RestUrlProcessing()
-    api = ApiUrlProcessing()
+    rest = RestMetadataProcessor()
+    api = ApiMetadataProcessor()
 
-    threads = []
-    for package, service_urls in six.iteritems(package_dict):
-        worker = threading.Thread(
-            target=rest.process_service_urls,
-            args=(
-                package,
-                service_urls,
-                output_dir,
-                structure_dict,
-                enumeration_dict,
-                service_dict,
-                service_urls_map,
-                http_error_map,
-                rest_navigation_handler,
-                show_unreleased_apis,
-                SPECIFICATION,
-                GENERATE_UNIQUE_OP_IDS,
-                deprecation_handler))
-        worker.daemon = True
-        worker.start()
-        threads.append(worker)
+    rest_package_spec_dict = {}
+    api_package_spec_dict = {}
 
-    for package, service_urls in six.iteritems(package_dict_api):
-        worker = threading.Thread(
-            target=api.process_service_urls,
-            args=(
-                package,
-                service_urls,
-                output_dir,
-                structure_dict,
-                enumeration_dict,
-                service_dict,
-                service_urls_map,
-                http_error_map,
-                show_unreleased_apis,
-                SPECIFICATION,
-                GENERATE_UNIQUE_OP_IDS))
-        worker.daemon = True
-        worker.start()
-        threads.append(worker)
-    for worker in threads:
-        worker.join()
+    with futures.ThreadPoolExecutor() as executor:
+        rest_package_future_dict = {package: executor.submit(
+            rest.get_path_and_type_dicts,
+            package,
+            service_urls,
+            structure_dict,
+            enumeration_dict,
+            service_dict,
+            service_urls_map,
+            http_error_map,
+            rest_navigation_handler,
+            show_unreleased_apis,
+            SPECIFICATION,
+            deprecation_handler) for package, service_urls in
+            six.iteritems(package_dict)
+        }
 
-    # api.json contains list of packages which is used by UI to dynamically
-    # populate dropdown.
-    api_files_list = []
-    for name in list(package_dict.keys()):
-        api_files_list.append("rest_" + name)
+        api_package_future_dict = {package: executor.submit(
+            api.get_path_and_type_dicts,
+            package,
+            service_urls,
+            structure_dict,
+            enumeration_dict,
+            service_dict,
+            service_urls_map,
+            http_error_map,
+            show_unreleased_apis,
+            SPECIFICATION) for package, service_urls in
+            six.iteritems(package_dict_api)
+        }
 
-    for name in list(package_dict_api.keys()):
-        api_files_list.append("api_" + name)
+        rest_package_spec_dict = {package: future.result() for package, future in
+                                  six.iteritems(rest_package_future_dict)}
+        api_package_spec_dict = {package: future.result() for package, future in
+                                  six.iteritems(api_package_future_dict)}
 
-    api_files = {'files': api_files_list}
-    utils.write_json_data_to_file(
-        output_dir +
-        os.path.sep +
-        'api.json',
-        api_files)
+    file_handler = FileOutputHandler(rest_package_spec_dict,
+                                     api_package_spec_dict,
+                                     output_dir,
+                                     GENERATE_UNIQUE_OP_IDS,
+                                     SPECIFICATION)
+    file_handler.output_files()
+
     stop = timeit.default_timer()
     print('Generated swagger files at ' + output_dir + ' for ' +
           metadata_api_url + ' in ' + str(stop - start) + ' seconds')

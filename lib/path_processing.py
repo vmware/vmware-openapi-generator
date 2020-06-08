@@ -1,11 +1,13 @@
 import re
 
+from lib import utils
+
 
 class PathProcessing():
     def __init__(self):
         pass
 
-    def remove_com_vmware_from_dict(self, swagger_obj, depth=0, keys_list=[]):
+    def remove_com_vmware_from_dict(self, swagger_obj, depth=0, keys_list=[], add_camel_case=False):
         """
         The method
         1. removes 'com.vmware.' from model names
@@ -25,28 +27,33 @@ class PathProcessing():
             for key, item in swagger_obj.items():
                 if isinstance(item, str):
                     if key in ('$ref', 'summary', 'description'):
-                        item = item.replace('com.vmware.', '')
+                        item = item.replace('com.vmware.', '').replace('ComVmware', '')
                         if key == '$ref':
                             item = item.replace('$', '_')
+                            if add_camel_case:
+                                item = utils.get_str_camel_case(item, "_")
                         swagger_obj[key] = item
                 elif isinstance(item, list):
                     for itm in item:
                         self.remove_com_vmware_from_dict(
-                            itm, depth + 1, keys_list)
+                            itm, depth + 1, keys_list, add_camel_case)
                 elif isinstance(item, dict):
                     if depth == 0 and isinstance(key, str) and (
-                            key.startswith('com.vmware.') or '$' in key):
+                            key.startswith('com.vmware.') or
+                            key.startswith('ComVmware') or '$' in key):
                         keys_list.append(key)
                     self.remove_com_vmware_from_dict(
-                        item, depth + 1, keys_list)
+                        item, depth + 1, keys_list, add_camel_case)
         elif isinstance(swagger_obj, list):
             for itm in swagger_obj:
-                self.remove_com_vmware_from_dict(itm, depth + 1)
+                self.remove_com_vmware_from_dict(itm, depth + 1, add_camel_case)
         if depth == 0 and len(keys_list) > 0:
             while keys_list:
                 old_key = keys_list.pop()
-                new_key = old_key.replace('com.vmware.', '')
+                new_key = old_key.replace('com.vmware.', '').replace('ComVmware', '')
                 new_key = new_key.replace('$', '_')
+                if add_camel_case:
+                    new_key = utils.get_str_camel_case(new_key, "_")
                 try:
                     swagger_obj[new_key] = swagger_obj.pop(old_key)
                 except KeyError:

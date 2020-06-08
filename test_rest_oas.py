@@ -1,9 +1,9 @@
 import unittest
 from unittest import mock 
 from lib import utils
+from lib.openapi_final_path_processing import OpenapiPathProcessing
 from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import RestOpenapiParaHandler
 from lib.rest_endpoint.oas3.rest_openapi_response_handler import RestOpenapiRespHandler
-from lib.rest_endpoint.oas3.rest_openapi_final_path_processing import RestOpenapiPathProcessing
 from lib.rest_endpoint.oas3.rest_metamodel2openapi import RestMetamodel2Openapi
 
 class TestRestOpenapiParaHandler(unittest.TestCase):
@@ -293,7 +293,7 @@ class TestRestOpenapiRespHandler(unittest.TestCase):
                 'description': 'mock output description',
                 'content': {
                     'application/json': {
-                        'schema': {'$ref': '#/components/schemas/mock-service-id.mock-operation-id_result'}
+                        'schema': {'$ref': '#/components/schemas/mock-service-id.mock-operation-id_resp'}
                     }
                 }  
             },
@@ -310,7 +310,7 @@ class TestRestOpenapiRespHandler(unittest.TestCase):
 
 class TestRestOpenapiPathProcessing(unittest.TestCase):
 
-    rest_openapi_path = RestOpenapiPathProcessing()
+    rest_openapi_path = OpenapiPathProcessing()
 
     def test_remove_query_params(self):
         # case 1: Absolute Duplicate paths, which will remain unchanged

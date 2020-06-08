@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock 
 from lib.rest_endpoint.rest_type_handler import RestTypeHandler
-from lib.rest_endpoint.rest_url_processing import RestUrlProcessing
+from lib.rest_endpoint.rest_metadata_processor import RestMetadataProcessor
 from lib.rest_endpoint.rest_metamodel2spec import RestMetamodel2Spec
 from lib.rest_endpoint.swagger2.rest_swagger_parameter_handler import RestSwaggerParaHandler
 from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import RestOpenapiParaHandler
@@ -176,7 +176,7 @@ class TestRestTypeHandler(unittest.TestCase):
 
 class TestRestUrlProcessing(unittest.TestCase):
     
-    rest_url_process = RestUrlProcessing()
+    rest_url_process = RestMetadataProcessor()
 
     def test_contains_rm_annotation(self):
         # case 1: metadata of the service operation contains request mapping
@@ -217,7 +217,7 @@ class TestRestUrlProcessing(unittest.TestCase):
         operation_info_mock = mock.Mock()
         element_map_mock = mock.Mock()
         element_value_mock = mock.Mock()
-        element_value_mock.string_value = 'MockPathVariableName'
+        element_value_mock.string_value = '/MockPathVariableName'
         element_method_mock = mock.Mock()
         element_method_mock.string_value = 'MockMethodName'
         element_params_mock = mock.Mock()
@@ -229,7 +229,7 @@ class TestRestUrlProcessing(unittest.TestCase):
             'RequestMapping' : element_map_mock
         }
         url_expected, method_expected = self.rest_url_process.find_url_method(operation_info_mock)
-        url_actual = 'MockPathVariableName'
+        url_actual = '/rest/MockPathVariableName'
         method_actual = None
         self.assertEqual(url_expected, url_actual)
         self.assertEqual(method_expected, method_actual)
@@ -251,7 +251,7 @@ class TestRestUrlProcessing(unittest.TestCase):
         })
         '''
         url_expected, method_expected = self.rest_url_process.find_url_method(operation_info_mock)
-        url_actual = 'MockPathVariableName?MockParamsName'
+        url_actual = '/rest/MockPathVariableName?MockParamsName'
         method_actual = 'MockMethodName'
         self.assertEqual(url_expected, url_actual)
         self.assertEqual(method_expected, method_actual)
