@@ -1,7 +1,7 @@
 import six
 import re
 
-class InfoToSpecMapper():
+class MetadataProcessor():
 
     def __init__(self):
         pass

@@ -19,10 +19,8 @@ class SwaggerPathProcessing(PathProcessing):
             prefix=''):
         description_map = utils.load_description()
 
-        base_path = ''
         file_prefix = ''
         if prefix != '':
-            # base_path = "/" + prefix
             file_prefix = prefix + "_"
 
         swagger_template = {
@@ -37,7 +35,7 @@ class SwaggerPathProcessing(PathProcessing):
             'securityDefinitions': {
                 'basic_auth': {
                     'type': 'basic'}},
-            'basePath': base_path,
+            'basePath': '',
             'produces': [
                 'application/json'
             ],

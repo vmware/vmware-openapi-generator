@@ -1,6 +1,6 @@
 import os
 from lib import utils
-from lib.info_to_spec_mapper import InfoToSpecMapper
+from lib.metadata_processor import MetadataProcessor
 from .oas3.rest_metamodel2openapi import RestMetamodel2Openapi
 from .swagger2.rest_metamodel2swagger import RestMetamodel2Swagger
 
@@ -8,7 +8,7 @@ swagg = RestMetamodel2Swagger()
 openapi = RestMetamodel2Openapi()
 
 
-class RestInfoToSpecMapper(InfoToSpecMapper):
+class RestMetadataProcessor(MetadataProcessor):
     def __init__(self):
         pass
 

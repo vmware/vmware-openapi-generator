@@ -6,8 +6,8 @@ from __future__ import print_function
 
 from concurrent import futures
 
-from lib import RestInfoToSpecMapper
-from lib import ApiInfoToSpecMapper
+from lib import RestMetadataProcessor
+from lib import ApiMetadataProcessor
 from lib import dictionary_processing as dict_processing
 from lib import establish_connection as connection
 from lib import utils
@@ -95,8 +95,8 @@ def main():
         package_dict_api, package_dict = dict_processing.add_service_urls_using_metamodel(
             service_urls_map, service_dict, rest_navigation_handler, DEPRECATE_REST)
 
-    rest = RestInfoToSpecMapper()
-    api = ApiInfoToSpecMapper()
+    rest = RestMetadataProcessor()
+    api = ApiMetadataProcessor()
 
     rest_package_spec_dict = {}
     api_package_spec_dict = {}

@@ -3,7 +3,7 @@ import threading
 
 import six
 from lib import utils
-from lib.info_to_spec_mapper import InfoToSpecMapper
+from lib.metadata_processor import MetadataProcessor
 from .oas3.api_metamodel2openapi import ApiMetamodel2Openapi
 from .swagger2.api_metamodel2swagger import ApiMetamodel2Swagger
 
@@ -12,7 +12,7 @@ openapi = ApiMetamodel2Openapi()
 swagg = ApiMetamodel2Swagger()
 
 
-class ApiInfoToSpecMapper(InfoToSpecMapper):
+class ApiMetadataProcessor(MetadataProcessor):
 
     def __init__(self):
         pass

@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock 
 from lib.rest_endpoint.rest_type_handler import RestTypeHandler
-from lib.rest_endpoint.rest_info_to_spec_mapper import RestInfoToSpecMapper
+from lib.rest_endpoint.rest_metadata_processor import RestMetadataProcessor
 from lib.rest_endpoint.rest_metamodel2spec import RestMetamodel2Spec
 from lib.rest_endpoint.swagger2.rest_swagger_parameter_handler import RestSwaggerParaHandler
 from lib.rest_endpoint.oas3.rest_openapi_parameter_handler import RestOpenapiParaHandler
@@ -176,7 +176,7 @@ class TestRestTypeHandler(unittest.TestCase):
 
 class TestRestUrlProcessing(unittest.TestCase):
     
-    rest_url_process = RestInfoToSpecMapper()
+    rest_url_process = RestMetadataProcessor()
 
     def test_contains_rm_annotation(self):
         # case 1: metadata of the service operation contains request mapping

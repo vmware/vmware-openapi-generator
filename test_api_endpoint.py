@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock 
 from lib.api_endpoint.api_type_handler import ApiTypeHandler
-from lib.api_endpoint.api_info_to_spec_mapper import ApiInfoToSpecMapper
+from lib.api_endpoint.api_metadata_processor import ApiMetadataProcessor
 from lib.api_endpoint.api_metamodel2spec import ApiMetamodel2Spec
 from lib.api_endpoint.swagger2.api_swagger_parameter_handler import ApiSwaggerParaHandler
 from lib.api_endpoint.oas3.api_openapi_parameter_handler import ApiOpenapiParaHandler
@@ -141,7 +141,7 @@ class TestApiUrlProcessing(unittest.TestCase):
         metadata = {'POST': element_info_mock}
         method_expected = 'POST'
         url_path_expected = '/api/some-url-path'
-        api_url_process = ApiInfoToSpecMapper()
+        api_url_process = ApiMetadataProcessor()
         method_actual, url_path_actual = api_url_process.api_get_url_and_method(metadata)
         self.assertEqual(method_expected, method_actual)
         self.assertEqual(url_path_expected, url_path_actual)
@@ -150,7 +150,7 @@ class TestApiUrlProcessing(unittest.TestCase):
         metadata = {'RequestMapping': element_info_mock}
         method_expected = None
         url_path_expected = None
-        api_url_process = ApiInfoToSpecMapper()
+        api_url_process = ApiMetadataProcessor()
         method_actual, url_path_actual = api_url_process.api_get_url_and_method(metadata)
         self.assertEqual(method_expected, method_actual)
         self.assertEqual(url_path_expected, url_path_actual)

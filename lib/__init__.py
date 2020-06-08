@@ -1,2 +1,2 @@
-from .api_endpoint.api_info_to_spec_mapper import ApiInfoToSpecMapper
-from .rest_endpoint.rest_info_to_spec_mapper import RestInfoToSpecMapper
+from .api_endpoint.api_metadata_processor import ApiMetadataProcessor
+from .rest_endpoint.rest_metadata_processor import RestMetadataProcessor
