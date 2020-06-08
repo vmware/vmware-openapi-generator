@@ -67,7 +67,7 @@ class ApiOpenapiRespHandler():
                 'content': {
                     'application/json': {
                         'schema': {'$ref': ref_path + utils.get_str_camel_case(
-                            error.structure_id, ".", "-", "_")}
+                            error.structure_id, *utils.CAMELCASE_SEPARATOR_LIST)}
                     }
                 }
             }

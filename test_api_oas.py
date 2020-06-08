@@ -42,7 +42,7 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
                 'description' : 'Mock Description for Type Object',
                 'type': 'Mock-Type'
             },
-            'ComVmwarePackageMock1': {
+            'ComVmwarePackageMock-1': {
                 'description': 'Mock Description for Type Object',
                 'type': 'Mock-Type'
             }
@@ -62,30 +62,30 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
     def test_wrap_body_params(self):
         # validate parameter object by creating json wrappers around body object
         type_dict = {
-            'ComVmwarePackageMock1' : {}
+            'ComVmwarePackageMock-1' : {}
         }
         body_param_list = [self.field_info_mock]
         parameter_obj_actual = self.api_openapi_parahandler.wrap_body_params('com.vmware.package.mock-1', 'mockOperationName', 
                                                                         body_param_list, type_dict, self.structure_dict, 
                                                                         self.enum_dict, False)
-        parameter_obj_expected = {'$ref': '#/components/requestBodies/ComVmwarePackageMock1MockOperationName'}
+        parameter_obj_expected = {'$ref': '#/components/requestBodies/ComVmwarePackageMock-1MockOperationName'}
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
         type_dict_expected = {
-            'ComVmwarePackageMock1': {},
+            'ComVmwarePackageMock-1': {},
             'requestBodies': {
-                'ComVmwarePackageMock1MockOperationName':{
+                'ComVmwarePackageMock-1MockOperationName':{
                     'content':{
                         'application/json':{
                             'schema':{
-                                '$ref': '#/components/schemas/ComVmwarePackageMock1MockOperationName'
+                                '$ref': '#/components/schemas/ComVmwarePackageMock-1MockOperationName'
                             }
                         }
                     }
                 }
             },
-            'ComVmwarePackageMock1MockOperationName':{
+            'ComVmwarePackageMock-1MockOperationName':{
                 'required': False,
-                '$ref': '#/components/schemas/ComVmwarePackageMock1',
+                '$ref': '#/components/schemas/ComVmwarePackageMock-1',
                 'description': 'Mock Description for Field Info Object'
             }
         }
@@ -118,7 +118,7 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
                 'type': 'string',
                 'description': 'some mock description'
             },
-            'ComVmwarePackageMock1': {  # type_ref
+            'ComVmwarePackageMock-1': {  # type_ref
                 'properties': {
                     'property-name': {  # property_value
                         'type': 'array',
@@ -178,7 +178,7 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
                 'description': 'mock property description'
 
             },
-            'ComVmwarePackageMock1' : {  #type_ref
+            'ComVmwarePackageMock-1' : {  #type_ref
                 'properties': {
                     'property-name': {   #property_value
                         '$ref': '#/components/schemas/com.vmware.package.mock.property'
@@ -223,7 +223,7 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
                 'type': 'string',
                 'enum': ['enum-1', 'enum-2']
             },
-            'ComVmwarePackageMock1': {  # type_ref
+            'ComVmwarePackageMock-1': {  # type_ref
                 'description': 'mock description',
                 'type': 'string',
                 'enum': ['enum-1', 'enum-2']

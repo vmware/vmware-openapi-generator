@@ -1,12 +1,11 @@
 import requests
 import json
 import sys
-import re
 import six
 import re
 from six.moves import http_client
 TAG_SEPARATOR = '/'
-
+CAMELCASE_SEPARATOR_LIST = [".", "_"]
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)

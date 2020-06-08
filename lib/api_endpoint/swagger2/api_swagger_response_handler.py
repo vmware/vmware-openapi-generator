@@ -59,7 +59,7 @@ class ApiSwaggerRespHandler():
             response_obj = {
                 'description': error.documentation, 'schema': {
                     '$ref': ref_path + utils.get_str_camel_case(
-                      error.structure_id, ".", "-", "_")}}
+                      error.structure_id, *utils.CAMELCASE_SEPARATOR_LIST)}}
 
             response_map[status_code] = response_obj
         return response_map

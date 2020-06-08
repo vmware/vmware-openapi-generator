@@ -56,17 +56,17 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(sample_dict.get('get').get('parameters')[1].get('description'), updated)
 
     def test_get_str_camel_case(self):
-        string = "vapi.std-localizable_message"
+        string = "vapi.std_localizable_message"
         expected = "VapiStdLocalizableMessage"
-        self.assertEqual(expected, utils.get_str_camel_case(string, ".", "_", "-"))
+        self.assertEqual(expected, utils.get_str_camel_case(string, *utils.CAMELCASE_SEPARATOR_LIST))
 
         string = 'com.vmware.package.mock-1'
-        expected = "ComVmwarePackageMock1"
-        self.assertEqual(expected, utils.get_str_camel_case(string, ".", "-", "_"))
+        expected = "ComVmwarePackageMock-1"
+        self.assertEqual(expected, utils.get_str_camel_case(string, *utils.CAMELCASE_SEPARATOR_LIST))
 
         string = "ComVmwarePackageMock1"
         expected = "ComVmwarePackageMock1"
-        self.assertEqual(expected, utils.get_str_camel_case(string, ".", "-", "_"))
+        self.assertEqual(expected, utils.get_str_camel_case(string, *utils.CAMELCASE_SEPARATOR_LIST))
 
 if __name__ == '__main__':
     unittest.main()

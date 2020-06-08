@@ -51,7 +51,8 @@ class ApiTypeHandler(TypeHandlerCommon):
             if generic_instantiation.map_value_type.category == 'USER_DEFINED':
                 new_type['additionalProperties'] = {
                     '$ref': ref_path + utils.get_str_camel_case(
-                        generic_instantiation.map_value_type.user_defined_type.resource_id, ".", "-", "_")}
+                        generic_instantiation.map_value_type.user_defined_type.resource_id,
+                        *utils.CAMELCASE_SEPARATOR_LIST)}
                 res_type = generic_instantiation.map_value_type.user_defined_type.resource_type
                 res_id = generic_instantiation.map_value_type.user_defined_type.resource_id
                 self.check_type(
@@ -95,7 +96,7 @@ class ApiTypeHandler(TypeHandlerCommon):
             structure_svc,
             enum_svc,
             ref_path):
-        camel_cased_type_name = utils.get_str_camel_case(type_name, ".", "-", "_")
+        camel_cased_type_name = utils.get_str_camel_case(type_name, *utils.CAMELCASE_SEPARATOR_LIST)
         if camel_cased_type_name in type_dict or utils.is_type_builtin(type_name):
             return
         if resource_type == 'com.vmware.vapi.structure':
@@ -130,7 +131,8 @@ class ApiTypeHandler(TypeHandlerCommon):
             ref_path):
         if user_defined_type.resource_id is None:
             return
-        camel_cased_ref = utils.get_str_camel_case(user_defined_type.resource_id, ".", "-", "_")
+        camel_cased_ref = utils.get_str_camel_case(user_defined_type.resource_id,
+                                                   *utils.CAMELCASE_SEPARATOR_LIST)
         if 'type' in newprop and newprop['type'] == 'array':
             item_obj = {'$ref': ref_path + camel_cased_ref}
             newprop['items'] = item_obj
