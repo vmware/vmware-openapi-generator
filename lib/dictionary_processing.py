@@ -194,7 +194,7 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
                 if is_rest_api_existing:
                     add_replacement_path(service, operation_id, request.lower(), path, replacement_dict)
                     # If a newer version of the api is included - remove it unless deprecation is on
-                    if not deprecate_rest:
+                    if not deprecate_rest and not blacklist_utils.is_blacklisted_for_rest(service):
                         path_list.remove(path)
 
     if path_list == set():

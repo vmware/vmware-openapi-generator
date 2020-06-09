@@ -37,7 +37,7 @@ class FileOutputHandler:
         processor.remove_com_vmware_from_dict(path_dict, 0, [], add_camel_case)
         if self.gen_unique_op_id:
             processor.create_unique_op_ids(path_dict)
-        processor.remove_query_params(path_dict)
+        #processor.remove_query_params(path_dict)
         processor.remove_com_vmware_from_dict(type_dict, 0, [], add_camel_case)
 
     def __output_spec(self, package_name, path_dict, type_dict, file_prefix=''):
