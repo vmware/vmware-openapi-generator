@@ -100,7 +100,7 @@ def get_all_services_urls(components_urls, verify):
 def add_service_urls_using_metamodel(
         service_urls_map,
         service_dict,
-        rest_navigation_handler: RestNavigationHandler,
+        rest_navigation_handler,
         deprecate_rest=False):
 
     package_dict_api = {}
@@ -170,37 +170,38 @@ def add_service_urls_using_metamodel(
 # They should be separated in different strategies, for each api type - /rest, /api and deprecated (/rest and /api)
 def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, replacement_dict={}, service_url=None, rest_navigation_handler=None):
     path_list = set()
-    is_rest_api_existing = False
+    has_rest_counterpart = False
     is_in_rest_navigation = False
     is_rest_navigation_checked = False
 
     for operation_id in service_dict[service].operations.keys():
         for request in service_dict[service].operations[operation_id].metadata.keys(
         ):
+            # Is a 7.0 VERB /api check
             if request.lower() in ('post', 'put', 'patch', 'get', 'delete'):
                 path = service_dict[service].operations[operation_id].metadata[request].elements['path'].string_value
-                path_list.add(path)
 
                 # If already found in navigation, no need to check for request mapping
                 if not is_in_rest_navigation:
-                    is_rest_api_existing = check_for_request_mapping_replacement(service_dict[service], operation_id)
+                    has_rest_counterpart = check_for_request_mapping_replacement(service_dict[service], operation_id)
 
-                if not is_rest_api_existing and not is_rest_navigation_checked:
-                    is_rest_api_existing = check_for_rest_navigation_replacement(service_url, rest_navigation_handler)
+                # Check rest navigation if no rest counterpart has been already found and no prior call has been made
+                if not has_rest_counterpart and not is_rest_navigation_checked:
+                    has_rest_counterpart = check_for_rest_navigation_replacement(service_url, rest_navigation_handler)
                     # Add all operations and methods to replacements if it is apparent in rest_navigation
-                    is_in_rest_navigation = is_rest_api_existing
+                    is_in_rest_navigation = has_rest_counterpart
                     is_rest_navigation_checked = True
 
-                if is_rest_api_existing:
+                if has_rest_counterpart:
                     add_replacement_path(service, operation_id, request.lower(), path, replacement_dict)
-                    # If a newer version of the api is included - remove it unless deprecation is on
-                    if not deprecate_rest and not blacklist_utils.is_blacklisted_for_rest(service):
-                        path_list.remove(path)
+
+                if not has_rest_counterpart or deprecate_rest or blacklist_utils.is_blacklisted_for_rest(service):
+                    path_list.add(path)
 
     if path_list == set():
         return ServiceType.SLASH_REST, []
 
-    if is_rest_api_existing:
+    if has_rest_counterpart:
         return ServiceType.SLASH_REST_AND_API, sorted(list(path_list))
 
     return ServiceType.SLASH_API, sorted(list(path_list))

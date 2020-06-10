@@ -84,7 +84,7 @@ class TestInputs(unittest.TestCase):
         self.assertEqual(swagger_specification_expected, swagger_specification_actual)
 
         # case 6.1: deprecated option is TRUE
-        test_args = ['vmsgen', '-vc', 'v_url', '-k', '-dsr']
+        test_args = ['vmsgen', '-vc', 'v_url', '-k', '--deprecate-slash-rest']
         deprecated_expected = True
         with mock.patch('sys.argv', test_args):
             _, _, _, _, _, _, _, _, _, deprecated_actual = connection.get_input_params()
@@ -337,7 +337,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         service_dict = {
             'com.vmware.package.mock': service_info_mock
         }
-        # case 1.1: -dsr off
+        # case 1.1: --deprecate-slash-rest off
         package_dict_api_expected = {'package': ['/package/mock']}
         package_dict_api_actual, \
         package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
@@ -346,7 +346,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
         self.assertEqual({}, package_dict_actual)
 
-        # case 1.2: -dsr on
+        # case 1.2: --deprecate-slash-rest on
         package_dict_api_actual, \
         package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                       service_dict,
@@ -358,7 +358,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         # case 2: /api operation and /rest equivalent (RestNavigation)
         # Rest navigation returns not None
         rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
-        # case 2.1: -dsr off
+        # case 2.1: --deprecate-slash-rest off
         package_dict_api_actual, \
         package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                       service_dict,
@@ -367,7 +367,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual({}, package_dict_api_actual)
         self.assertEqual(package_dict_expected, package_dict_actual)
 
-        # case 2.2 -dsr on
+        # case 2.2 --deprecate-slash-rest on
         package_dict_api_actual, \
         package_dict_actual, \
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
@@ -386,12 +386,12 @@ class TestDictionaryProcessing(unittest.TestCase):
         operation_info_mock.metadata = {
             'mock_element_key': element_info_mock
         }
-        # case 3.1: -dsr off
+        # case 3.1: --deprecate-slash-rest off
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
         _, package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                          service_dict,
                                                                                          rest_navigation_handler)
-        # case 3.2: -dsr on
+        # case 3.2: --deprecate-slash-rest on
         self.assertEqual(package_dict_expected, package_dict_actual)
         _, package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                          service_dict,
@@ -407,7 +407,7 @@ class TestDictionaryProcessing(unittest.TestCase):
             'RequestMapping': {}
         }
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
-        # case 4.1: -dsr off
+        # case 4.1: --deprecate-slash-rest off
         package_dict_api_actual, \
         package_dict_actual, \
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
@@ -418,7 +418,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual({}, package_dict_api_actual)
         self.assertEqual(package_dict_expected, package_dict_actual)
 
-        # case 4.2: -dsr on
+        # case 4.2: --deprecate-slash-rest on
         package_dict_deprecated_expected = {'package': ['/vmware/com/package/mock']}
         package_dict_api_expected = {'package': ['/package/mock']}
         package_dict_api_actual, \
@@ -439,7 +439,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         }
         service_info_mock.operations['mock-key-2'] = operation_info_mock_second
 
-        # case 5.1: -dsr off
+        # case 5.1: --deprecate-slash-rest off
         package_dict_api_actual, \
         package_dict_actual, \
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
@@ -448,7 +448,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
         self.assertEqual(package_dict_expected, package_dict_actual)
 
-        # case 5.2: -dsr on
+        # case 5.2: --deprecate-slash-rest on
         package_dict_deprecated_expected = {'package': ['/vmware/com/package/mock']}
         package_dict_api_expected = {'package': ['/package/mock']}
         package_dict_api_actual, \
