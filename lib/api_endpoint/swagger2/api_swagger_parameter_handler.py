@@ -83,7 +83,16 @@ class ApiSwaggerParaHandler():
                 enum_svc,
                 ref_path)
             parameter_obj['description'] = param.documentation
-            body_obj.update(parameter_obj)
+            if 'BodyField' in param.metadata:
+                body_obj['type'] = 'object'
+                body_obj['properties'] = properties_obj
+                properties_obj[param.metadata['BodyField'].elements['name'].string_value] = parameter_obj
+                if 'required' not in parameter_obj:
+                    required.append(param.name)
+                elif parameter_obj['required'] == 'true':
+                    required.append(param.name)
+            else:
+                body_obj.update(parameter_obj)
 
         parameter_obj = {'in': 'body', 'name': 'request_body'}
         if len(required) > 0:
