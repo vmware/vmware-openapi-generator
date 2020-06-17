@@ -179,6 +179,9 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
         ):
             # Is a 7.0 VERB /api check
             if request.lower() in ('post', 'put', 'patch', 'get', 'delete'):
+                if 'path' not in service_dict[service].operations[operation_id].metadata[request].elements:
+                    continue
+
                 path = service_dict[service].operations[operation_id].metadata[request].elements['path'].string_value
 
                 # If already found in navigation, no need to check for request mapping
