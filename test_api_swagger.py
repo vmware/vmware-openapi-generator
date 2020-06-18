@@ -19,6 +19,7 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
     field_info_mock.type = field_info_type
     field_info_mock.documentation = 'fieldInfoMockDescription'
     field_info_mock.name = 'fieldInfoMockName'
+    field_info_mock.metadata = {}
     structure_info_mock = mock.Mock()
     structure_info_mock.fields = [field_info_mock]
     structure_dict = {
@@ -65,6 +66,24 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
         parameter_obj_expected = {
             'in': 'body',
             'name': 'request_body',
+            'schema': {'$ref': '#/definitions/ComVmwarePackageMockMockOperationName'}
+        }
+        self.assertEqual(parameter_obj_expected, parameter_obj_actual)
+
+        # validate parameter object by creating json wrappers around body object
+        element_value_mock = mock.Mock()
+        element_value_mock.string_value = 'elementMockName'
+        metadata_mock = mock.Mock()
+        metadata_mock.elements = {"name": element_value_mock}
+
+        self.field_info_mock.metadata = {"BodyField": metadata_mock}
+        parameter_obj_actual = self.api_swagger_parahandler.wrap_body_params('com.vmware.package.mock', 'mockOperationName',
+                                                                           body_param_list, type_dict, self.structure_dict,
+                                                                           self.enum_dict, False)
+        parameter_obj_expected = {
+            'in': 'body',
+            'name': 'request_body',
+            'required': True,
             'schema': {'$ref': '#/definitions/ComVmwarePackageMockMockOperationName'}
         }
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)

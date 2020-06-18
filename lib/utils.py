@@ -223,7 +223,7 @@ def extract_body_parameters(params):
     body_params = []
     other_params = []
     for param in params:
-        if 'Body' in param.metadata:
+        if 'Body' in param.metadata or 'BodyField' in param.metadata:
             body_params.append(param)
         else:
             other_params.append(param)
