@@ -27,6 +27,7 @@ class TestRestTypeHandler(unittest.TestCase):
         field_info_mock.generic_instantiation = generic_instantiation_mock
         field_info_mock.documentation = 'fieldInfoMockDescription'
         field_info_mock.name = 'fieldInfoMockName'
+        field_info_mock.metadata = {}
         structure_info_mock = mock.Mock()
         structure_info_mock.fields = [field_info_mock]
         structure_dict = {

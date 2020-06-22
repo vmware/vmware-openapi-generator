@@ -1220,6 +1220,12 @@ class TestTypeHandlerCommon(unittest.TestCase):
     
     def test_process_structure_info(self):
         # case 1: processing for field info type as Builtin
+        # @SerializationName override of field name
+        sname_elvalue = mock.Mock()
+        sname_elvalue.string_value = "field_info_mock_name"
+        sname = mock.Mock()
+        sname.elements = {"value": sname_elvalue}
+
         field_info_mock = mock.Mock()
         field_info_type = mock.Mock()
         field_info_type.category = 'BUILTIN'
@@ -1227,6 +1233,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         field_info_mock.type = field_info_type
         field_info_mock.documentation = 'fieldInfoMockDescription'
         field_info_mock.name = 'fieldInfoMockName'
+        field_info_mock.metadata = {"SerializationName": sname}
         structure_info_mock = mock.Mock()
         structure_info_mock.fields = [field_info_mock]
         structure_dict = {
@@ -1240,12 +1247,12 @@ class TestTypeHandlerCommon(unittest.TestCase):
             'com.vmware.package.mock': {
                 'type': 'object',
                 'properties': {
-                    'fieldInfoMockName': {
+                    'field_info_mock_name': {
                         'description': 'fieldInfoMockDescription',
                         'type': 'date-time'
                     }
                 },
-                'required': ['fieldInfoMockName']
+                'required': ['field_info_mock_name']
             }
         }
         self.assertEqual(type_dict_expected, type_dict)
@@ -1265,6 +1272,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         field_info_mock.type = field_info_type
         field_info_mock.documentation = 'fieldInfoMockDescription'
         field_info_mock.name = 'fieldInfoMockName'
+        field_info_mock.metadata = {}
         structure_info_mock = mock.Mock()
         structure_info_mock.fields = [field_info_mock]
         structure_dict = {
@@ -1332,6 +1340,7 @@ class TestTypeHandlerCommon(unittest.TestCase):
         field_info_mock.user_defined_type = user_defined_type_mock
         field_info_mock.documentation = 'fieldInfoMockDescription'
         field_info_mock.name = 'fieldInfoMockName'
+        field_info_mock.metadata = {}
         structure_info_mock = mock.Mock()
         structure_info_mock.fields = [field_info_mock]
         structure_dict = {
