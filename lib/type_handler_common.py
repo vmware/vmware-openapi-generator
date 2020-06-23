@@ -148,7 +148,6 @@ class TypeHandlerCommon():
                     structure_svc,
                     enum_svc,
                     ref_path)
-            #new_type['properties'].setdefault(field.name, newprop)
             new_type['properties'].setdefault(self.get_fieldname(field), newprop)
         required = []
         for property_name, property_value in six.iteritems(
