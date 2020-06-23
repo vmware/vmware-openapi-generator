@@ -148,7 +148,7 @@ class TypeHandlerCommon():
                     structure_svc,
                     enum_svc,
                     ref_path)
-            new_type['properties'].setdefault(field.name, newprop)
+            new_type['properties'].setdefault(self.get_fieldname(field), newprop)
         required = []
         for property_name, property_value in six.iteritems(
                 new_type['properties']):
@@ -159,6 +159,12 @@ class TypeHandlerCommon():
         if len(required) > 0:
             new_type['required'] = required
         type_dict[type_name] = new_type
+
+    def get_fieldname(self, field):
+        if hasattr(field, "metadata") and "SerializationName" in field.metadata:
+            return field.metadata["SerializationName"].elements["value"].string_value
+        else:
+            return field.name
 
     def get_enum_info(self, type_name, enum_svc):
         if self.show_unreleased_apis:

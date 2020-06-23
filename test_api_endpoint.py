@@ -19,7 +19,7 @@ class TestApiTypeHandler(unittest.TestCase):
         generic_instantiation_mock = mock.Mock()
         generic_instantiation_mock.generic_type = 'SET'
         generic_instantiation_mock.element_type = generic_instantiation_element_type_mock
-        
+
         field_info_mock = mock.Mock()
         field_info_type = mock.Mock()
         field_info_type.category = 'BUILTIN'
@@ -28,6 +28,7 @@ class TestApiTypeHandler(unittest.TestCase):
         field_info_mock.generic_instantiation = generic_instantiation_mock
         field_info_mock.documentation = 'fieldInfoMockDescription'
         field_info_mock.name = 'fieldInfoMockName'
+        field_info_mock.metadata = {}
         structure_info_mock = mock.Mock()
         structure_info_mock.fields = [field_info_mock]
         structure_dict = {
