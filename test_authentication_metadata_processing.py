@@ -25,16 +25,14 @@ class TestAuthenticationComponent(unittest.TestCase):
         package_level_auth_component = AuthenticationComponent()
         package_level_auth_component.add_schemes(["basic_auth"])
 
-        expected_scheme = {"basic_auth"}
-        self.assertEqual(package_level_auth_component.get_schemes_set(), expected_scheme)
+        self.assertEqual({"basic_auth"}, package_level_auth_component.get_schemes_set())
 
         service_level_auth_component = AuthenticationComponent()
         service_level_auth_component.add_schemes(["token"])
         package_level_auth_component.add_subcomponent(service_level_auth_component, "my.token.auth.service")
 
         subcomponents_dict = package_level_auth_component.get_subcomponents_dict()
-        expected_subcomponent_scheme = {"token"}
-        self.assertEqual(subcomponents_dict.get("my.token.auth.service").get_schemes_set(), expected_subcomponent_scheme)
+        self.assertEqual({"token"}, subcomponents_dict.get("my.token.auth.service").get_schemes_set())
         
         operation_level_auth_component = AuthenticationComponent()
         operation_level_auth_component.add_schemes(["saml_token"])
@@ -45,8 +43,7 @@ class TestAuthenticationComponent(unittest.TestCase):
         package_level_auth_component.add_subcomponent(service_level_auth_component_updated,
                                                                   "my.token.auth.service")
 
-        expected_subcomponent_scheme = {"token", "oauth2"}
-        self.assertEqual(subcomponents_dict.get("my.token.auth.service").get_schemes_set(), expected_subcomponent_scheme)
+        self.assertEqual({"token", "oauth2"}, subcomponents_dict.get("my.token.auth.service").get_schemes_set())
 
         operation_level_auth_component_updated = AuthenticationComponent()
         operation_level_auth_component_updated.add_schemes(["session_id"])
@@ -59,12 +56,12 @@ class TestAuthenticationComponent(unittest.TestCase):
 
         subcomponents_dict = package_level_auth_component.get_subcomponents_dict()
         operation_level_subcomponents_dict = subcomponents_dict.get("my.token.auth.service").get_subcomponents_dict()
-        self.assertEqual(len(operation_level_subcomponents_dict), 2)
+        self.assertEqual(2, len(operation_level_subcomponents_dict))
 
-        self.assertEqual(operation_level_subcomponents_dict.get("my.token.auth.service.list").get_schemes_set(),
-                         {"session_id", "saml_token"})
-        self.assertEqual(operation_level_subcomponents_dict.get("my.token.auth.service.create").get_schemes_set(),
-                         {"session_id"})
+        self.assertEqual({"session_id", "saml_token"},
+                         operation_level_subcomponents_dict.get("my.token.auth.service.list").get_schemes_set())
+        self.assertEqual({"session_id"},
+                         operation_level_subcomponents_dict.get("my.token.auth.service.create").get_schemes_set())
 
 
         found_component = package_level_auth_component.recursive_search_for_component("my.token.auth.service.list")
@@ -75,14 +72,11 @@ class TestAuthenticationComponent(unittest.TestCase):
 
     def test_authentication_component_builder(self):
         package_component = AuthenticationComponentBuilder.build_package_level_component(self.package_info_mock)
-        expected_package_level_set = {"oauth", "session_id"}
-        self.assertEqual(package_component.get_schemes_set(), expected_package_level_set)
+        self.assertEqual({"oauth", "session_id"}, package_component.get_schemes_set())
         service_component = package_component.get_subcomponents_dict()["com.vmware.cis.session"]
-        expected_schemes = {"oauth", "token"}
-        self.assertEqual(service_component.get_schemes_set(), expected_schemes)
+        self.assertEqual({"oauth", "token"}, service_component.get_schemes_set())
         operation_component = service_component.get_subcomponents_dict()["create"]
-        expected_schemes = {"session_id", "token"}
-        self.assertEqual(operation_component.get_schemes_set(), expected_schemes)
+        self.assertEqual({"session_id", "token"}, operation_component.get_schemes_set())
 
 
     def test_authentication_dict_navigator(self):
