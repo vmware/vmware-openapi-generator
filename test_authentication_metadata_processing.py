@@ -1,10 +1,25 @@
 import unittest
 
-from lib.authentication_metadata_processing import AuthenticationComponent
+from lib.authentication_metadata_processing import AuthenticationComponent, AuthenticationDictNavigator
 from lib.authentication_metadata_processing import AuthenticationComponentBuilder
 from unittest import mock
 
 class TestAuthenticationComponent(unittest.TestCase):
+
+    session_id_auth_info_mock = mock.Mock()
+    session_id_auth_info_mock.scheme = "session_id"
+    token_auth_info_mock = mock.Mock()
+    token_auth_info_mock.scheme = "token"
+    oauth_auth_info_mock = mock.Mock()
+    oauth_auth_info_mock.scheme = "oauth"
+    operation_info_mock = mock.Mock()
+    operation_info_mock.schemes = [session_id_auth_info_mock, token_auth_info_mock]
+    service_info_mock = mock.Mock()
+    service_info_mock.schemes = [token_auth_info_mock, oauth_auth_info_mock]
+    service_info_mock.operations = {"create": operation_info_mock}
+    package_info_mock = mock.Mock()
+    package_info_mock.services = {"com.vmware.cis.session": service_info_mock}
+    package_info_mock.schemes = [oauth_auth_info_mock, session_id_auth_info_mock]
 
     def test_authentication_component(self):
         package_level_auth_component = AuthenticationComponent()
@@ -59,22 +74,7 @@ class TestAuthenticationComponent(unittest.TestCase):
 
 
     def test_authentication_component_builder(self):
-        session_id_auth_info_mock = mock.Mock()
-        session_id_auth_info_mock.scheme = "session_id"
-        token_auth_info_mock = mock.Mock()
-        token_auth_info_mock.scheme = "token"
-        oauth_auth_info_mock = mock.Mock()
-        oauth_auth_info_mock.scheme = "oauth"
-        operation_info_mock = mock.Mock()
-        operation_info_mock.schemes = [session_id_auth_info_mock, token_auth_info_mock]
-        service_info_mock = mock.Mock()
-        service_info_mock.schemes = [token_auth_info_mock, oauth_auth_info_mock]
-        service_info_mock.operations = {"create": operation_info_mock}
-        package_info_mock = mock.Mock()
-        package_info_mock.services = {"com.vmware.cis.session": service_info_mock}
-        package_info_mock.schemes = [oauth_auth_info_mock, session_id_auth_info_mock]
-
-        package_component = AuthenticationComponentBuilder.build_package_level_component(package_info_mock)
+        package_component = AuthenticationComponentBuilder.build_package_level_component(self.package_info_mock)
         expected_package_level_set = {"oauth", "session_id"}
         self.assertEqual(package_component.get_schemes_set(), expected_package_level_set)
         service_component = package_component.get_subcomponents_dict()["com.vmware.cis.session"]
@@ -83,6 +83,27 @@ class TestAuthenticationComponent(unittest.TestCase):
         operation_component = service_component.get_subcomponents_dict()["create"]
         expected_schemes = {"session_id", "token"}
         self.assertEqual(operation_component.get_schemes_set(), expected_schemes)
+
+
+    def test_authentication_dict_navigator(self):
+        package_component = AuthenticationComponentBuilder.build_package_level_component(self.package_info_mock)
+        auth_dict = {"com.vmware.cis": package_component}
+        navigator = AuthenticationDictNavigator(auth_dict)
+
+        # 1. Existing package, existing service, existing operation
+        self.assertEqual({"session_id", "token"}, navigator.find_schemes_set("create", "com.vmware.cis.session", "cis"))
+
+        # 2. Existing package, existing service, non-existing operation
+        self.assertEqual({"oauth", "token"}, navigator.find_schemes_set("update", "com.vmware.cis.session", "cis"))
+
+        # 3. Existing package, non-existing service
+        self.assertEqual({"oauth", "session_id"}, navigator.find_schemes_set("update", "com.vmware.cis.tasks", "cis"))
+
+        # 4. Service name equal to package name
+        self.assertEqual({"oauth", "session_id"}, navigator.find_schemes_set("update", "com.vmware.cis", "cis"))
+
+        # 5. Non-existing package
+        self.assertEqual(None, navigator.find_schemes_set("update", "com.vmware.sample", "cis"))
 
 if __name__ == '__main__':
     unittest.main()

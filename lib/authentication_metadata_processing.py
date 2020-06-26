@@ -1,5 +1,9 @@
 import six
 
+# Supproted authentication metadata schemes
+no_authentication_scheme = 'com.vmware.vapi.std.security.no_authentication'
+session_id_scheme = 'com.vmware.vapi.std.security.session_id'
+basic_auth_scheme = 'com.vmware.vapi.std.security.user_pass'
 
 def get_authentication_dict(auth_component_svc):
     auth_dict = {}
@@ -22,27 +26,27 @@ class AuthenticationDictNavigator:
     def __init__(self, auth_dict):
         self.auth_dict = auth_dict
 
-    def find_schemes_list(self, operation_id, service_name, package):
-        component = self.__depth_first_search_component(service_name, package)
+    def find_schemes_set(self, operation_id, service_name, package):
+        component = self.__preorder_depth_first_search_component(service_name, package)
         if component is not None:
             operation_component = component.get_subcomponents_dict().get(operation_id)
             if operation_component is not None:
-                return operation_component.get_schemes_list()
+                return operation_component.get_schemes_set()
             else:
-                return component.get_schemes_list()
+                return component.get_schemes_set()
 
-        service_name = ".".join(service_name.split('.')[-1])
+        service_name = ".".join(service_name.split('.')[:-1])
         while service_name:
-            component = self.__depth_first_search_component(service_name, package)
+            component = self.__preorder_depth_first_search_component(service_name, package)
             if component is not None:
-                return component.get_schemes_list()
+                return component.get_schemes_set()
             else:
-                service_name = ".".join(service_name.split('.')[-1])
+                service_name = ".".join(service_name.split('.')[:-1])
 
         return None
 
 
-    def __depth_first_search_component(self, service_name, package):
+    def __preorder_depth_first_search_component(self, service_name, package):
         if service_name in self.auth_dict:
             return self.auth_dict[service_name]
         else:
@@ -55,7 +59,6 @@ class AuthenticationDictNavigator:
                     return component
 
         return None
-
 
 
 class AuthenticationComponentBuilder:
