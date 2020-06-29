@@ -6,7 +6,7 @@ from __future__ import print_function
 
 from concurrent import futures
 
-from lib import RestMetadataProcessor
+from lib import RestMetadataProcessor, authentication_metadata_processing
 from lib import ApiMetadataProcessor
 from lib import dictionary_processing as dict_processing
 from lib import establish_connection as connection
@@ -19,6 +19,7 @@ import warnings
 import requests
 import six
 
+from lib.authentication_metadata_processing import AuthenticationDictNavigator
 from lib.file_output_handler import FileOutputHandler
 from lib.rest_endpoint.rest_deprecation_handler import RestDeprecationHandler
 from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
@@ -62,11 +63,18 @@ def main():
     session = requests.session()
     session.verify = False
     connector = get_requests_connector(session, url=metadata_api_url)
+
     if show_unreleased_apis:
         connector.set_application_context(
             ApplicationContext({SHOW_UNRELEASED_APIS: "True"}))
     print('Connected to ' + metadata_api_url)
     component_svc = connection.get_component_service(connector)
+
+    # Fetch authentication metadata and initialize the authentication data navigator
+    auth_component_svc = connection.get_authentication_component_service(connector)
+    auth_dict = authentication_metadata_processing.get_authentication_dict(auth_component_svc)
+    auth_navigator = AuthenticationDictNavigator(auth_dict)
+
     dict_processing.populate_dicts(
         component_svc,
         enumeration_dict,
@@ -110,6 +118,7 @@ def main():
             rest_navigation_handler,
             show_unreleased_apis,
             SPECIFICATION,
+            auth_navigator,
             deprecation_handler) for package, service_urls in
             six.iteritems(package_dict)
         }
@@ -124,7 +133,8 @@ def main():
             service_urls_map,
             http_error_map,
             show_unreleased_apis,
-            SPECIFICATION) for package, service_urls in
+            SPECIFICATION,
+            auth_navigator) for package, service_urls in
             six.iteritems(package_dict_api)
         }
 

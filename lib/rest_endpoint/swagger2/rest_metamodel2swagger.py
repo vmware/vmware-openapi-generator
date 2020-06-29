@@ -1,4 +1,4 @@
-from lib import utils
+from lib import utils, authentication_metadata_processing
 from lib.rest_endpoint.rest_metamodel2spec import RestMetamodel2Spec
 from .rest_swagger_parameter_handler import RestSwaggerParaHandler
 from .rest_swagger_response_handler import RestSwaggerRespHandler
@@ -69,3 +69,12 @@ class RestMetamodel2Swagger(RestMetamodel2Spec):
         if path_obj['operationId'].endswith('$task'):
             path_obj['path'] = utils.add_query_param(
                 path_obj['path'], 'vmw-task=true')
+
+    def decorate_path_with_security(self, path_obj, scheme_set):
+        security_schemes = []
+        if authentication_metadata_processing.session_id_scheme in scheme_set:
+            security_schemes.append({"session_id": []})
+        if authentication_metadata_processing.basic_auth_scheme in scheme_set:
+            security_schemes.append({"basic_auth": []})
+        if security_schemes:
+            path_obj["security"] = security_schemes

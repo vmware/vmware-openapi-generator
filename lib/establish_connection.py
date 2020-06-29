@@ -2,6 +2,7 @@ import argparse
 import os
 from vmware.vapi.stdlib.client.factories import StubConfigurationFactory
 from com.vmware.vapi.metadata import metamodel_client
+from com.vmware.vapi.metadata import authentication_client
 
 
 def get_input_params():
@@ -126,4 +127,9 @@ def get_input_params():
 def get_component_service(connector):
     stub_config = StubConfigurationFactory.new_std_configuration(connector)
     component_svc = metamodel_client.Component(stub_config)
+    return component_svc
+
+def get_authentication_component_service(connector):
+    stub_config = StubConfigurationFactory.new_std_configuration(connector)
+    component_svc = authentication_client.Component(stub_config)
     return component_svc
