@@ -71,7 +71,10 @@ class RestMetamodel2Swagger(RestMetamodel2Spec):
                 path_obj['path'], 'vmw-task=true')
 
     def decorate_path_with_security(self, path_obj, scheme_set):
-        if authentication_metadata_processing.no_authentication_scheme in scheme_set:
-            path_obj["security"] = []
-        elif authentication_metadata_processing.basic_auth_scheme in scheme_set:
-            path_obj["security"] = [{"basic_auth": []}]
+        security_schemes = []
+        if authentication_metadata_processing.session_id_scheme in scheme_set:
+            security_schemes.append({"session_id": []})
+        if authentication_metadata_processing.basic_auth_scheme in scheme_set:
+            security_schemes.append({"basic_auth": []})
+        if security_schemes:
+            path_obj["security"] = security_schemes
