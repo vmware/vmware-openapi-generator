@@ -33,7 +33,7 @@ class SwaggerPathProcessing(PathProcessing):
                 'version': '2.0.0'},
             'host': '<vcenter>',
             'securityDefinitions': {
-                "api_key": {
+                "session_id": {
                     "in": "header",
                     "name": "vmware-api-session-id",
                     "type": "apiKey"
@@ -41,11 +41,6 @@ class SwaggerPathProcessing(PathProcessing):
                 'basic_auth': {
                     'type': 'basic'
                 }},
-            "security": [
-                {
-                    "api_key": []
-                }
-            ],
             'basePath': '',
             'produces': [
                 'application/json'
