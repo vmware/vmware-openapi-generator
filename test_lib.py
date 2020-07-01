@@ -1,6 +1,8 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import unittest
 from unittest import mock
-import vmsgen
 from lib import utils
 from lib import establish_connection as connection
 from lib import dictionary_processing as dict_processing

@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import requests
 from six.moves import http_client
 from lib.rest_endpoint.rest_type_handler import RestTypeHandler

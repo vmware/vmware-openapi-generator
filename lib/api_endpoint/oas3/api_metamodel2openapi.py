@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 from lib import utils
 from lib.api_endpoint.api_metamodel2spec import ApiMetamodel2Spec
 from .api_openapi_parameter_handler import ApiOpenapiParaHandler

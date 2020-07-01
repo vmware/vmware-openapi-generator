@@ -1,5 +1,7 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import six
-import re
 
 class MetadataProcessor():
 

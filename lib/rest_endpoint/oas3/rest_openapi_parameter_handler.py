@@ -1,6 +1,7 @@
-import re
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import six
-from lib import utils
 from lib.rest_endpoint.rest_type_handler import RestTypeHandler
 
 

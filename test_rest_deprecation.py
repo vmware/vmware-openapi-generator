@@ -1,5 +1,7 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import unittest
-from unittest import mock
 
 from lib.rest_endpoint.rest_deprecation_handler import RestDeprecationHandler
 

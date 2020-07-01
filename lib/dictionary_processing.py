@@ -1,8 +1,10 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import os
 
 from lib import utils
 from lib import blacklist_utils
-from lib.rest_endpoint.rest_navigation_handler import RestNavigationHandler
 
 
 class ServiceType:

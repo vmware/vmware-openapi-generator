@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import unittest
 from unittest import mock 
 from lib.api_endpoint.api_type_handler import ApiTypeHandler

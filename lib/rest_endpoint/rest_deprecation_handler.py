@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 class RestDeprecationHandler:
 
     def __init__(self, replacement_dict):
