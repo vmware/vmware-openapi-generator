@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 blacklist = {"rest": ['com.vmware.vcenter.vm.compute.policies',
                       'com.vmware.vcenter.compute.policies.tag_usage',
                       'com.vmware.vcenter.compute.policies.VM',

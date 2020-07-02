@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 from lib import utils, authentication_metadata_processing
 from lib.rest_endpoint.rest_metamodel2spec import RestMetamodel2Spec
 from .rest_swagger_parameter_handler import RestSwaggerParaHandler

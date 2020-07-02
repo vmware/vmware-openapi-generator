@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 from lib import utils
 from lib.type_handler_common import TypeHandlerCommon
 

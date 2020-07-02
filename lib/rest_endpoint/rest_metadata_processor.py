@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 import os
 from lib import utils
 from lib.metadata_processor import MetadataProcessor

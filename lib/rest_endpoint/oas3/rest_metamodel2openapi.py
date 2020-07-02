@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 from lib import utils
 from lib.rest_endpoint.rest_metamodel2spec import RestMetamodel2Spec
 from .rest_openapi_parameter_handler import RestOpenapiParaHandler

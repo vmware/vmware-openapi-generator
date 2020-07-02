@@ -1,7 +1,8 @@
-import os
-import threading
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
 
-import six
+import os
+
 from lib import utils
 from lib.metadata_processor import MetadataProcessor
 from .oas3.api_metamodel2openapi import ApiMetamodel2Openapi

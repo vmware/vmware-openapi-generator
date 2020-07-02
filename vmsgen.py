@@ -1,3 +1,6 @@
+# Copyright 2016-2020 VMware, Inc.
+# SPDX-License-Identifier: MIT
+
 '''
 This script uses metamodel apis and rest navigation to generate openapi json files
 for apis available on vcenter.
