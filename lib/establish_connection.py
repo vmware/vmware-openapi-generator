@@ -90,6 +90,13 @@ def get_input_params():
         default=False,
         dest='fetch_auth_metadata',
         help='retrieves authentication information from the authentication metadata service')
+    parser.add_argument(
+        '-ars'
+        '--auto-rest-services',
+        nargs='+',
+        default=[],
+        dest='auto_rest_services',
+        help='list of services described with auto rest')
     args = parser.parse_args()
     metadata_url = args.metadata_url
     rest_navigation_url = args.rest_navigation_url
@@ -135,6 +142,8 @@ def get_input_params():
 
     fetch_auth_metadata = args.fetch_auth_metadata
 
+    auto_rest_services = args.auto_rest_services
+
     return metadata_url,\
            rest_navigation_url,\
            output_dir,\
@@ -145,7 +154,8 @@ def get_input_params():
            GENERATE_UNIQUE_OP_IDS,\
            TAG_SEPARATOR,\
            DEPRECATE_REST,\
-           fetch_auth_metadata
+           fetch_auth_metadata,\
+           auto_rest_services
 
 
 def get_component_service(connector):

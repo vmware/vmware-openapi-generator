@@ -71,13 +71,5 @@ class TestUtils(unittest.TestCase):
         expected = "ComVmwarePackageMock1"
         self.assertEqual(expected, utils.get_str_camel_case(string, *utils.CAMELCASE_SEPARATOR_LIST))
 
-
-    def test_auto_rest_service(self):
-        service = "my.test.service"
-        self.assertEqual(False, utils.is_service_auto_rest(service))
-
-        service = "com.vmware.vcenter.iso.image"
-        self.assertEqual(True, utils.is_service_auto_rest(service))
-
 if __name__ == '__main__':
     unittest.main()

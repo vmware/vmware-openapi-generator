@@ -312,54 +312,6 @@ def create_req_body_from_params_list(path_obj):
             del parameters[index]
 
 
-auto_rest_services = ['com.vmware.vcenter.ovf.import_flag',
-                      'com.vmware.vcenter.ovf.export_flag',
-                      'com.vmware.vcenter.ovf.library_item',
-                      'com.vmware.cis.session',
-                      'com.vmware.vcenter.inventory.datastore',
-                      'com.vmware.vcenter.inventory.network',
-                      'com.vmware.cis.tagging.tag_association',
-                      'com.vmware.cis.tagging.category',
-                      'com.vmware.cis.tagging.tag',
-                      'com.vmware.vapi.metadata.metamodel.service.operation',
-                      'com.vmware.vapi.metadata.cli.command',
-                      'com.vmware.vapi.metadata.cli.namespace',
-                      'com.vmware.vapi.metadata.metamodel.package',
-                      'com.vmware.vapi.metadata.metamodel.service',
-                      'com.vmware.vapi.metadata.metamodel.structure',
-                      'com.vmware.vapi.metadata.metamodel.enumeration',
-                      'com.vmware.vapi.metadata.metamodel.component',
-                      'com.vmware.vapi.metadata.metamodel.resource',
-                      'com.vmware.vapi.metadata.metamodel.resource.model',
-                      'com.vmware.vapi.metadata.authentication.service.operation',
-                      'com.vmware.vapi.metadata.authentication.service',
-                      'com.vmware.vapi.metadata.authentication.component',
-                      'com.vmware.vapi.metadata.authentication.package',
-                      'com.vmware.vapi.metadata.privilege.component',
-                      'com.vmware.vapi.metadata.privilege.package',
-                      'com.vmware.vapi.metadata.privilege.service',
-                      'com.vmware.vapi.metadata.privilege.service.operation',
-                      'com.vmware.content.library',
-                      'com.vmware.content.local_library',
-                      'com.vmware.content.configuration',
-                      'com.vmware.content.subscribed_library',
-                      'com.vmware.content.type',
-                      'com.vmware.content.library.subscribed_item',
-                      'com.vmware.content.library.item',
-                      'com.vmware.content.library.subscriptions',
-                      'com.vmware.content.library.item.update_session',
-                      'com.vmware.content.library.item.download_session',
-                      'com.vmware.content.library.item.file',
-                      'com.vmware.content.library.item.storage',
-                      'com.vmware.content.library.item.downloadsession.file',
-                      'com.vmware.content.library.item.updatesession.file',
-                      'com.vmware.vcenter.iso.image']
-
-
-def is_service_auto_rest(service):
-    return service in auto_rest_services
-
-
 class HttpErrorMap:
     """
         Builds  error_map which maps vapi errors to http status codes.

@@ -103,6 +103,7 @@ def add_service_urls_using_metamodel(
         service_urls_map,
         service_dict,
         rest_navigation_handler,
+        auto_rest_services,
         deprecate_rest=False):
 
     package_dict_api = {}
@@ -124,6 +125,7 @@ def add_service_urls_using_metamodel(
     for service in service_dict:
         service_type, path_list = get_paths_inside_metamodel(service,
                                                              service_dict,
+                                                             auto_rest_services,
                                                              deprecate_rest,
                                                              replacement_dict)
         if (service_type in [ServiceType.SLASH_API, ServiceType.SLASH_REST_AND_API]) and not blacklist_utils.is_blacklisted_for_api(service):
@@ -168,7 +170,7 @@ def add_service_urls_using_metamodel(
 
 #TODO the overly complicated method below along with add_service_urls_using_metamodel should be refactored
 # They should be separated in different strategies, for each api type - /rest, /api and deprecated (/rest and /api)
-def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, replacement_dict={}):
+def get_paths_inside_metamodel(service, service_dict, auto_rest_services, deprecate_rest=False, replacement_dict={}):
     path_list = set()
     has_rest_counterpart = False
     is_in_rest_navigation = False
@@ -190,7 +192,7 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
 
                 # Check rest navigation if no rest counterpart has been already found and no prior call has been made
                 if not has_rest_counterpart and not is_rest_navigation_checked:
-                    has_rest_counterpart = utils.is_service_auto_rest(service)
+                    has_rest_counterpart = service in auto_rest_services
                     # Add all operations and methods to replacements if it is apparent in rest_navigation
                     is_in_rest_navigation = has_rest_counterpart
                     is_rest_navigation_checked = True

@@ -37,7 +37,6 @@ TAG_SEPARATOR = '/'
 SPECIFICATION = '3'
 DEPRECATE_REST = False
 
-
 def main():
     # Get user input.
     metadata_api_url, \
@@ -50,7 +49,8 @@ def main():
     GENERATE_UNIQUE_OP_IDS, \
     TAG_SEPARATOR, \
     DEPRECATE_REST,\
-    fetch_auth_metadata = connection.get_input_params()
+    fetch_auth_metadata,\
+    auto_rest_services = connection.get_input_params()
     # Maps enumeration id to enumeration info
     enumeration_dict = {}
     # Maps structure_id to structure_info
@@ -99,7 +99,7 @@ def main():
     # deprecated with /api
     # replacement_dict contains information about the deprecated /rest to /api mappings
     package_dict_api, package_dict, package_dict_deprecated, replacement_dict = dict_processing.add_service_urls_using_metamodel(
-        service_urls_map, service_dict, rest_navigation_handler, DEPRECATE_REST)
+        service_urls_map, service_dict, rest_navigation_handler, auto_rest_services, DEPRECATE_REST)
 
 
     utils.combine_dicts_with_list_values(package_dict, package_dict_deprecated)
