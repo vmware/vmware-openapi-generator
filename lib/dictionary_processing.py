@@ -103,6 +103,7 @@ def add_service_urls_using_metamodel(
         service_urls_map,
         service_dict,
         rest_navigation_handler,
+        auto_rest_services,
         deprecate_rest=False):
 
     package_dict_api = {}
@@ -124,6 +125,7 @@ def add_service_urls_using_metamodel(
     for service in service_dict:
         service_type, path_list = get_paths_inside_metamodel(service,
                                                              service_dict,
+                                                             auto_rest_services,
                                                              deprecate_rest,
                                                              replacement_dict,
                                                              rest_services.get(service, None),
@@ -170,7 +172,13 @@ def add_service_urls_using_metamodel(
 
 #TODO the overly complicated method below along with add_service_urls_using_metamodel should be refactored
 # They should be separated in different strategies, for each api type - /rest, /api and deprecated (/rest and /api)
-def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, replacement_dict={}, service_url=None, rest_navigation_handler=None):
+def get_paths_inside_metamodel(service,
+                               service_dict,
+                               auto_rest_services,
+                               deprecate_rest=False,
+                               replacement_dict={},
+                               service_url=None,
+                               rest_navigation_handler=None):
     path_list = set()
     has_rest_counterpart = False
     is_in_rest_navigation = False
@@ -192,7 +200,10 @@ def get_paths_inside_metamodel(service, service_dict, deprecate_rest=False, repl
 
                 # Check rest navigation if no rest counterpart has been already found and no prior call has been made
                 if not has_rest_counterpart and not is_rest_navigation_checked:
-                    has_rest_counterpart = check_for_rest_navigation_replacement(service_url, rest_navigation_handler)
+                    if auto_rest_services:
+                        has_rest_counterpart = service in auto_rest_services
+                    else:
+                        has_rest_counterpart = check_for_rest_navigation_replacement(service_url, rest_navigation_handler)
                     # Add all operations and methods to replacements if it is apparent in rest_navigation
                     is_in_rest_navigation = has_rest_counterpart
                     is_rest_navigation_checked = True
@@ -217,7 +228,6 @@ def check_for_request_mapping_replacement(service, operation_id):
     if 'RequestMapping' in service.operations[operation_id].metadata.keys():
         return True
     return False
-
 
 def check_for_rest_navigation_replacement(service_url, rest_navigation_handler):
     if service_url is not None and rest_navigation_handler is not None:

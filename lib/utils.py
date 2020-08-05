@@ -7,11 +7,14 @@ import sys
 import six
 import re
 from six.moves import http_client
+
 TAG_SEPARATOR = '/'
 CAMELCASE_SEPARATOR_LIST = [".", "_"]
 
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
 
 def get_json(url, verify=True):
     try:
@@ -42,12 +45,12 @@ def load_description():
     """
     desc = {
         'content': 'VMware vSphere\u00ae Content Library empowers vSphere Admins to effectively manage VM templates, '
-        'vApps, ISO images and scripts with ease.',
+                   'vApps, ISO images and scripts with ease.',
         'spbm': 'SPBM',
         'vapi': 'vAPI is an extensible API Platform for modelling and delivering APIs/SDKs/CLIs.',
         'vcenter': 'VMware vCenter Server provides a centralized platform for managing your VMware vSphere environments',
         'appliance': 'The vCenter Server Appliance is a preconfigured Linux-based virtual machine'
-        ' optimized for running vCenter Server and associated services.'}
+                     ' optimized for running vCenter Server and associated services.'}
     return desc
 
 
@@ -55,7 +58,6 @@ def get_str_camel_case(string, *delimiters):
     delimiter_regex = '\\' + '|\\'.join(delimiters)
     words = [word[:1].upper() + word[1:] for word in re.split(delimiter_regex, string)]
     return ''.join(words)
-
 
 
 def is_filtered(metadata):
@@ -179,12 +181,14 @@ def build_path(
         path_obj['operationId'] = operation_id
     return path_obj
 
+
 def remove_curly_braces(string_name):
     if '{' in string_name:
-        string_name = string_name.replace('{','')
+        string_name = string_name.replace('{', '')
     if '}' in string_name:
-        string_name = string_name.replace('}','')
+        string_name = string_name.replace('}', '')
     return string_name
+
 
 def tags_from_service_name(service_name):
     """
@@ -293,6 +297,7 @@ def is_type_builtin(type_):
         return True
     return False
 
+
 def create_req_body_from_params_list(path_obj):
     # create request body section inside path object from parameter list
     parameters = path_obj['parameters']
@@ -300,45 +305,46 @@ def create_req_body_from_params_list(path_obj):
         index = -1
         for i in range(len(parameters)):
             if '$ref' in parameters[i] and parameters[i]['$ref'].startswith('#/components/requestBodies/'):
-                index  = i
+                index = i
                 break
         if index != -1:
-            path_obj['requestBody'] = {'$ref' : parameters[index]['$ref']}
+            path_obj['requestBody'] = {'$ref': parameters[index]['$ref']}
             del parameters[index]
-   
+
 
 class HttpErrorMap:
     """
         Builds  error_map which maps vapi errors to http status codes.
     """
+
     def __init__(self, component_svc):
         self.component_svc = component_svc
         self.error_api_map = {}
         self.error_rest_map = {'com.vmware.vapi.std.errors.already_exists': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.internal_server_error': http_client.INTERNAL_SERVER_ERROR,
-                     'com.vmware.vapi.std.errors.invalid_argument': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.invalid_element_configuration': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
-                     'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
-                     'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
-                     'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
-                     'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
-                     'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
-                     'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.canceled': http_client.BAD_REQUEST,
-                     'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
+                               'com.vmware.vapi.std.errors.already_in_desired_state': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.feature_in_use': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.internal_server_error': http_client.INTERNAL_SERVER_ERROR,
+                               'com.vmware.vapi.std.errors.invalid_argument': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.invalid_element_configuration': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.invalid_element_type': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.invalid_request': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.not_found': http_client.NOT_FOUND,
+                               'com.vmware.vapi.std.errors.operation_not_found': http_client.NOT_FOUND,
+                               'com.vmware.vapi.std.errors.not_allowed_in_current_state': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.resource_busy': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.resource_in_use': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.resource_inaccessible': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.service_unavailable': http_client.SERVICE_UNAVAILABLE,
+                               'com.vmware.vapi.std.errors.timed_out': http_client.GATEWAY_TIMEOUT,
+                               'com.vmware.vapi.std.errors.unable_to_allocate_resource': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.unauthenticated': http_client.UNAUTHORIZED,
+                               'com.vmware.vapi.std.errors.unauthorized': http_client.FORBIDDEN,
+                               'com.vmware.vapi.std.errors.unexpected_input': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.unsupported': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.error': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.concurrent_change': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.canceled': http_client.BAD_REQUEST,
+                               'com.vmware.vapi.std.errors.unverified_peer': http_client.BAD_REQUEST}
 
         structures = self.component_svc.get('com.vmware.vapi').info.packages['com.vmware.vapi.std.errors'].structures
         for structure in structures:

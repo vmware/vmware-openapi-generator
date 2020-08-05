@@ -27,7 +27,7 @@ class RestMetadataProcessor(MetadataProcessor):
             rest_navigation_handler,
             show_unreleased_apis,
             spec,
-            auth_navigator,
+            auth_navigator=None,
             deprecation_handler=None):
 
         print('processing package ' + package_name + os.linesep)
@@ -63,9 +63,11 @@ class RestMetadataProcessor(MetadataProcessor):
                             operation_id,
                             http_error_map,
                             show_unreleased_apis)
-                        scheme_set = auth_navigator.find_schemes_set(operation_id, service_name, package_name)
-                        if scheme_set is not None and len(scheme_set) != 0:
-                            swagg.decorate_path_with_security(path, scheme_set)
+
+                        if auth_navigator is not None:
+                            scheme_set = auth_navigator.find_schemes_set(operation_id, service_name, package_name)
+                            if scheme_set is not None and len(scheme_set) != 0:
+                                swagg.decorate_path_with_security(path, scheme_set)
 
                     if spec == '3':
                         path = openapi.get_path(
@@ -128,9 +130,12 @@ class RestMetadataProcessor(MetadataProcessor):
                         operation_id,
                         http_error_map,
                         show_unreleased_apis)
-                    scheme_set = auth_navigator.find_schemes_set(operation_id, service_name, package_name)
-                    if scheme_set is not None and len(scheme_set) != 0:
-                        swagg.decorate_path_with_security(path, scheme_set)
+
+                    if auth_navigator is not None:
+                        scheme_set = auth_navigator.find_schemes_set(operation_id, service_name, package_name)
+                        if scheme_set is not None and len(scheme_set) != 0:
+                            swagg.decorate_path_with_security(path, scheme_set)
+
                 if spec == '3':
                     path = openapi.get_path(
                         operation_info,

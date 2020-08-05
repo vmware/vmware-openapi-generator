@@ -19,85 +19,99 @@ class TestInputs(unittest.TestCase):
         test_args = ['vmsgen', '-vc', 'v_url']
         ssl_verify_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, ssl_verify_actual, _, _, _, _, _, _, = connection.get_input_params()
+            _, _, _, ssl_verify_actual, _, _, _, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(ssl_verify_expected, ssl_verify_actual)
 
         # case 1.2: SSL is insecure
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         ssl_verify_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, ssl_verify_actual, _, _, _, _, _, _, = connection.get_input_params()
+            _, _, _, ssl_verify_actual, _, _, _, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(ssl_verify_expected, ssl_verify_actual)
 
         # case 2.1: tag separator option (default)
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         tag_separator_expected = '/'
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, tag_separator_actual, _, = connection.get_input_params()
+            _, _, _, _, _, _, _, _, tag_separator_actual, _, _, _, = connection.get_input_params()
         self.assertEqual(tag_separator_expected, tag_separator_actual)
 
         # case 2.2: tag separator option
         expected = '_'
         test_args = ['vmsgen', '-vc', 'v_url', '-s', expected]
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, tag_separator_actual, _, = connection.get_input_params()
+            _, _, _, _, _, _, _, _, tag_separator_actual, _, _, _, = connection.get_input_params()
         self.assertEqual(expected, tag_separator_actual)
 
         # case 3.1: operation id option is FALSE
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         generate_op_id_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, generate_op_id_actual, _, _, = connection.get_input_params()
+            _, _, _, _, _, _, _, generate_op_id_actual, _, _, _, _, = connection.get_input_params()
         self.assertEqual(generate_op_id_expected, generate_op_id_actual)
 
         # case 3.1: operation id option is TRUE
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '-uo']
         generate_op_id_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, generate_op_id_actual, _, _, = connection.get_input_params()
+            _, _, _, _, _, _, _, generate_op_id_actual, _, _, _, _, = connection.get_input_params()
         self.assertEqual(generate_op_id_expected, generate_op_id_actual)
 
         # case 4.1: generate metamodel option is FALSE
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         generate_metamodel_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, generate_metamodel_actual, _, _, _, _, = connection.get_input_params()
+            _, _, _, _, _, generate_metamodel_actual, _, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(generate_metamodel_expected, generate_metamodel_actual)
 
         # case 4.1: generate metamodel option is TRUE
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '-c']
         generate_metamodel_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, generate_metamodel_actual, _, _, _, _, = connection.get_input_params()
+            _, _, _, _, _, generate_metamodel_actual, _, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(generate_metamodel_expected, generate_metamodel_actual)
         
         # case 5.1: swagger specification is default i.e openAPI 3.0
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         swagger_specification_expected = '3'
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, swagger_specification_actual, _, _, _, = connection.get_input_params()
+            _, _, _, _, _, _, swagger_specification_actual, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(swagger_specification_expected, swagger_specification_actual)
 
         # case 5.2: swagger specification is swagger 2.0
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '-oas' , '2']
         swagger_specification_expected = '2'
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, swagger_specification_actual, _, _, _, = connection.get_input_params()
+            _, _, _, _, _, _, swagger_specification_actual, _, _, _, _, _, = connection.get_input_params()
         self.assertEqual(swagger_specification_expected, swagger_specification_actual)
 
         # case 6.1: deprecated option is TRUE
         test_args = ['vmsgen', '-vc', 'v_url', '-k', '--deprecate-slash-rest']
         deprecated_expected = True
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, _, deprecated_actual = connection.get_input_params()
+            _, _, _, _, _, _, _, _, _, deprecated_actual, _, _, = connection.get_input_params()
         self.assertEqual(deprecated_expected, deprecated_actual)
 
-        # case 6.1: deprecated option is FALSE
+        # case 6.2: deprecated option is FALSE
         test_args = ['vmsgen', '-vc', 'v_url', '-k']
         deprecated_expected = False
         with mock.patch('sys.argv', test_args):
-            _, _, _, _, _, _, _, _, _, deprecated_actual = connection.get_input_params()
+            _, _, _, _, _, _, _, _, _, deprecated_actual, _, _, = connection.get_input_params()
         self.assertEqual(deprecated_expected, deprecated_actual)
+
+        # case 7: fetch security
+        test_args = ['vmsgen', '-vc',  'v_url', '-k', '-fam']
+        with mock.patch('sys.argv', test_args):
+            _, _, _, _, _, _, _, _, _, _, fetch_security, _, = connection.get_input_params()
+        self.assertEqual(True, fetch_security)
+
+        # case 8: auto rest services
+        test_args = ['vmsgen', '-vc',  'v_url', '-k', '-ars', 'com.vmware.vcenter.ovf.import_flag',
+                     'com.vmware.content.library.item.storage']
+        with mock.patch('sys.argv', test_args):
+            _, _, _, _, _, _, _, _, _, _, _, auto_rest_services = connection.get_input_params()
+        self.assertEqual(['com.vmware.vcenter.ovf.import_flag', 'com.vmware.content.library.item.storage'],
+                         auto_rest_services)
 
 
 class TestDictionaryProcessing(unittest.TestCase):
@@ -124,6 +138,8 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual(service_url_expected, service_url_actual)
     
     def test_get_paths_inside_metamodel(self):
+        auto_rest_services = ['com.vmware.vcenter.iso.image']
+
         #case 1: https methods ('put', 'post', 'patch', 'get', 'delete') not in metadata.keys
         operation_info_mock = mock.Mock()
         operation_info_mock.metadata = { 
@@ -150,7 +166,9 @@ class TestDictionaryProcessing(unittest.TestCase):
             }
         '''
         path_list_expected = []
-        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
+                                                                                           service_dict,
+                                                                                           auto_rest_services)
         self.assertEqual(ServiceType.SLASH_REST, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
@@ -186,7 +204,9 @@ class TestDictionaryProcessing(unittest.TestCase):
             }
         '''
         path_list_expected = ['mock_string_value']
-        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict)
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
+                                                                                           service_dict,
+                                                                                           auto_rest_services)
         self.assertEqual(ServiceType.SLASH_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
@@ -222,7 +242,10 @@ class TestDictionaryProcessing(unittest.TestCase):
             }
         '''
         path_list_expected = ['mock_string_value']
-        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True)
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
+                                                                                           service_dict,
+                                                                                           auto_rest_services,
+                                                                                           True)
         self.assertEqual(ServiceType.SLASH_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
 
@@ -263,15 +286,18 @@ class TestDictionaryProcessing(unittest.TestCase):
         path_list_expected = ['mock_string_value']
         replacement_dict_expected = {service: {"mock-key-1": ("put", "mock_string_value")}}
         replacement_dict_actual = {}
-        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service, service_dict, True, replacement_dict_actual)
+        service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
+                                                                                           service_dict,
+                                                                                           auto_rest_services,
+                                                                                           True,
+                                                                                           replacement_dict_actual)
         self.assertEqual(ServiceType.SLASH_REST_AND_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
         self.assertEqual(replacement_dict_expected, replacement_dict_actual)
 
         # case 3.2: https methods ('put', 'post', 'patch', 'get', 'delete') in metadata.keys with deprecated applied
-        # and apparent in navigation service
+        # and apparent in Auto Rest
         rest_navigation_handler = RestNavigationHandler("")
-        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
         element_value_mock = mock.Mock()
         element_value_mock.string_value = 'mock_string_value'
         element_info_mock = mock.Mock()
@@ -284,14 +310,14 @@ class TestDictionaryProcessing(unittest.TestCase):
         service_info_mock.operations = {
             'mock-key-1': operation_info_mock
         }
-        service = 'com.vmware.package-mock-1.mock.mock'
+        service = 'com.vmware.vcenter.iso.image'
         service_dict = {
-            'com.vmware.package-mock-1.mock.mock': service_info_mock
+            service: service_info_mock
         }
         '''
         Structure of key-value pair in service_dict
         service_dict = {
-            'com.vmware.package-mock-1.mock.mock':  
+            'com.vmware.vcenter.iso.image':  
                 ServiceInfo(
                 operations = {
                     'mock-key-1': OperationInfo(metadata = {
@@ -307,21 +333,21 @@ class TestDictionaryProcessing(unittest.TestCase):
         replacement_dict_actual = {}
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
                                                                                            service_dict,
+                                                                                           auto_rest_services,
                                                                                            True,
-                                                                                           replacement_dict_actual,
-                                                                                           "sample_service_url",
-                                                                                           rest_navigation_handler)
+                                                                                           replacement_dict_actual)
         self.assertEqual(ServiceType.SLASH_REST_AND_API, service_type_actual)
         self.assertEqual(path_list_expected, path_list_actual)
         self.assertEqual(replacement_dict_expected, replacement_dict_actual)
 
 
     def test_add_service_urls_using_metamodel(self):
+        auto_rest_services = ['com.vmware.vcenter.iso.image']
+
         # case 1: /api operation only
         service_urls_map = {'https://vcip/rest/com/vmware/package/mock' : 'com.vmware.package.mock'}
         rest_navigation_url = 'https://vcip/rest'
         rest_navigation_handler = RestNavigationHandler(rest_navigation_url)
-        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value=None)
         element_value_mock = mock.Mock()
         element_value_mock.string_value = '/package/mock'
         element_info_mock = mock.Mock()
@@ -344,7 +370,8 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_api_actual, \
         package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                       service_dict,
-                                                                                      rest_navigation_handler)
+                                                                                      rest_navigation_handler,
+                                                                                      auto_rest_services)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
         self.assertEqual({}, package_dict_actual)
 
@@ -353,18 +380,32 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                       service_dict,
                                                                                       rest_navigation_handler,
+                                                                                      auto_rest_services,
                                                                                       True)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
         self.assertEqual({}, package_dict_actual)
 
-        # case 2: /api operation and /rest equivalent (RestNavigation)
-        # Rest navigation returns not None
+        # case 2: /api operation and /rest equivalent
+        # Service is not apparent in auto_rest_services
         rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
+        package_dict_api_actual, \
+        package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                      service_dict,
+                                                                                      rest_navigation_handler,
+                                                                                      auto_rest_services)
+
+        # Service is apparent in auto_rest_services
+        service_urls_map = {'https://vcip/rest/com/vmware/package/mock': 'com.vmware.vcenter.iso.image'}
+        service_dict = {
+            'com.vmware.vcenter.iso.image': service_info_mock
+        }
+
         # case 2.1: --deprecate-slash-rest off
         package_dict_api_actual, \
         package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                       service_dict,
-                                                                                      rest_navigation_handler)
+                                                                                      rest_navigation_handler,
+                                                                                      auto_rest_services)
         package_dict_expected = {'package': ['/com/vmware/package/mock']}
         self.assertEqual({}, package_dict_api_actual)
         self.assertEqual(package_dict_expected, package_dict_actual)
@@ -375,6 +416,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                               service_dict,
                                                                                               rest_navigation_handler,
+                                                                                              auto_rest_services,
                                                                                               True)
         package_dict_expected = {'package': ['/com/vmware/package/mock']}
         package_dict_api_expected = {'package': ['/package/mock']}
@@ -384,6 +426,9 @@ class TestDictionaryProcessing(unittest.TestCase):
 
         # case 3: /rest operation only
         service_urls_map = {'https://vcip/rest/vmware/com/package/mock': 'com.vmware.package.mock'}
+        service_dict = {
+            'com.vmware.package.mock': service_info_mock
+        }
         element_value_mock.string_value = 'mock_string_value'
         operation_info_mock.metadata = {
             'mock_element_key': element_info_mock
@@ -392,12 +437,14 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
         _, package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                          service_dict,
-                                                                                         rest_navigation_handler)
+                                                                                         rest_navigation_handler,
+                                                                                         auto_rest_services)
         # case 3.2: --deprecate-slash-rest on
         self.assertEqual(package_dict_expected, package_dict_actual)
         _, package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                          service_dict,
                                                                                          rest_navigation_handler,
+                                                                                         auto_rest_services,
                                                                                          True)
         self.assertEqual(package_dict_expected, package_dict_actual)
 
@@ -414,7 +461,8 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_actual, \
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                               service_dict,
-                                                                                              rest_navigation_handler)
+                                                                                              rest_navigation_handler,
+                                                                                              auto_rest_services)
 
         self.assertEqual({}, package_dict_deprecated_actual)
         self.assertEqual({}, package_dict_api_actual)
@@ -428,6 +476,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                               service_dict,
                                                                                               rest_navigation_handler,
+                                                                                              auto_rest_services,
                                                                                               True)
 
         self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
@@ -446,7 +495,8 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_actual, \
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                               service_dict,
-                                                                                              rest_navigation_handler)
+                                                                                              rest_navigation_handler,
+                                                                                              auto_rest_services)
         package_dict_expected = {'package': ['/vmware/com/package/mock']}
         self.assertEqual(package_dict_expected, package_dict_actual)
 
@@ -458,6 +508,7 @@ class TestDictionaryProcessing(unittest.TestCase):
         package_dict_deprecated_actual, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
                                                                                               service_dict,
                                                                                               rest_navigation_handler,
+                                                                                              auto_rest_services,
                                                                                               True)
         self.assertEqual(package_dict_deprecated_expected, package_dict_deprecated_actual)
         self.assertEqual(package_dict_api_expected, package_dict_api_actual)
