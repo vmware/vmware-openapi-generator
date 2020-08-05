@@ -42,8 +42,7 @@ The description of the input parameters that can go in the run command is as fol
 9. **host**: It is the IP Address of the host that serves the API. By default the value is < vcenter >
 10. **oas** : This parameter is used to specify as to which version of swagger file the user wants to generate. By default the generated files are of version 3 i.e openapi. If the user wants to generate the version 2 files, the parameter needs to be passed explicitly.
 11. **deprecate-slash-rest**: This parameter is used to deprecate the /rest APIs in the generated OpenAPI specification, only when the API to deprecate has an /api counterpart.
-12. **fetch-authentication-metadata**: Authentication information per operation is retrieved via the authentication metadata service, which contributes to the total generation time. This parameter is used to specify whether the authentication information is going to be retrieved. 
-13. **auto-rest-services**: The parameter is used to acquire the 6.0 Auto Rest services. Following the parameter are space separated service IDs.
+12. **fetch-authentication-metadata**: Adds security information in the generated OpenAPI definitions. In order to do that it accesses API authentication metadata, which increases the processing time (~20-30 seconds).
 
 ## Contributing
 

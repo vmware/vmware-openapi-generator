@@ -386,7 +386,15 @@ class TestDictionaryProcessing(unittest.TestCase):
         self.assertEqual({}, package_dict_actual)
 
         # case 2: /api operation and /rest equivalent
-        # Service is apparent in auto rest
+        # Service is not apparent in auto_rest_services
+        rest_navigation_handler.get_service_operations = mock.MagicMock(return_value={})
+        package_dict_api_actual, \
+        package_dict_actual, _, _, = dict_processing.add_service_urls_using_metamodel(service_urls_map,
+                                                                                      service_dict,
+                                                                                      rest_navigation_handler,
+                                                                                      auto_rest_services)
+
+        # Service is apparent in auto_rest_services
         service_urls_map = {'https://vcip/rest/com/vmware/package/mock': 'com.vmware.vcenter.iso.image'}
         service_dict = {
             'com.vmware.vcenter.iso.image': service_info_mock
