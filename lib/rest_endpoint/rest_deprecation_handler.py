@@ -24,7 +24,7 @@ class RestDeprecationHandler:
                 # get concrete path and format accordingly
                 replacement_path = method_path_tuple[1]
                 replacement_path = replacement_path.replace("/", "~1")
-                replacement_path = api_file_name + "#/paths/" + replacement_path + "/" + method_path_tuple[0]
+                replacement_path = api_file_name + "#/paths/~1api" + replacement_path + "/" + method_path_tuple[0]
 
         path_obj["x-vmw-deprecated"] = {"replacement": replacement_path}
 

@@ -300,9 +300,12 @@ class TestDictionaryProcessing(unittest.TestCase):
         rest_navigation_handler = RestNavigationHandler("")
         element_value_mock = mock.Mock()
         element_value_mock.string_value = 'mock_string_value'
+        element_params_value_mock = mock.Mock()
+        element_params_value_mock.list_value = ['action=filter', 'action=cancel']
         element_info_mock = mock.Mock()
         element_info_mock.elements = {
-            'path': element_value_mock
+            'path': element_value_mock,
+            'params': element_params_value_mock
         }
         operation_info_mock.metadata = {
             'put': element_info_mock,
@@ -322,14 +325,17 @@ class TestDictionaryProcessing(unittest.TestCase):
                 operations = {
                     'mock-key-1': OperationInfo(metadata = {
                                         'put' : ElementInfo(elemets = {
-                                            'path' : ElementValue(string_value = 'mock_string_value')
+                                            'path' : ElementValue(string_value = 'mock_string_value'),
+                                            'params'(
+                                                list_value = 'action=cancel'
+                                                )
                                         }))
                     })
                 })
             }
         '''
         path_list_expected = ['mock_string_value']
-        replacement_dict_expected = {service: {"mock-key-1": ("put", "mock_string_value")}}
+        replacement_dict_expected = {service: {"mock-key-1": ("put", "mock_string_value?action=filter&action=cancel")}}
         replacement_dict_actual = {}
         service_type_actual, path_list_actual = dict_processing.get_paths_inside_metamodel(service,
                                                                                            service_dict,
