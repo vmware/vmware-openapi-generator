@@ -68,9 +68,11 @@ class TestApiOpenapiParaHandler(unittest.TestCase):
             'ComVmwarePackageMock-1' : {}
         }
         body_param_list = [self.field_info_mock]
-        parameter_obj_actual = self.api_openapi_parahandler.wrap_body_params('com.vmware.package.mock-1', 'mockOperationName', 
-                                                                        body_param_list, type_dict, self.structure_dict, 
-                                                                        self.enum_dict, False)
+        parameter_obj_actual = self.api_openapi_parahandler.wrap_body_params('com.vmware.package.mock-1',
+                                                                             'mockOperationName', None,
+                                                                             body_param_list, type_dict,
+                                                                             self.structure_dict,
+                                                                             self.enum_dict, False)
         parameter_obj_expected = {'$ref': '#/components/requestBodies/ComVmwarePackageMock-1MockOperationName'}
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
         type_dict_expected = {

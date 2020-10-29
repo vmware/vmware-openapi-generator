@@ -251,9 +251,12 @@ class TestApiMetamodel2Spec(unittest.TestCase):
         ]
         '''
         spec = ApiSwaggerParaHandler()
-        par_array_actual, new_url_actual = self.api_meta2spec.process_put_post_patch_request(self.url, 'com.vmware.package.mock', 
-                                                                                        'mock_operation_name', params, 
-                                                                                        self.type_dict, {}, {}, False, spec)
+        par_array_actual, new_url_actual = self.api_meta2spec.process_put_post_patch_request(self.url,
+                                                                                             'com.vmware.package.mock',
+                                                                                             'mock_operation_name',
+                                                                                             params, None,
+                                                                                             self.type_dict, {}, {},
+                                                                                             False, spec)
         par_array_expected = [{
             'required': True,
             'in': 'path',
@@ -288,9 +291,12 @@ class TestApiMetamodel2Spec(unittest.TestCase):
         # case 2: create parameter array using field information of parameters for
         # put, post, patch operations in openAPI 3.0
         spec  = ApiOpenapiParaHandler()
-        par_array_actual, new_url_actual = self.api_meta2spec.process_put_post_patch_request(self.url, 'com.vmware.package.mock', 
-                                                                                        'mock_operation_name', params, 
-                                                                                        self.type_dict, {}, {}, False, spec)
+        par_array_actual, new_url_actual = self.api_meta2spec.process_put_post_patch_request(self.url,
+                                                                                             'com.vmware.package.mock',
+                                                                                             'mock_operation_name',
+                                                                                             params, None,
+                                                                                             self.type_dict, {}, {},
+                                                                                             False, spec)
         par_array_expected = [{
             'required': True,
             'in': 'path',

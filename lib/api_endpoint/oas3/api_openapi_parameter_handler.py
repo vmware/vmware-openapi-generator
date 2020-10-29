@@ -60,6 +60,7 @@ class ApiOpenapiParaHandler():
             self,
             service_name,
             operation_name,
+            content_type,
             body_param_list,
             type_dict,
             structure_svc,
@@ -74,6 +75,8 @@ class ApiOpenapiParaHandler():
         'spec' : {spec obj representation  }
         }
         """
+        # todo:
+        # form-url-encoded support; not utilized content_type
         # todo:
         # not unique enough. make it unique
         wrapper_name = utils.get_str_camel_case(service_name + '_' + operation_name, *utils.CAMELCASE_SEPARATOR_LIST)
