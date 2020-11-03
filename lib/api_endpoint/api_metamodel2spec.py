@@ -27,6 +27,7 @@ class ApiMetamodel2Spec():
             service_name,
             operation_name,
             params_metadata,
+            content_type,
             type_dict,
             structure_svc,
             enum_svc,
@@ -38,6 +39,7 @@ class ApiMetamodel2Spec():
                 service_name,
                 operation_name,
                 params_metadata,
+                content_type,
                 type_dict,
                 structure_svc,
                 enum_svc,
@@ -68,6 +70,7 @@ class ApiMetamodel2Spec():
             service_name,
             operation_name,
             params,
+            content_type,
             type_dict,
             structure_svc,
             enum_svc,
@@ -94,13 +97,17 @@ class ApiMetamodel2Spec():
             parx = spec.wrap_body_params(
                 service_name,
                 operation_name,
+                content_type,
                 body_param_list,
                 type_dict,
                 structure_svc,
                 enum_svc,
                 show_unreleased_apis)
             if parx is not None:
-                par_array.append(parx)
+                if isinstance(parx, list):
+                    par_array.extend(parx)
+                else:
+                    par_array.append(parx)
 
         # Query
         query_param_list, other_param_list = utils.extract_query_parameters(

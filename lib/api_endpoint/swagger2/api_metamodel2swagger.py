@@ -25,12 +25,15 @@ class ApiMetamodel2Swagger(ApiMetamodel2Spec):
             show_unreleased_apis):
         documentation = operation_info.documentation
         op_metadata = operation_info.metadata
+        method_info = op_metadata[http_method]
+        content_type = method_info.elements["consumes"].string_value if "consumes" in method_info.elements else None
+
         params = operation_info.params
         errors = operation_info.errors
         output = operation_info.output
         http_method = http_method.lower()
         par_array, url = self.handle_request_mapping(url, http_method, service_name,
-                                                     operation_id, params, type_dict,
+                                                     operation_id, params, content_type, type_dict,
                                                      structure_dict, enum_dict, show_unreleased_apis, api_swagg_ph)
         response_map = api_swagg_rh.populate_response_map(
             output,
@@ -44,6 +47,9 @@ class ApiMetamodel2Swagger(ApiMetamodel2Spec):
             op_metadata,
             show_unreleased_apis)
 
+        consumes = None
+        if content_type == 'FORM_URLENCODED':
+            consumes = ["application/x-www-form-urlencoded"]
         path_obj = utils.build_path(
             service_name,
             http_method,
@@ -51,7 +57,8 @@ class ApiMetamodel2Swagger(ApiMetamodel2Spec):
             documentation,
             par_array,
             operation_id=operation_id,
-            responses=response_map)
+            responses=response_map,
+            consumes=consumes)
         self.post_process_path(path_obj)
         path = utils.add_basic_auth(path_obj)
         return path

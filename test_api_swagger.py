@@ -57,15 +57,17 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
 
     def test_wrap_body_params(self):
-        # validate parameter object by creating json wrappers around body object 
+        # validate parameter object by creating json wrappers around body object
         type_dict = {
             'com.vmware.package.mock': {},
             'ComVmwarePackageMock': {}
         }
         body_param_list = [self.field_info_mock]
-        parameter_obj_actual = self.api_swagger_parahandler.wrap_body_params('com.vmware.package.mock', 'mockOperationName', 
-                                                                           body_param_list, type_dict, self.structure_dict, 
-                                                                           self.enum_dict, False)         
+        parameter_obj_actual = self.api_swagger_parahandler.wrap_body_params('com.vmware.package.mock',
+                                                                             'mockOperationName', None,
+                                                                             body_param_list, type_dict,
+                                                                             self.structure_dict,
+                                                                             self.enum_dict, False)
         parameter_obj_expected = {
             'in': 'body',
             'name': 'request_body',
@@ -80,9 +82,11 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
         metadata_mock.elements = {"name": element_value_mock}
 
         self.field_info_mock.metadata = {"BodyField": metadata_mock}
-        parameter_obj_actual = self.api_swagger_parahandler.wrap_body_params('com.vmware.package.mock', 'mockOperationName',
-                                                                           body_param_list, type_dict, self.structure_dict,
-                                                                           self.enum_dict, False)
+        parameter_obj_actual = self.api_swagger_parahandler.wrap_body_params('com.vmware.package.mock',
+                                                                             'mockOperationName', None,
+                                                                             body_param_list, type_dict,
+                                                                             self.structure_dict,
+                                                                             self.enum_dict, False)
         parameter_obj_expected = {
             'in': 'body',
             'name': 'request_body',
@@ -90,7 +94,36 @@ class TestApiSwaggerParaHandler(unittest.TestCase):
             'schema': {'$ref': '#/definitions/ComVmwarePackageMockMockOperationName'}
         }
         self.assertEqual(parameter_obj_expected, parameter_obj_actual)
-    
+
+    def test_wrap_form_data_params(self):
+        # validate parameter object by creating json wrappers around body object
+        type_dict = {
+            'ComVmwarePackageMockWrapper': {
+                "$ref": "#/definitions/ComVmwarePackageMock"
+            },
+            'ComVmwarePackageMock': {
+                "type": "string",
+                "properties": {
+                    "param_name": {
+                        "description": "my test name",
+                        "type": "string"
+                    }},
+                "required": [
+                    "param_name"
+                ]
+            }}
+        parameter_obj_actual = self.api_swagger_parahandler.wrap_form_data_params(type_dict,
+                                                                                  "ComVmwarePackageMockWrapper")
+        parameter_obj_expected = [{
+            'in': 'formData',
+            'name': 'param_name',
+            "description": "my test name",
+            "type": "string",
+            "required": "true"
+        }]
+
+        self.assertEqual(parameter_obj_expected, parameter_obj_actual)
+
     def test_flatten_query_param_spec(self):
         # case 1: parameter object takes reference from type_dict key
         # case 1.1: type dict reference value contains properties

@@ -53,6 +53,7 @@ class ApiSwaggerParaHandler():
             self,
             service_name,
             operation_name,
+            content_type,
             body_param_list,
             type_dict,
             structure_svc,
@@ -105,9 +106,28 @@ class ApiSwaggerParaHandler():
 
         type_dict[wrapper_name] = body_obj
 
+        if content_type == 'FORM_URLENCODED':
+            return self.wrap_form_data_params(type_dict, wrapper_name)
+
         schema_obj = {'$ref': ref_path + wrapper_name}
         parameter_obj['schema'] = schema_obj
         return parameter_obj
+
+    def wrap_form_data_params(self, type_dict, wrapper_name):
+        parameter_list = []
+        definition = type_dict[wrapper_name]
+        if "properties" in definition:
+            for property_name, property_value in definition["properties"].items():
+                formDataEntry = {"in": "formData",
+                                 "name": property_name}
+                formDataEntry.update({k: v for k, v in property_value.items() if k in ['type', 'description']})
+                if "required" in definition and property_name in definition["required"]:
+                    formDataEntry["required"] = "true";
+                parameter_list.append(formDataEntry)
+        elif "$ref" in definition:
+            reference = definition["$ref"].replace("#/definitions/", "")
+            return self.wrap_form_data_params(type_dict, reference)
+        return parameter_list
 
     def flatten_query_param_spec(
             self,
