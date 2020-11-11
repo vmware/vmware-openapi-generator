@@ -91,7 +91,7 @@ def get_input_params():
         dest='fetch_auth_metadata',
         help='retrieves authentication information from the authentication metadata service')
     parser.add_argument(
-        '-ars'
+        '-ars',
         '--auto-rest-services',
         nargs='+',
         default=[],

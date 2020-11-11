@@ -209,7 +209,12 @@ def get_paths_inside_metamodel(service,
                     is_rest_navigation_checked = True
 
                 if has_rest_counterpart:
-                    add_replacement_path(service, operation_id, request.lower(), path, replacement_dict)
+                    url = path
+                    if 'params' in service_dict[service].operations[operation_id].metadata[request].elements:
+                        element_value = service_dict[service].operations[operation_id].metadata[request].elements['params']
+                        params = "&".join(element_value.list_value)
+                        url = path + '?' + params
+                    add_replacement_path(service, operation_id, request.lower(), url, replacement_dict)
 
                 if not has_rest_counterpart or deprecate_rest or blacklist_utils.is_blacklisted_for_rest(service):
                     path_list.add(path)
