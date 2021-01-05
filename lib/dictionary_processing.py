@@ -134,6 +134,9 @@ def add_service_urls_using_metamodel(
             for path in path_list:
                 service_urls_map[path] = (service, '/api')
                 package_name = path.split('/')[1]
+                # special handling for /api/sesion
+                if package_name == 'session':
+                    package_name = 'cis'
                 pack_arr = package_dict_api.get(package_name, [])
                 if pack_arr == []:
                     package_dict_api[package_name] = pack_arr
@@ -210,10 +213,13 @@ def get_paths_inside_metamodel(service,
 
                 if has_rest_counterpart:
                     url = path
-                    if 'params' in service_dict[service].operations[operation_id].metadata[request].elements:
-                        element_value = service_dict[service].operations[operation_id].metadata[request].elements['params']
+                    elems = service_dict[service].operations[operation_id].metadata[request].elements
+                    if 'params' in elems:
+                        element_value = elems['params']
                         params = "&".join(element_value.list_value)
                         url = path + '?' + params
+                    if operation_id.endswith('$task'):
+                        url = utils.add_query_param(url, 'vmw-task=true')
                     add_replacement_path(service, operation_id, request.lower(), url, replacement_dict)
 
                 if not has_rest_counterpart or deprecate_rest or blacklist_utils.is_blacklisted_for_rest(service):

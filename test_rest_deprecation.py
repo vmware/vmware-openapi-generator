@@ -21,7 +21,7 @@ class TestRestDeprecationHandler(unittest.TestCase):
         self.rest_deprecation_handler.add_deprecation_information(path_obj, self.sample_package, self.sample_service)
 
         self.assertEqual(path_obj['deprecated'], True)
-        self.assertEqual(path_obj["x-vmw-deprecated"]["replacement"], "api_vcenter.json#/paths/~1api~1rest~1vcenter~1vm/get")
+        self.assertEqual(path_obj["x-vmw-deprecated"]["replacement"], "vcenter.json#/paths/~1api~1rest~1vcenter~1vm/get")
 
 
 if __name__ == '__main__':

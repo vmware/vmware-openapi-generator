@@ -5,6 +5,7 @@ import os
 from lib import utils
 from lib.metadata_processor import MetadataProcessor
 from .oas3.rest_metamodel2openapi import RestMetamodel2Openapi
+from .rest_deprecation_handler import RestDeprecationHandler
 from .swagger2.rest_metamodel2swagger import RestMetamodel2Swagger
 
 swagg = RestMetamodel2Swagger()
@@ -82,8 +83,11 @@ class RestMetadataProcessor(MetadataProcessor):
                             http_error_map,
                             show_unreleased_apis)
 
-                    if deprecation_handler is not None and service_end_point == "/deprecated":
-                        deprecation_handler.add_deprecation_information(path, package_name, service_name)
+                    if deprecation_handler is not None:
+                        if operation_id == 'exchange' and service_name == 'com.vmware.vcenter.tokenservice.token_exchange':
+                            RestDeprecationHandler.add_deprecation_information_raw(path, package_name, 'post', '/vcenter/authentication/token')
+                        elif service_end_point == "/deprecated":
+                            deprecation_handler.add_deprecation_information(path, package_name, service_name)
                     path_list.append(path)
                 continue
             # use rest navigation service to get the REST mappings for a
