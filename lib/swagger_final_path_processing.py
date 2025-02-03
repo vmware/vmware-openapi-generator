@@ -44,7 +44,7 @@ class SwaggerPathProcessing(PathProcessing):
                 'basic_auth': {
                     'type': 'basic'
                 }},
-            'basePath': '',
+            'basePath': '/',
             'produces': [
                 'application/json'
             ],

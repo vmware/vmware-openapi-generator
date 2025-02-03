@@ -122,7 +122,7 @@ class ApiSwaggerParaHandler():
                                  "name": property_name}
                 formDataEntry.update({k: v for k, v in property_value.items() if k in ['type', 'description']})
                 if "required" in definition and property_name in definition["required"]:
-                    formDataEntry["required"] = "true";
+                    formDataEntry["required"] = True;
                 parameter_list.append(formDataEntry)
         elif "$ref" in definition:
             reference = definition["$ref"].replace("#/definitions/", "")
